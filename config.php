@@ -1,5 +1,6 @@
 <?php
 
+
 // -- Настройки путей -- //
 $path_xmrig 	= "/home/laptopsr/MINERS/xmrig/xmrig";
 $path_cpuminer	= "/home/laptopsr/MINERS/cpuminer-rplant/cpuminer-sse2";

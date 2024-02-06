@@ -13,15 +13,6 @@ if (!function_exists('str_contains')) {
 }
 
 // ------ //
-/*
-Xeggex
-API-ключ:
-0176e6c905bb7b8e4896807be66f2afd
-
-API Secret:
-8a2b876c1766b291e649741b0747dc93a5ff50116be5c3dc
-*/
-
 include "config.php";
 
 // -- Дальше идет код программы -- //
