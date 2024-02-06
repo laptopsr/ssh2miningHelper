@@ -309,7 +309,7 @@ $(document).ready(function(){
         $("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-warning text-white');
     }
 
-	$(".coin").click(function(){
+	$(document).delegate(".coin", "click",function(){
 		$( ".coin" ).removeClass('btn-warning text-white').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-warning text-white');
 		

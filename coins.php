@@ -30,10 +30,10 @@ exit;
 $bd = '
 <table class="table">
 <tr>
-	<th>Price $</th>
+	<th>Price</th>
 	<th>Diff</th>
-	<th>Reward</th>
-	<th>Profit</th>
+	<th>Rew.</th>
+	<th>Pr.</th>
 	<th></th>
 </tr>';
 
@@ -56,12 +56,13 @@ foreach($coins as $coin)
 	echo '</pre>';
 	*/
 
-	$diff 	= round(($rplantData[$coin['coin']]['difficulty']??'0'), 4);
-	$reward = round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 4);
+	$usdvalue 	= ($response['usdValue']??'0');
+	$diff 		= round(($rplantData[$coin['coin']]['difficulty']??'0'), 4);
+	$reward 	= round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 4);
 
 	$bd .= '
 	<tr>
-		<td>'.($response['usdValue']??'0').'</td>
+		<td>'.$usdvalue.'</td>
 		<td>'.$diff.'</td>
 		<td>'.$reward.'</td>
 		<td>'.round(($diff/$reward), 2).'</td>

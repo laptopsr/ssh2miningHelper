@@ -52,18 +52,26 @@ exit;
 */
 // ------ //
 
+// Функция для сравнения значений по ключу [4] в обратном порядке
+function compareByTimeDesc($a, $b) {
+    return $b[0][4] - $a[0][4];
+}
+
+// Сортировка массива по времени в обратном порядке
+usort($pendingDataBlocks, 'compareByTimeDesc');
+
 $bd = '<table class="table table-striped">';
-foreach($pendingDataBlocks as $k => $varr)
+foreach($pendingDataBlocks as $kk => $varr)
 {
-	foreach($varr as $v)
+	foreach($varr as $k => $v)
 	{
-		$bd .= '
-		<tr>
-			<td>'.$k.'</td>
-			<td>'.date("d.m.Y H:i", $v[4]).'</td>
-			<td>'.round($v[7]).'</td>
-			<td>'.$v[8].'%</td>
-		</tr>';
+			$bd .= '
+			<tr>
+				<td>'.$v[3].'</td>
+				<td>'.date("d.m.Y H:i", $v[4]).'</td>
+				<td>'.round($v[7]).'</td>
+				<td>'.$v[8].'%</td>
+			</tr>';
 	}
 }
 $bd .= '</table>';
