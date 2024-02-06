@@ -11,7 +11,26 @@ if (!function_exists('str_contains')) {
         return '' === $needle || false !== strpos($haystack, $needle);
     }
 }
+// ------ //
+//$url = 'https://api.xeggex.com/api/v2/asset/getbyticker/' . $coin['coin'];
+$url = 'https://pool.rplant.xyz/api/currencies';
 
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+  'accept: application/json'
+));
+
+$rplantData = json_decode(curl_exec($ch), true);
+curl_close($ch);
+/*
+echo '<pre>';
+print_r($rplantData);
+echo '</pre>';
+exit;
+*/
 // ------ //
 include "config.php";
 
@@ -265,6 +284,7 @@ body{
 				<table class="table">
 				<tr>
 					<th>Price $</th>
+					<th>Diff</th>
 					<th>Reward</th>
 					<th>Start</th>
 				</tr>
@@ -291,7 +311,8 @@ body{
 					echo '
 					<tr>
 						<td>'.($response['usdValue']??'0').'</td>
-						<td>'.round((($response['usdValue']??'1') * $coin['reward']), 3).'</td>
+						<td>'.($rplantData[$coin['coin']]['difficulty']??'0').'</td>
+						<td>'.round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 3).'</td>
 						<td>
 							<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" theads="'.$coin['theads'].'">'.$coin['coin'].'</button>
 						</td>
