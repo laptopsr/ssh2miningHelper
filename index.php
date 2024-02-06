@@ -14,28 +14,6 @@ include "config.php";
 
 // ------ //
 
-//$url = 'https://api.xeggex.com/api/v2/asset/getbyticker/' . $coin['coin'];
-$url = 'https://pool.rplant.xyz/api/currencies';
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-  'accept: application/json'
-));
-
-$rplantData = json_decode(curl_exec($ch), true);
-curl_close($ch);
-/*
-echo '<pre>';
-print_r($rplantData);
-echo '</pre>';
-exit;
-*/
-
-// ------ //
-
 // -- Дальше идет код программы -- //
 if(isset($_POST['getData']))
 {
@@ -251,7 +229,7 @@ body{
 </style>
 </head>
 <body>
-	<div class="container-fluid" style="margin-top: 30px">
+	<div class="container-fluid" style="margin-top: 30px;">
 	<center><h2>Mining helpper for xmrig & cpuminer-rplant</h2></center>
 	<br>
 		<div class="row">
@@ -288,45 +266,7 @@ body{
 				</form>
 			</div>
 			<div class="col-md-3">
-				<table class="table">
-				<tr>
-					<th>Price $</th>
-					<th>Diff</th>
-					<th>Reward</th>
-					<th>Start</th>
-				</tr>
-				<?php
-				$i = 0;
-				foreach($coins as $coin)
-				{
-					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_URL, 'https://api.xeggex.com/api/v2/asset/getbyticker/' . $coin['coin']);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-					curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-					  'accept: application/json'
-					));
-
-					$response = json_decode(curl_exec($ch), true);
-					curl_close($ch);
-					/*
-					echo '<pre>';
-					print_r($response);
-					echo '</pre>';
-					*/
-
-					echo '
-					<tr>
-						<td>'.($response['usdValue']??'0').'</td>
-						<td>'.round(($rplantData[$coin['coin']]['difficulty']??'0'), 4).'</td>
-						<td>'.round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 3).'</td>
-						<td>
-							<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" theads="'.$coin['theads'].'">'.$coin['coin'].'</button>
-						</td>
-					</tr>';
-				}
-				?>
-				</table>
+				<div id="allCoins"></div>
 			</div>
 			<div class="col-md-6" style="background: #ededed">
 				<div id="all_computers">
@@ -381,6 +321,28 @@ $(document).ready(function(){
 		$("#lomake input[name='user']").val($(this).attr('user'));
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
 	});
+
+
+	allCoins();
+
+	function allCoins() {
+
+		$.ajax({
+		    url: 'coins.php',
+		    method: 'POST',
+		    data: { getData : true },
+		    success: function(data) {
+		        data = JSON.parse(data);
+				$("#allCoins").html(data);
+		    },
+		    error: function(xhr, status, error) {
+		        console.error('Ошибка при выполнении запроса:', error);
+		    }
+		});
+	}
+
+	setInterval(allCoins, 120000);
+
 
 	pendingBlocks();
 
