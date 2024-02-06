@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -36,51 +34,6 @@ echo '</pre>';
 exit;
 */
 
-// ------ //
-$coins8Symb = [];
-foreach($coins as $coin)
-{
-	$user = $coin['user'];
-
-	$first_four = substr($user, 0, 4);
-	$last_four = substr($user, -4);
-
-	foreach($arr as $v)
-	{
-		$coins8Symb[$first_four.$last_four.'.'.$v['worker']] = $first_four.$last_four;
-	}
-}
-
-// ------ //
-
-$url = 'https://pool.rplant.xyz/api/blocks';
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-  'accept: application/json'
-));
-
-$blocks = json_decode(curl_exec($ch), true);
-curl_close($ch);
-
-$pendingDataBlocks = [];
-foreach($blocks as $k => $v)
-{
-	$expl = explode(":", $v);
-
-	if (isset($coins8Symb[$expl[3]]))
-	{
-		$pendingDataBlocks[$expl[3]][] = $expl;
-	}
-}
-/*
-echo '<pre>';
-print_r($pendingDataBlocks);
-echo '</pre>';
-exit;
-*/
 // ------ //
 
 // -- Дальше идет код программы -- //
@@ -302,20 +255,12 @@ body{
 	<center><h2>Mining helpper for xmrig & cpuminer-rplant</h2></center>
 	<br>
 		<div class="row">
-			<div class="col-md-2" style="background: #ededed">
+			<div class="col-md-3" style="background: #ededed">
 				<center><h2 class="hashrateSum"><span id="hashrateSum">----</span> H/s</h2></center>
 				<hr>
 				<h4>My pending blocks</h4>
-				<div class="alert bg-success text-white">
-				<?php
-				foreach($pendingDataBlocks as $k => $varr)
-				{
-					foreach($varr as $v)
-					{
-						echo $k.': <b>'.$v[8].'%</b><br>';
-					}
-				}
-				?>
+				<div id="my_pending_blocks">
+					<span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span>
 				</div>
 				<hr>
 				<form id="lomake" method="POST">
@@ -373,7 +318,7 @@ body{
 					echo '
 					<tr>
 						<td>'.($response['usdValue']??'0').'</td>
-						<td>'.($rplantData[$coin['coin']]['difficulty']??'0').'</td>
+						<td>'.round(($rplantData[$coin['coin']]['difficulty']??'0'), 4).'</td>
 						<td>'.round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 3).'</td>
 						<td>
 							<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" theads="'.$coin['theads'].'">'.$coin['coin'].'</button>
@@ -383,7 +328,7 @@ body{
 				?>
 				</table>
 			</div>
-			<div class="col-md-7" style="background: #ededed">
+			<div class="col-md-6" style="background: #ededed">
 				<div id="all_computers">
 					<table class="table">
 					<tr>
@@ -436,6 +381,26 @@ $(document).ready(function(){
 		$("#lomake input[name='user']").val($(this).attr('user'));
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
 	});
+
+	pendingBlocks();
+
+	function pendingBlocks() {
+
+		$.ajax({
+		    url: 'pending_blocks.php',
+		    method: 'POST',
+		    data: { getData : true },
+		    success: function(data) {
+		        data = JSON.parse(data);
+				$("#my_pending_blocks").html(data);
+		    },
+		    error: function(xhr, status, error) {
+		        console.error('Ошибка при выполнении запроса:', error);
+		    }
+		});
+	}
+
+	setInterval(pendingBlocks, 120000);
 
 	// Функция для отправки AJAX-запроса
 	function sendAjaxRequest() {
@@ -517,6 +482,6 @@ $(document).ready(function(){
 	}
 
 	// Запуск функции sendAjaxRequest() каждые 10 секунд
-	setInterval(sendAjaxRequest, 30000); // 10000 миллисекунд = 10 секунд
+	setInterval(sendAjaxRequest, 30000);
 });
 </script>
