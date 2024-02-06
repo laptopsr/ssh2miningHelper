@@ -11,7 +11,11 @@ if (!function_exists('str_contains')) {
         return '' === $needle || false !== strpos($haystack, $needle);
     }
 }
+
+include "config.php";
+
 // ------ //
+
 //$url = 'https://api.xeggex.com/api/v2/asset/getbyticker/' . $coin['coin'];
 $url = 'https://pool.rplant.xyz/api/currencies';
 
@@ -31,8 +35,53 @@ print_r($rplantData);
 echo '</pre>';
 exit;
 */
+
 // ------ //
-include "config.php";
+$coins8Symb = [];
+foreach($coins as $coin)
+{
+	$user = $coin['user'];
+
+	$first_four = substr($user, 0, 4);
+	$last_four = substr($user, -4);
+
+	foreach($arr as $v)
+	{
+		$coins8Symb[$first_four.$last_four.'.'.$v['worker']] = $first_four.$last_four;
+	}
+}
+
+// ------ //
+
+$url = 'https://pool.rplant.xyz/api/blocks';
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+  'accept: application/json'
+));
+
+$blocks = json_decode(curl_exec($ch), true);
+curl_close($ch);
+
+$pendingDataBlocks = [];
+foreach($blocks as $k => $v)
+{
+	$expl = explode(":", $v);
+
+	if (isset($coins8Symb[$expl[3]]))
+	{
+		$pendingDataBlocks[$expl[3]][] = $expl;
+	}
+}
+/*
+echo '<pre>';
+print_r($pendingDataBlocks);
+echo '</pre>';
+exit;
+*/
+// ------ //
 
 // -- Дальше идет код программы -- //
 if(isset($_POST['getData']))
@@ -255,6 +304,19 @@ body{
 		<div class="row">
 			<div class="col-md-2" style="background: #ededed">
 				<center><h2 class="hashrateSum"><span id="hashrateSum">----</span> H/s</h2></center>
+				<hr>
+				<h4>My pending blocks</h4>
+				<div class="alert bg-success text-white">
+				<?php
+				foreach($pendingDataBlocks as $k => $varr)
+				{
+					foreach($varr as $v)
+					{
+						echo $k.': <b>'.$v[8].'%</b><br>';
+					}
+				}
+				?>
+				</div>
 				<hr>
 				<form id="lomake" method="POST">
 					<select name="debug" class="form-control">
