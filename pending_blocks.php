@@ -41,7 +41,7 @@ foreach($blocks as $k => $v)
 
 	if (isset($coins8Symb[$expl[3]]))
 	{
-		$pendingDataBlocks[$expl[3]][] = $expl;
+		$pendingDataBlocks[$expl[4]] = $expl;
 	}
 }
 /*
@@ -52,28 +52,19 @@ exit;
 */
 // ------ //
 
-// Функция для сравнения значений по ключу [4] в обратном порядке
-function compareByTimeDesc($a, $b) {
-    return $b[0][4] - $a[0][4];
-}
-
-// Сортировка массива по времени в обратном порядке
-usort($pendingDataBlocks, 'compareByTimeDesc');
-
 $bd = '<table class="table table-striped">';
-foreach($pendingDataBlocks as $kk => $varr)
+
+foreach($pendingDataBlocks as $k => $v)
 {
-	foreach($varr as $k => $v)
-	{
-			$bd .= '
-			<tr>
-				<td>'.$v[3].'</td>
-				<td>'.date("d.m.Y H:i", $v[4]).'</td>
-				<td>'.round($v[7]).'</td>
-				<td>'.$v[8].'%</td>
-			</tr>';
-	}
+	$bd .= '
+	<tr class="tr_block">
+		<td>'.$v[3].'</td>
+		<td class="pvm">'.date("Y-m-d H:i", $v[4]).'</td>
+		<td>'.round($v[6]).'</td>
+		<td>'.$v[8].'%</td>
+	</tr>';
 }
+
 $bd .= '</table>';
 
 echo json_encode($bd);

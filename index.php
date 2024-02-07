@@ -226,6 +226,7 @@ body{
 	color: green;
 	text-align: center;
 }
+
 </style>
 </head>
 <body>
@@ -233,7 +234,7 @@ body{
 	<center><h2>Mining helpper for xmrig & cpuminer-rplant</h2></center>
 	<br>
 		<div class="row">
-			<div class="col-md-3" style="background: #ededed">
+			<div class="col-md-3" style="background: #ddd">
 				<center><h2 class="hashrateSum"><span id="hashrateSum">----</span> H/s</h2></center>
 				<hr>
 				<h4>My pending blocks</h4>
@@ -266,9 +267,13 @@ body{
 				</form>
 			</div>
 			<div class="col-md-3">
+				<select id="systemControl" class="form-control">
+					<option value="auto">AUTO</option>
+					<option value="manual">MANUAL</option>
+				</select>
 				<div id="allCoins"></div>
 			</div>
-			<div class="col-md-6" style="background: #ededed">
+			<div class="col-md-6" style="background: #ddd">
 				<div id="all_computers">
 					<table class="table">
 					<tr>
@@ -304,14 +309,20 @@ body{
 <script>
 $(document).ready(function(){
 
+	var systemControl	= localStorage.getItem('systemControl')??'manual';
     var lastClickedCoin = localStorage.getItem('lastClickedCoin');
-    if (lastClickedCoin) {
-        $("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-warning text-white');
-    }
+
+	$("#systemControl").val(systemControl);
+
+	$(document).delegate("#systemControl", "change",function(){
+		localStorage.setItem('systemControl', $(this, 'option;selected').val());
+		systemControl = $(this, 'option;selected').val();
+	});
 
 	$(document).delegate(".coin", "click",function(){
-		$( ".coin" ).removeClass('btn-warning text-white').addClass('btn-info');
-		$( this ).removeClass('btn-info').addClass('btn-warning text-white');
+	
+		$( ".coin" ).removeClass('btn-success text-white').addClass('btn-info');
+		$( this ).removeClass('btn-info').addClass('btn-success text-white');
 		
 		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		
@@ -320,8 +331,12 @@ $(document).ready(function(){
 		$("#lomake input[name='algo']").val($(this).attr('algo'));
 		$("#lomake input[name='user']").val($(this).attr('user'));
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
-	});
 
+		setTimeout(function() { 
+    		$("#lomake").submit();
+		}, 1000);
+
+	});
 
 	allCoins();
 
@@ -334,11 +349,46 @@ $(document).ready(function(){
 		    success: function(data) {
 		        data = JSON.parse(data);
 				$("#allCoins").html(data);
+
+				if (lastClickedCoin) {
+					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white');
+				}
+
+		        var rows = $(".tr_tb");
+
+		        // Инициализируем переменные для хранения индекса строки с наименьшей сложностью и наибольшей выплатой
+		        var minDiffIndex = -1;
+		        var maxReward = 0;
+
+		        // Находим строку с самой высокой выплатой и наименьшей сложностью
+		        rows.each(function(index) {
+		            var diff = parseFloat($(this).find(".diff").text());
+		            var reward = parseFloat($(this).find(".reward").text());
+
+		            if (minDiffIndex === -1 || (diff < parseFloat(rows.eq(minDiffIndex).find(".diff").text()) && reward > maxReward)) {
+		                minDiffIndex = index;
+		                maxReward = reward;
+		            }
+		        });
+
+		        // Подсвечиваем строку с наибольшей выплатой и наименьшей сложностью
+		        if (minDiffIndex !== -1) {
+		            rows.eq(minDiffIndex).addClass("bg-secondary text-white best");
+		            
+		            // <-- AUTO
+		            if(systemControl == "auto" && !$("#" + lastClickedCoin).closest('tr').hasClass('best'))
+		            {
+		            	rows.eq(minDiffIndex).find('button').click();
+		            }
+		            // AUTO -->
+		        }
+
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
 		    }
 		});
+		
 	}
 
 	setInterval(allCoins, 120000);
@@ -355,6 +405,23 @@ $(document).ready(function(){
 		    success: function(data) {
 		        data = JSON.parse(data);
 				$("#my_pending_blocks").html(data);
+				
+				$('.tr_block').each(function(){
+				    // Получаем значение времени из ячейки с классом pvm
+				    var timeString = $(this).find('.pvm').text();
+				    // Преобразуем строку времени в объект Date
+				    var time = new Date(timeString);
+				    // Получаем текущее время
+				    var currentTime = new Date();
+				    // Разница между текущим временем и временем в ячейке pvm в минутах
+				    var diffMinutes = (currentTime - time) / (1000 * 60);
+
+				    // Если разница меньше 10 минут, добавляем класс highlight
+				    if (diffMinutes <= 10) {
+				        $(this).addClass('bg-success text-white');
+				    }
+				});
+
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
@@ -396,6 +463,12 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] != '')
 					{
 						$("#" + value['id']).find('.session').html(value['session']);
+					}
+
+					if(systemControl == "auto" && value['time'] && value['time'] == 'OFF')
+					{
+						$("#allCoins").find('.best').find('button').click();
+						return false;
 					}
 				});
 		    },
