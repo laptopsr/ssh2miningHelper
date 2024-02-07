@@ -1,0 +1,41 @@
+<?php
+
+// -- Настройки путей -- //
+$path_xmrig 	= "/home/laptopsr/MINERS/xmrig/xmrig";
+$path_cpuminer	= "/home/laptopsr/MINERS/cpuminer-rplant/cpuminer-sse2";
+$path_syslog	= "/var/log/syslog";
+$path_xmriglog 	= "/home/laptopsr/xmrig.log";
+
+// -- Монеты для быстрого перехода -- //
+$coins = [
+	['coin' => 'GPRX', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7031', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'BBC', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7082', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'FSC', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7095', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'MECU', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7094', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'MAXE', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7028', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'NIKI', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7099', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'SKYT', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7084', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'SUBI', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7090', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
+	['coin' => 'SUGAR', 'miner' => 'cpuminer-sse2', 'host' => 'stratum-eu.rplant.xyz:7042', 'algo' => 'yespowersugar', 'user' => 'xxx', 'theads' => 'manual'],
+	['coin' => 'VISH', 'miner' => 'cpuminer-sse2', 'host' => 'stratum-eu.rplant.xyz:7079', 'algo' => 'yespower', 'user' => 'xxx', 'theads' => 'manual'],
+];
+
+// -- Воркеры -- //
+$arr = [
+	['host' => '192.168.1.201', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '201', 'theads' => 5],
+	['host' => '192.168.1.202', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '202', 'theads' => 6],
+	['host' => '192.168.1.203', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '203', 'theads' => 5],
+	['host' => '192.168.1.204', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '204', 'theads' => 12],
+	['host' => '192.168.1.205', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '205', 'theads' => 7],
+	['host' => '192.168.1.207', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '207', 'theads' => 11],
+	['host' => '192.168.1.208', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '208', 'theads' => 11],
+	['host' => '192.168.1.210', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '210', 'theads' => 11],
+	['host' => '192.168.1.211', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '211', 'theads' => 12],
+	['host' => '192.168.1.212', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '212', 'theads' => 12],
+	['host' => '192.168.1.213', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '213', 'theads' => 11],
+	['host' => '192.168.1.214', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '214', 'theads' => 11],
+	['host' => '192.168.1.215', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '215', 'theads' => 11],
+	['host' => '192.168.1.246', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '246', 'theads' => 4],
+];
+
+?>

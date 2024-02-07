@@ -242,6 +242,8 @@ body{
 					<span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span>
 				</div>
 				<hr>
+				<div id="moneyToday"></div>
+				<hr>
 				<form id="lomake" method="POST">
 					<select name="debug" class="form-control">
 						<option value="false">Debug false</option>
@@ -513,6 +515,38 @@ $(document).ready(function(){
 				$( this ).closest('tr').removeClass('bg-danger text-white');
 			}
 
+		});
+
+		$.ajax({
+		    url: 'money.php',
+		    method: 'GET',
+		    data: { day : "<?=date("Y-m-d")?>" },
+		    success: function(data) {
+		        //console.log("money:" + data);
+		        data = JSON.parse(data);
+		        
+		        var usd = 0;
+		        var yht = 0;
+		        var moneyData = "<h4>Profit:</h4><table class=\"table table-striped\">";
+				$.each(data, function(index, value) {
+					$.each(value, function(coin, sum) {
+						if($("#coin_" + coin).closest('tr').find('.price').length > 0)
+						{
+							//console.log(index + ":" + coin + ": " + (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum));
+							usd 		= (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
+							yht 		+= parseFloat(usd);
+							moneyData 	+= "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
+						}
+					});
+				});
+				moneyData += "<tr><th>Total today: </th><td align=\"right\"><b>" + yht + " USD</b></td></tr></table>";
+
+				$("#moneyToday").html(moneyData);
+				
+		    },
+		    error: function(xhr, status, error) {
+		        console.error('Ошибка при выполнении запроса:', error);
+		    }
 		});
 	}
 

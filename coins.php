@@ -61,7 +61,7 @@ foreach($coins as $coin)
 
 	$bd .= '
 	<tr class="tr_tb">
-		<td>'.$usdvalue.'</td>
+		<td class="price">'.$usdvalue.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
 		<td>

@@ -39,17 +39,49 @@ foreach($blocks as $k => $v)
 {
 	$expl = explode(":", $v);
 
-	if (isset($coins8Symb[$expl[3]]))
+	if (isset($coins8Symb[$expl[3]]) and $expl[5] == 'PEND')
 	{
 		$pendingDataBlocks[$expl[4]] = $expl;
 	}
 }
+
 /*
 echo '<pre>';
 print_r($pendingDataBlocks);
 echo '</pre>';
 exit;
 */
+
+// ------ //
+
+$myLogFile 	= "dbLog.log";
+$oldData	= json_decode(file_get_contents($myLogFile), true);
+
+if(is_array($oldData))
+{
+	$newData = [];
+	foreach($pendingDataBlocks as $k => $v)
+	{
+		$newData[$k] = $v;
+	}
+	foreach($oldData as $k => $v)
+	{
+		//if($v[5] == "NEW") { continue; }
+		$newData[$k] = $v;
+	}
+
+	/*
+	echo '<pre>';
+	print_r($newData);
+	echo '</pre>';
+	*/
+	
+	file_put_contents($myLogFile, json_encode($newData));
+}
+else
+{
+	file_put_contents($myLogFile, json_encode($pendingDataBlocks));
+}
 // ------ //
 
 $bd = '<table class="table table-striped">';
