@@ -226,7 +226,9 @@ body{
 	color: green;
 	text-align: center;
 }
-
+.table td, .table th{
+	padding: 6px 0.75rem 3px;
+}
 </style>
 </head>
 <body>
@@ -277,7 +279,7 @@ body{
 			</div>
 			<div class="col-md-6" style="background: #ddd">
 				<div id="all_computers">
-					<table class="table">
+					<table class="table table-striped">
 					<tr>
 						<th>Worker</th>
 						<th>Temperature</th>
@@ -539,7 +541,7 @@ $(document).ready(function(){
 						}
 					});
 				});
-				moneyData += "<tr><th>Total today: </th><td align=\"right\"><b>" + yht + " USD</b></td></tr></table>";
+				moneyData += "<tr><th>Total today: </th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
 
 				$("#moneyToday").html(moneyData);
 				

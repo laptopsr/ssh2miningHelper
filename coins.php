@@ -28,7 +28,7 @@ exit;
 */
 
 $bd = '
-<table class="table">
+<table class="table table-striped">
 <tr>
 	<th>Price</th>
 	<th>Diff</th>
