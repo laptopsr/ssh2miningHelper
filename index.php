@@ -108,6 +108,9 @@ body{
 .table td, .table th{
 	padding: 6px 0.75rem 3px;
 }
+.bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
+	color: white;
+}
 </style>
 </head>
 <body>
@@ -119,9 +122,8 @@ body{
 				<center>
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
 					<div id="blockFound"></div>
-					<h2 class="hashrateSum"><span id="hashrateSum">----</span> H/s</h2>
 				</center>
-				<hr>
+				<br>
 				<h4>My pending blocks</h4>
 				<div id="my_pending_blocks">
 					<span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span>
@@ -159,6 +161,7 @@ body{
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
 				</select>
+				<br>
 				<div id="allCoins"></div>
 			</div>
 			<div class="col-md-6" style="background: #ddd">
@@ -166,7 +169,9 @@ body{
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
 				</select>
+				<br>
 				<div id="all_computers">
+					<center><h1 class="hashrateSum"><b><span id="hashrateSum">----</span> H/s</b></h1></center>
 					<table class="table table-striped">
 					<tr>
 						<th>Worker</th>
@@ -179,8 +184,17 @@ body{
 					<?php
 					foreach($arr as $v)
 					{
+						if($last_model != $v['model'])
+						{
+							echo '
+							<tr id="'.$v['worker'].'" class="model">
+								<td colspan="6"><h4><b class="text-info">'.$v['model'].'</b></h4></td>
+							</tr>
+							';
+						}
+
 						echo '
-						<tr id="'.$v['worker'].'">
+						<tr id="'.$v['worker'].'" class="worker_tr">
 							<th class="host">'.$v['host'].'</th>
 							<td class="temperature">waiting..</td>
 							<td class="time">waiting..</td>
@@ -188,6 +202,8 @@ body{
 							<td class="pool">waiting..</td>
 							<td class="session">waiting..</td>
 						</tr>';
+						
+						$last_model = $v['model'];
 					}
 					?>
 					</table>
@@ -307,6 +323,17 @@ $(document).ready(function(){
 		            // AUTO -->
 		        }
 
+				var res1 = '';
+				profit("<?=date("Y-m-d")?>", function(result) {
+					res1 = result;
+					//console.log(result);
+				});
+
+				profit("<?=date("Y-m-d", strtotime("-1 day"))?>", function(result) {
+					$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
+					//console.log(result);
+				});
+
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
@@ -424,22 +451,25 @@ $(document).ready(function(){
 					{
 						alertFunc(alertPC);
 					}
+					
+					// ------ //
+
+					var sum = 0;
+					$('.hashrate').each(function(index, element) {
+
+						if(parseInt($(element).text()) > 0)
+						{
+							sum += parseInt($(element).text());
+						}
+					});
+					$("#hashrateSum").html(sum);
+
 				});
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
 		    }
 		});
-
-		var sum = 0;
-		$('.hashrate').each(function(index, element) {
-
-			if(parseInt($(element).text()) > 0)
-			{
-				sum += parseInt($(element).text());
-			}
-		});
-		$("#hashrateSum").html(sum);
 		
 		$('.time').each(function(index, element) {
 			// Получаем текущее время
@@ -468,41 +498,44 @@ $(document).ready(function(){
 			}
 
 		});
+	}
 
+	// Запуск функции sendAjaxRequest() каждые 10 секунд
+	setInterval(sendAjaxRequest, 30000);
+
+	function profit(d, callback) {
+		var usd = 0;
+		var yht = 0;
+		var moneyData = "<table class=\"table table-striped\"><tr><th colspan=\"2\">" + d + "</th>";
+		
 		$.ajax({
 		    url: 'money.php',
 		    method: 'GET',
-		    data: { day : "<?=date("Y-m-d")?>" },
+		    async: false, // Здесь была опечатка: 'async' вместо 'assync'
+		    data: { day: d },
 		    success: function(data) {
 		        //console.log("money:" + data);
 		        data = JSON.parse(data);
 		        
-		        var usd = 0;
-		        var yht = 0;
-		        var moneyData = "<h4>Profit:</h4><table class=\"table table-striped\">";
-				$.each(data, function(index, value) {
-					$.each(value, function(coin, sum) {
-						if($("#coin_" + coin).closest('tr').find('.price').length > 0)
-						{
-							//console.log(index + ":" + coin + ": " + (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum));
-							usd 		= (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
-							yht 		+= parseFloat(usd);
-							moneyData 	+= "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
-						}
-					});
-				});
-				moneyData += "<tr><th>Total today: </th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
+		        $.each(data, function(index, value) {
+		            $.each(value, function(coin, sum) {
+		                if ($("#coin_" + coin).closest('tr').find('.price').length > 0) {
+		                    usd = (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
+		                    yht += parseFloat(usd);
+		                    moneyData += "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
+		                }
+		            });
+		        });
 
-				$("#moneyToday").html(moneyData);
-				
+		        moneyData += "<tr><th>Total:</th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
+
+		        // Вызываем колбэк с полученными данными
+		        callback(moneyData);
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
 		    }
 		});
 	}
-
-	// Запуск функции sendAjaxRequest() каждые 10 секунд
-	setInterval(sendAjaxRequest, 30000);
 });
 </script>
