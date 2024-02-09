@@ -122,7 +122,7 @@ foreach($pendingDataBlocks as $k => $v)
 	$bd .= '
 	<tr class="tr_block">
 		<td>'.$v[3].'</td>
-		<td class="pvm">'.date("H:i", $v[4]).'</td>
+		<td class="pvm" for="'.date("Y-m-d H:i", $v[4]).'">'.date("H:i", $v[4]).'</td>
 		<td>'.round($v[6]).'</td>
 		<td class="'.$cl.' text-white" align="center">'.$v[8].'%</td>
 	</tr>';

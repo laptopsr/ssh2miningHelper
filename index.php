@@ -15,6 +15,11 @@ if(isset($_POST['command']))
 	$bd = "<div class=\"container-fluid\" style=\"margin-top:20px\">";
 	foreach($arr as $v)
 	{
+		if(!in_array($v['worker'], $_POST['workers']))
+		{
+			continue;
+		}
+
 		$prepare = '';
 		if($_POST['miner'] != '')
 		{
@@ -94,6 +99,7 @@ if(isset($_POST['command']))
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/fontawesome.min.css" />  
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css" /> 
+
 <style>
 body{
 	background: #ccc;
@@ -115,13 +121,12 @@ body{
 </head>
 <body>
 	<div class="container-fluid" style="margin-top: 30px;">
-	<center><h2>Mining helpper for https://pool.rplant.xyz</h2></center>
+	<center><div id="header"></div></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3" style="background: #ddd">
 				<center>
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
-					<div id="blockFound"></div>
 				</center>
 				<br>
 				<h4>My pending blocks</h4>
@@ -141,6 +146,14 @@ body{
 						<option value="xmrig">xmrig</option>
 						<option value="cpuminer">cpuminer</option>
 						<option value="srbminer">srbminer</option>
+					</select>
+					<select name="workers[]" id="lomake_workers" class="form-control selectpicker" multiple>
+					<?php
+					foreach($arr as $worker)
+					{
+						echo '<option value="'.$worker['worker'].'" selected>'.$worker['host'].'</option>';
+					}
+					?>
 					</select>
 					<input type="text" class="form-control" name="host" placeholder="Host">
 					<input type="text" class="form-control" name="algo" placeholder="Algo">
@@ -188,7 +201,7 @@ body{
 						{
 							echo '
 							<tr class="model">
-								<td colspan="6"><h4><b class="text-info">'.$v['model'].'</b></h4></td>
+								<td colspan="6"><h6><b class="text-info">'.$v['model'].'</b></h6></td>
 							</tr>
 							';
 						}
@@ -196,11 +209,11 @@ body{
 						echo '
 						<tr id="'.$v['worker'].'" class="worker_tr">
 							<th class="host">'.$v['host'].'</th>
-							<td class="temperature">waiting..</td>
-							<td class="time">waiting..</td>
-							<td class="hashrate">waiting..</td>
-							<td class="pool">waiting..</td>
-							<td class="session">waiting..</td>
+							<td class="temperature"><span class="text-danger">waiting..</span></td>
+							<td class="time"><span class="text-danger">waiting..</span></td>
+							<td class="hashrate"><span class="text-danger">waiting..</span></td>
+							<td class="pool"><span class="text-danger">waiting..</span></td>
+							<td class="session"><span class="text-danger">waiting..</span></td>
 						</tr>';
 						
 						$last_model = $v['model'];
@@ -294,6 +307,8 @@ $(document).ready(function(){
 					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white active');
 				}
 
+				// ------ //
+
 		        var rows = $(".tr_tb");
 
 		        // Инициализируем переменные для хранения индекса строки с наименьшей сложностью и наибольшей выплатой
@@ -323,13 +338,15 @@ $(document).ready(function(){
 		            // AUTO -->
 		        }
 
+				// ------ //
+
 				var res1 = '';
-				profit("<?=date("Y-m-d")?>", function(result) {
+				profit("<?=date("Y-m-d", strtotime("-1 day"))?>", function(result) {
 					res1 = result;
 					//console.log(result);
 				});
 
-				profit("<?=date("Y-m-d", strtotime("-1 day"))?>", function(result) {
+				profit("<?=date("Y-m-d")?>", function(result) {
 					$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
 					//console.log(result);
 				});
@@ -349,7 +366,7 @@ $(document).ready(function(){
 
 	function pendingBlocks() {
 
-		$("#blockFound").html('');
+		$("#header").html('<h2>Mining helpper for https://pool.rplant.xyz</h2>');
 
 		$.ajax({
 		    url: 'pending_blocks.php',
@@ -361,7 +378,7 @@ $(document).ready(function(){
 				
 				// Найти все элементы с классом "pvm" и извлечь текст времени
 				var times = $('.pvm').map(function() {
-					return new Date($(this).text()).getTime();
+					return new Date($(this).attr('for')).getTime();
 				}).get();
 
 				// Найти самое свежее время
@@ -371,7 +388,7 @@ $(document).ready(function(){
 				
 				$('.tr_block').each(function(){
 				    // Получаем значение времени из ячейки с классом pvm
-				    var timeString = $(this).find('.pvm').text();
+				    var timeString = $(this).find('.pvm').attr('for');
 				    // Преобразуем строку времени в объект Date
 				    var time = new Date(timeString);
 				    // Получаем текущее время
@@ -385,12 +402,13 @@ $(document).ready(function(){
 				    {
 				        $(this).addClass('bg-success text-white');
 
+						//console.log("New fresh time" + freshestTime);
+
 						if(!localStorage.getItem('freshestTime') || localStorage.getItem('freshestTime') != freshestTime)
 						{
 							localStorage.setItem('freshestTime', freshestTime);
-							//console.log("New fresh time" + freshestTime);
 
-							$("#blockFound").html('<h1 class="alert bg-success text-white">BLOCK FOUND</h1>');
+							$("#header").html('<h1 class="alert bg-success text-white">* * * BLOCK FOUND * * *</h1>');
 							alertFunc(alertPC);
 						}
 				    }
@@ -442,11 +460,37 @@ $(document).ready(function(){
 						$("#" + value['id']).find('.session').html(value['session']);
 					}
 
+					// ------ //
+					
 					if(workersControl == "auto" && value['time'] && value['time'] == 'OFF')
 					{
-						$("#allCoins").find('.active').click();
-						return false;
+						$("#lomake_workers option:selected").removeAttr("selected");
+						var selectedIds = value['id'];
+						//console.log(selectedIds)
+
+						// Пройдемся по каждому элементу select с атрибутом name='workers'
+						$("#lomake_workers option").each(function() {
+							// Проверим, содержится ли значение id текущего option в списке выбранных id
+							if (selectedIds.includes($(this).val())) {
+								// Если содержится, установим атрибут selected для данного option
+								$(this).prop("selected", true);
+							} else {
+								// Иначе снимем атрибут selected (если он ранее был установлен)
+								$(this).prop("selected", false);
+							}
+						});
+
+						if(selectedIds > 0)
+						{
+							$("#lomake").addClass('bg-danger');
+							setTimeout(function() { 
+								$("#allCoins").find('.active').click();
+							}, 10000);
+
+							return false;
+						}
 					}
+
 					if(value['time'] && value['time'] == 'OFF')
 					{
 						alertFunc(alertPC);
