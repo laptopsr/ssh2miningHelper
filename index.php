@@ -1,143 +1,15 @@
 <?php
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-if (!function_exists('str_contains')) {
-    function str_contains(string $haystack, string $needle): bool
-    {
-        return '' === $needle || false !== strpos($haystack, $needle);
-    }
-}
+*/
 
 include "config.php";
 
 // ------ //
 
 // -- Дальше идет код программы -- //
-if(isset($_POST['getData']))
-{
-	$return = [];
-
-	foreach($arr as $v)
-	{
-		//if($v['worker'] != 246){ continue; }
-
-		$connection = ssh2_connect($v['host'], 22);
-		$output = '';
-		if (ssh2_auth_password($connection, $v['user'], $v['pass']))
-		{
-
-			if($v['worker'] == 246)
-			{
-				$command = "
-				echo $( timeout 1 sensors | grep \"Core 0\" | awk '{print $3}' ); 
-				echo \"|\"; 
-				echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"accepted\" | awk '/accepted/ {print $1}' ); 
-				echo \"|\"; 
-				echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"speed\" | awk '/speed/ {print $6}' ); 
-				echo \"|\"; 
-				echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"new job\" | awk '/new job/ {print $7}' )
-				echo \"|\"; 
-				echo $( timeout 1 sudo screen -ls | grep -q xmrig && echo \"xmrig\" || echo \"false\" )
-				";
-			}
-			else
-			{
-				$command = "
-				echo $( timeout 1 sensors | awk '/Tctl/ {print $2}' ); 
-				echo \"|\"; 
-				echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"accepted\" | awk '/accepted/ {print $2}' ); 
-				echo \"|\"; 
-				echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"speed\" | awk '/speed/ {print $6}' ); 
-				echo \"|\"; 
-				echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"new job\" | awk '/new job/ {print $7}' )
-				echo \"|\"; 
-				echo $( timeout 1 sudo screen -ls | grep -q xmrig && echo \"xmrig\" || echo \"false\" )
-				";
-			}
-
-			$stream = ssh2_exec($connection, $command);
-			stream_set_blocking($stream, true);
-			$output = stream_get_contents($stream);
-
-			$output = str_replace("[", "", $output);
-			$output = str_replace("]", "", $output);
-			$expl 	= explode("|", $output);
-			$time 	= explode(".", $expl[1]??'');
-
-			$return[$v['host']] = [
-				'id' 			=> $v['worker'], 
-				'temperature' 	=> $expl[0]??'', 
-				'time' 			=> trim($time[0]??''),
-				'hashrate' 		=> round(trim($expl[2]??'')),
-				'pool' 			=> trim($expl[3]??''),
-				'session'		=> trim($expl[4]??''),
-			];
-
-			if($return[$v['host']]['session'] == "false")
-			{
-
-				if($v['worker'] == 246)
-				{
-					$command = "
-					echo $( timeout 1 sensors | grep \"Core 0\" | awk '{print $3}' ); 
-					echo \"|\"; 
-					echo $( timeout 1 tail -f $path_syslog | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $1}' ); 
-					echo \"|\"; 
-					echo $(timeout 1 tail -f $path_syslog | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $9}' ); 
-					echo \"|\"; 
-					echo $( timeout 1 tail -f $path_syslog | grep -m 1 \"network\" | awk '/network/ {print $4}' )
-					echo \"|\"; 
-					echo $( timeout 1 screen -ls | grep -q cpuminer && echo \"cpuminer\" || echo \"false\" )
-					";
-				}
-				else
-				{
-					$command = "
-					echo $( timeout 1 sensors | awk '/Tctl/ {print $2}' ); 
-					echo \"|\"; 
-					echo $( timeout 1 tail -f $path_syslog | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 
-					echo \"|\"; 
-					echo $( timeout 1 tail -f $path_syslog | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $11}' ); 
-					echo \"|\"; 
-					echo $( timeout 1 tail -f $path_syslog | grep -m 1 \"network\" | awk '/network/ {print $6}' )
-					echo \"|\"; 
-					echo $( timeout 1 screen -ls | grep -q cpuminer && echo \"cpuminer\" || echo \"false\" )
-					";
-				}
-
-				$stream 	= ssh2_exec($connection, $command);
-				stream_set_blocking($stream, true);
-				$output 	= stream_get_contents($stream);
-				$expl 		= explode("|", $output);
-				$session 	= trim($expl[4]??'');
-				$time 		= trim($expl[1]??'');
-
-				if (str_contains($time, 'T'))
-				{
-					$timestamp = strtotime($time);
-					$time = date("H:i:s", $timestamp);
-				}
-
-				$return[$v['host']] = [
-					'id' 			=> $v['worker'], 
-					'temperature' 	=> trim($expl[0]??''), 
-					'time' 			=> $session != "false" ? $time : "OFF",
-					'hashrate' 		=> $session != "false" ? round(trim($expl[2]??'')) : "OFF",
-					'pool' 			=> $session != "false" ? trim($expl[3]??'') : "OFF",
-					'session' 		=> $session,
-				];
-			}
-			
-			fclose($stream);
-		}
-	}
-
-	echo json_encode($return);
-	exit;
-}
-
 if(isset($_POST['command']))
 {
 	$bd = "<div class=\"container-fluid\" style=\"margin-top:20px\">";
@@ -146,19 +18,26 @@ if(isset($_POST['command']))
 		$prepare = '';
 		if($_POST['miner'] != '')
 		{
-			$prepare = 'killall cpuminer-sse2; sudo killall xmrig; ';
+			$prepare = 'killall cpuminer-ryzen; sudo killall xmrig; killall SRBMiner-MULTI; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log; ';
 
 			if($_POST['miner'] == 'xmrig')
 			{
-				$start = 'timeout 1 sudo rm -rf /home/laptopsr/xmrig.log; timeout 1 sudo screen -dmS xmrig '.$path_xmrig.' --log-file=/home/laptopsr/xmrig.log';
+				$start = 'timeout 1 sudo screen -dmS xmrig '.$path_xmrig.' --log-file=/home/laptopsr/xmrig.log';
+				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
 
-			if($_POST['miner'] == 'cpuminer-sse2')
+			if($_POST['miner'] == 'cpuminer')
 			{
-				$start = 'timeout 1 sudo rm -rf /home/laptopsr/xmrig.log; timeout 1 screen -dmS cpuminer '.$path_cpuminer.' --syslog';
+				$start = 'timeout 1 screen -dmS cpuminer '.$path_cpuminer.' --syslog';
+				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
 
-			$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
+			if($_POST['miner'] == 'srbminer')
+			{
+				$start = 'timeout 1 screen -dmS srbminer '.$path_srbminer.' --log-file=/home/laptopsr/srbminer.log';
+				$prepare .= $start.' --algorithm '.$_POST['algo'].' --pool '.$_POST['host'].' --wallet '.$_POST['user'].'.'.$v['worker'].' --password '.$_POST['pass'].' --keepalive true;';
+			}
+
 		}
 		// ------ //
 
@@ -233,11 +112,15 @@ body{
 </head>
 <body>
 	<div class="container-fluid" style="margin-top: 30px;">
-	<center><h2>Mining helpper for xmrig & cpuminer-rplant</h2></center>
+	<center><h2>Mining helpper for https://pool.rplant.xyz</h2></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3" style="background: #ddd">
-				<center><h2 class="hashrateSum"><span id="hashrateSum">----</span> H/s</h2></center>
+				<center>
+					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
+					<div id="blockFound"></div>
+					<h2 class="hashrateSum"><span id="hashrateSum">----</span> H/s</h2>
+				</center>
 				<hr>
 				<h4>My pending blocks</h4>
 				<div id="my_pending_blocks">
@@ -247,14 +130,15 @@ body{
 				<div id="moneyToday"></div>
 				<hr>
 				<form id="lomake" method="POST">
-					<select name="debug" class="form-control">
+					<select name="debug" id="debug" class="form-control">
 						<option value="false">Debug false</option>
 						<option value="true">Debug true</option>
 					</select>
 					<select name="miner" class="form-control">
 						<option value="">Select miner</option>
 						<option value="xmrig">xmrig</option>
-						<option value="cpuminer-sse2">cpuminer-sse2</option>
+						<option value="cpuminer">cpuminer</option>
+						<option value="srbminer">srbminer</option>
 					</select>
 					<input type="text" class="form-control" name="host" placeholder="Host">
 					<input type="text" class="form-control" name="algo" placeholder="Algo">
@@ -265,7 +149,7 @@ body{
 						<option value="manual">Theads from array</option>
 					</select>
 					<br>
-					<input type="text" class="form-control" name="command" placeholder="Command">
+					<input type="text" class="form-control" name="command" id="command" placeholder="Command">
 					<br>
 					<button class="btn btn-info btn-block" type="submit">OK</button>
 				</form>
@@ -278,6 +162,10 @@ body{
 				<div id="allCoins"></div>
 			</div>
 			<div class="col-md-6" style="background: #ddd">
+				<select id="workersControl" class="form-control">
+					<option value="auto">AUTO</option>
+					<option value="manual">MANUAL</option>
+				</select>
 				<div id="all_computers">
 					<table class="table table-striped">
 					<tr>
@@ -294,11 +182,11 @@ body{
 						echo '
 						<tr id="'.$v['worker'].'">
 							<th class="host">'.$v['host'].'</th>
-							<td class="temperature"><span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span></td>
-							<td class="time"><span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span></td>
-							<td class="hashrate"><span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span></td>
-							<td class="pool"><span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span></td>
-							<td class="session"><span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span></td>
+							<td class="temperature">waiting..</td>
+							<td class="time">waiting..</td>
+							<td class="hashrate">waiting..</td>
+							<td class="pool">waiting..</td>
+							<td class="session">waiting..</td>
 						</tr>';
 					}
 					?>
@@ -313,20 +201,36 @@ body{
 <script>
 $(document).ready(function(){
 
+	var alertPC	= localStorage.getItem('alertPC')??'';
+	$("#alertPC").val(alertPC);
+	$(document).delegate("#alertPC", "blur",function(){
+		localStorage.setItem('alertPC', $(this).val());
+		alertPC = $(this).val();
+	});
+	// ------ //
 	var systemControl	= localStorage.getItem('systemControl')??'manual';
-    var lastClickedCoin = localStorage.getItem('lastClickedCoin');
-
 	$("#systemControl").val(systemControl);
-
 	$(document).delegate("#systemControl", "change",function(){
 		localStorage.setItem('systemControl', $(this, 'option;selected').val());
 		systemControl = $(this, 'option;selected').val();
 	});
-
+	// ------ //
+	var workersControl	= localStorage.getItem('workersControl')??'manual';
+	$("#workersControl").val(workersControl);
+	$(document).delegate("#workersControl", "change",function(){
+		localStorage.setItem('workersControl', $(this, 'option;selected').val());
+		workersControl = $(this, 'option;selected').val();
+	});
+	// ------ //
+	$("#command").keyup(function(){
+		$("#debug").val("true");
+	});
+	// ------ //
+    var lastClickedCoin = localStorage.getItem('lastClickedCoin');
 	$(document).delegate(".coin", "click",function(){
 	
-		$( ".coin" ).removeClass('btn-success text-white').addClass('btn-info');
-		$( this ).removeClass('btn-info').addClass('btn-success text-white');
+		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
+		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
 		
 		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		
@@ -335,12 +239,28 @@ $(document).ready(function(){
 		$("#lomake input[name='algo']").val($(this).attr('algo'));
 		$("#lomake input[name='user']").val($(this).attr('user'));
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
+		$("#lomake select[name='debug']").val($(this).attr('debug'));
 
 		setTimeout(function() { 
     		$("#lomake").submit();
 		}, 1000);
 
 	});
+
+	function alertFunc(ip)
+	{
+		$.ajax({
+			url: 'alert.php',
+			method: 'GET',
+			data: { alertPC : ip },
+			success: function(data) {
+				console.log(data);
+			},
+			error: function(xhr, status, error) {
+				console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
+	}
 
 	allCoins();
 
@@ -355,7 +275,7 @@ $(document).ready(function(){
 				$("#allCoins").html(data);
 
 				if (lastClickedCoin) {
-					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white');
+					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white active');
 				}
 
 		        var rows = $(".tr_tb");
@@ -402,6 +322,8 @@ $(document).ready(function(){
 
 	function pendingBlocks() {
 
+		$("#blockFound").html('');
+
 		$.ajax({
 		    url: 'pending_blocks.php',
 		    method: 'POST',
@@ -409,6 +331,16 @@ $(document).ready(function(){
 		    success: function(data) {
 		        data = JSON.parse(data);
 				$("#my_pending_blocks").html(data);
+				
+				// Найти все элементы с классом "pvm" и извлечь текст времени
+				var times = $('.pvm').map(function() {
+					return new Date($(this).text()).getTime();
+				}).get();
+
+				// Найти самое свежее время
+				var freshestTime = new Date(Math.max.apply(null, times));
+
+				// ------ //
 				
 				$('.tr_block').each(function(){
 				    // Получаем значение времени из ячейки с классом pvm
@@ -421,9 +353,21 @@ $(document).ready(function(){
 				    var diffMinutes = (currentTime - time) / (1000 * 60);
 
 				    // Если разница меньше 10 минут, добавляем класс highlight
-				    if (diffMinutes <= 10) {
+
+				    if (diffMinutes <= 10)
+				    {
 				        $(this).addClass('bg-success text-white');
+
+						if(!localStorage.getItem('freshestTime') || localStorage.getItem('freshestTime') != freshestTime)
+						{
+							localStorage.setItem('freshestTime', freshestTime);
+							//console.log("New fresh time" + freshestTime);
+
+							$("#blockFound").html('<h1 class="alert bg-success text-white">BLOCK FOUND</h1>');
+							alertFunc(alertPC);
+						}
 				    }
+
 				});
 
 		    },
@@ -436,14 +380,16 @@ $(document).ready(function(){
 	setInterval(pendingBlocks, 120000);
 
 	// Функция для отправки AJAX-запроса
+	sendAjaxRequest();
+	
 	function sendAjaxRequest() {
 
 		$.ajax({
-		    url: '#',
+		    url: 'workerdata.php',
 		    method: 'POST',
 		    data: { getData : true },
 		    success: function(data) {
-		        console.log("Sended:");
+		        //console.log("Sended:");
 		        data = JSON.parse(data);
 
 				$.each(data, function(index, value) {
@@ -469,10 +415,14 @@ $(document).ready(function(){
 						$("#" + value['id']).find('.session').html(value['session']);
 					}
 
-					if(systemControl == "auto" && value['time'] && value['time'] == 'OFF')
+					if(workersControl == "auto" && value['time'] && value['time'] == 'OFF')
 					{
-						$("#allCoins").find('.best').find('button').click();
+						$("#allCoins").find('.active').click();
 						return false;
+					}
+					if(value['time'] && value['time'] == 'OFF')
+					{
+						alertFunc(alertPC);
 					}
 				});
 		    },

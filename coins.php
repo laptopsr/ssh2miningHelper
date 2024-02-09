@@ -14,6 +14,7 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
   'accept: application/json'
 ));
@@ -43,6 +44,7 @@ foreach($coins as $coin)
 	curl_setopt($ch, CURLOPT_URL, 'https://api.xeggex.com/api/v2/asset/getbyticker/' . $coin['coin']);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 	  'accept: application/json'
 	));
@@ -65,7 +67,7 @@ foreach($coins as $coin)
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
 		<td>
-			<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" theads="'.$coin['theads'].'">'.$coin['coin'].'</button>
+			<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">'.$coin['coin'].'</button>
 		</td>
 	</tr>';
 }

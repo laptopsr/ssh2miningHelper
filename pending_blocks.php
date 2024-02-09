@@ -1,7 +1,9 @@
 <?php
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+*/
 
 include "config.php";
 
@@ -27,6 +29,7 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
   'accept: application/json'
 ));
@@ -35,15 +38,20 @@ $blocks = json_decode(curl_exec($ch), true);
 curl_close($ch);
 
 $pendingDataBlocks = [];
-foreach($blocks as $k => $v)
-{
-	$expl = explode(":", $v);
 
-	if (isset($coins8Symb[$expl[3]]) and $expl[5] == 'PEND')
+if(is_array($blocks))
+{
+	foreach($blocks as $k => $v)
 	{
-		$pendingDataBlocks[$expl[4]] = $expl;
+		$expl = explode(":", $v);
+
+		if (isset($coins8Symb[$expl[3]]) and $expl[5] == 'PEND')
+		{
+			$pendingDataBlocks[$expl[4]] = $expl;
+		}
 	}
 }
+krsort($pendingDataBlocks);
 
 /*
 echo '<pre>';
@@ -88,12 +96,29 @@ $bd = '<table class="table table-striped">';
 
 foreach($pendingDataBlocks as $k => $v)
 {
+	if($v[8] > 100 and $v[8] <= 150)
+	{
+		$cl = 'bg-primary';
+	}
+	elseif($v[8] > 150 and $v[8] <= 200)
+	{
+		$cl = 'bg-warning';
+	}
+	elseif($v[8] > 200)
+	{
+		$cl = 'bg-danger';
+	}
+	else
+	{
+		$cl = 'bg-success';
+	}
+
 	$bd .= '
 	<tr class="tr_block">
 		<td>'.$v[3].'</td>
 		<td class="pvm">'.date("Y-m-d H:i", $v[4]).'</td>
 		<td>'.round($v[6]).'</td>
-		<td>'.$v[8].'%</td>
+		<td class="'.$cl.' text-white">'.$v[8].'%</td>
 	</tr>';
 }
 
