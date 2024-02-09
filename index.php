@@ -253,7 +253,7 @@ $(document).ready(function(){
 		$("#lomake select[name='miner']").val($(this).attr('miner'));
 		$("#lomake input[name='host']").val($(this).attr('host'));
 		$("#lomake input[name='algo']").val($(this).attr('algo'));
-		$("#lomake input[name='user']").val($(this).attr('user'));worker_tr
+		$("#lomake input[name='user']").val($(this).attr('user'));
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
 		$("#lomake select[name='debug']").val($(this).attr('debug'));
 

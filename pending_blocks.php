@@ -92,7 +92,13 @@ else
 }
 // ------ //
 
-$bd = '<table class="table table-striped">';
+$bd = '<table class="table table-striped">
+<tr class="">
+	<th>Wallet</th>
+	<th>Time</th>
+	<th>Coins</th>
+	<th>Effort %</th>
+</tr>';
 
 foreach($pendingDataBlocks as $k => $v)
 {
@@ -102,7 +108,7 @@ foreach($pendingDataBlocks as $k => $v)
 	}
 	elseif($v[8] > 150 and $v[8] <= 200)
 	{
-		$cl = 'bg-warning';
+		$cl = 'bg-info';
 	}
 	elseif($v[8] > 200)
 	{
@@ -116,9 +122,9 @@ foreach($pendingDataBlocks as $k => $v)
 	$bd .= '
 	<tr class="tr_block">
 		<td>'.$v[3].'</td>
-		<td class="pvm">'.date("Y-m-d H:i", $v[4]).'</td>
+		<td class="pvm">'.date("H:i", $v[4]).'</td>
 		<td>'.round($v[6]).'</td>
-		<td class="'.$cl.' text-white">'.$v[8].'%</td>
+		<td class="'.$cl.' text-white" align="center">'.$v[8].'%</td>
 	</tr>';
 }
 
