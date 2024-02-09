@@ -104,11 +104,11 @@ foreach($pendingDataBlocks as $k => $v)
 {
 	if($v[8] > 100 and $v[8] <= 150)
 	{
-		$cl = 'bg-primary';
+		$cl = 'bg-info';
 	}
 	elseif($v[8] > 150 and $v[8] <= 200)
 	{
-		$cl = 'bg-info';
+		$cl = 'bg-primary';
 	}
 	elseif($v[8] > 200)
 	{

@@ -175,10 +175,10 @@ body{
 					<table class="table table-striped">
 					<tr>
 						<th>Worker</th>
-						<th>Temperature</th>
+						<th>Temp.</th>
 						<th>Time</th>
 						<th>Hashrate</th>
-						<th>Mining pool</th>
+						<th>Pool</th>
 						<th>Session</th>
 					</tr>
 					<?php
@@ -527,7 +527,7 @@ $(document).ready(function(){
 		            });
 		        });
 
-		        moneyData += "<tr><th>Total:</th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
+		        moneyData += "<tr class=\"bg-success\"><th></th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
 
 		        // Вызываем колбэк с полученными данными
 		        callback(moneyData);
