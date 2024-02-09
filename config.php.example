@@ -5,6 +5,9 @@ $path_xmrig 	= "/home/laptopsr/MINERS/xmrig/xmrig";
 $path_cpuminer	= "/home/laptopsr/MINERS/cpuminer-rplant/cpuminer-sse2";
 $path_syslog	= "/var/log/syslog";
 $path_xmriglog 	= "/home/laptopsr/xmrig.log";
+$path_srbminerlog 	= "/home/laptopsr/xmrig.log";
+$ssh_user		= "laptopsr";
+$ssh_pass		= "xxx";
 
 // -- Монеты для быстрого перехода -- //
 $coins = [
@@ -38,4 +41,10 @@ $arr = [
 	['host' => '192.168.1.246', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '246', 'theads' => 4],
 ];
 
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool
+    {
+        return '' === $needle || false !== strpos($haystack, $needle);
+    }
+}
 ?>
