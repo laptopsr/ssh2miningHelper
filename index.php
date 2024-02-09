@@ -187,7 +187,7 @@ body{
 						if($last_model != $v['model'])
 						{
 							echo '
-							<tr id="'.$v['worker'].'" class="model">
+							<tr class="model">
 								<td colspan="6"><h4><b class="text-info">'.$v['model'].'</b></h4></td>
 							</tr>
 							';
@@ -253,7 +253,7 @@ $(document).ready(function(){
 		$("#lomake select[name='miner']").val($(this).attr('miner'));
 		$("#lomake input[name='host']").val($(this).attr('host'));
 		$("#lomake input[name='algo']").val($(this).attr('algo'));
-		$("#lomake input[name='user']").val($(this).attr('user'));
+		$("#lomake input[name='user']").val($(this).attr('user'));worker_tr
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
 		$("#lomake select[name='debug']").val($(this).attr('debug'));
 
