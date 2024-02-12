@@ -11,7 +11,20 @@ $return = [];
 
 foreach($arr as $v)
 {
-	//if($v['worker'] != 246){ continue; }
+
+	$ping_result = shell_exec("ping -c 1 " . $v['host']);
+
+	if (!strpos($ping_result, "1 packets transmitted, 1 received") !== false) {
+		$return[$v['host']] = [
+			'id' 			=> $v['worker'], 
+			'temperature' 	=> '---', 
+			'time' 			=> '---', 
+			'hashrate' 		=> '---', 
+			'pool' 			=> '---', 
+			'session'		=> 'offline', 
+		];
+		continue;
+	}
 
 	$connection = ssh2_connect($v['host'], 22);
 	$output = '';
@@ -33,16 +46,13 @@ foreach($arr as $v)
 		$stream = ssh2_exec($connection, $command);
 		stream_set_blocking($stream, true);
 		$output = stream_get_contents($stream);
-
-		$output = str_replace("[", "", $output);
-		$output = str_replace("]", "", $output);
 		$expl 	= explode("|", $output);
 		$time 	= explode(".", $expl[1]??'');
 
 		$return[$v['host']] = [
 			'id' 			=> $v['worker'], 
 			'temperature' 	=> $expl[0]??'', 
-			'time' 			=> trim($time[0]??''),
+			'time' 			=> isset($time[0])? date("H:i:s", strtotime($time[0])) : '',
 			'hashrate' 		=> round(trim($expl[2]??'')),
 			'pool' 			=> trim($expl[3]??''),
 			'session'		=> trim($expl[4]??''),

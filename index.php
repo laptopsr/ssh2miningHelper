@@ -1,9 +1,7 @@
 <?php
-/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-*/
 
 include "config.php";
 ?>
@@ -23,16 +21,25 @@ include "config.php";
 
 <style>
 body{
-	background: #ccc;
+	background: #333;
+	color: #ddd;
 }
 .coin{
 	margin-bottom: 5px;
 }
-.table td, .table th{
-	padding: 6px 0.75rem 3px;
-}
 .bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
 	color: white;
+}
+td.active{
+	background: #ddd;
+	color: #333 !important;
+}
+.table td, .table th{
+	padding: 6px 0.75rem 3px;
+	color: #ddd;
+}
+.form-control{
+	background: #ededed;
 }
 </style>
 </head>
@@ -41,12 +48,11 @@ body{
 	<center><div id="header"></div></center>
 	<br>
 		<div class="row">
-			<div class="col-md-3" style="background: #ddd">
+			<div class="col-md-3">
 				<center>
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
 				</center>
 				<br>
-				<h4>My pending blocks</h4>
 				<div id="my_pending_blocks">
 					<span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span>
 				</div>
@@ -94,14 +100,14 @@ body{
 				<br>
 				<div id="allCoins"></div>
 			</div>
-			<div class="col-md-6" style="background: #ddd">
+			<div class="col-md-6">
 				<select id="workersControl" class="form-control">
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
 				</select>
 				<br>
 				<div id="all_computers">
-					<div id="hashrateSum" class="alert bg-secondary"></div>
+					<div class="alert bg-secondary"><center><h3><b id="hashrateSum"></b> H/s</h3></center></div>
 					<table class="table table-striped">
 					<tr>
 						<th>Worker</th>
@@ -114,23 +120,23 @@ body{
 					<?php
 					foreach($arr as $v)
 					{
-						if($last_model != $v['model'])
+						if(!isset($last_model) or (isset($last_model) and $last_model != $v['model']))
 						{
 							echo '
 							<tr class="model">
-								<td colspan="6" class="bg-secondary"><h5><b>'.$v['model'].'</b></h5></td>
+								<td colspan="6" class="bg-secondary" align="center"><h5><b>'.$v['model'].'</b></h5></td>
 							</tr>
 							';
 						}
 
 						echo '
-						<tr id="'.$v['worker'].'" class="worker_tr">
+						<tr id="worker_'.$v['worker'].'" class="worker_tr">
 							<th class="host">'.$v['host'].'</th>
-							<td class="temperature"><span class="text-danger">waiting..</span></td>
-							<td class="time"><span class="text-danger">waiting..</span></td>
-							<td class="hashrate"><span class="text-danger">waiting..</span></td>
-							<td class="pool"><span class="text-danger">waiting..</span></td>
-							<td class="session"><span class="text-danger">waiting..</span></td>
+							<td class="temperature ajaxdata"></td>
+							<td class="time ajaxdata"></td>
+							<td class="hashrate ajaxdata"></td>
+							<td class="pool ajaxdata"></td>
+							<td class="session ajaxdata"></td>
 						</tr>';
 						
 						$last_model = $v['model'];
@@ -148,17 +154,25 @@ body{
 $(document).ready(function(){
 
 	$("#lomake").on('submit', function(e){
-		e.preventDefault(); // Предотвращаем стандартное поведение отправки формы
+		e.preventDefault();
 
-		var formData = $(this).serialize(); // Получаем данные формы в виде строки запроса
+		var formData = $(this).serialize();
+
+		var selectedValues = $('#lomake_workers').val();
+		$.each(selectedValues, function(index, value) {
+			$( "#worker_" + value ).removeClass('bg-danger text-white')
+			$( "#worker_" + value ).find('.ajaxdata').html('<span class="text-danger">waiting..</span>');
+			//console.log(index+" "+value)
+		});
 
 		$.ajax({
 		    url: 'form_submit.php',
 		    method: 'POST',
-		    data: formData, // Отправляем данные формы
+		    data: formData,
 		    success: function(data) {
 		    	data = JSON.parse(data);
 		        console.log("Form send: " + data);
+		        $("#lomake_workers option").prop("selected", true);
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
@@ -191,15 +205,18 @@ $(document).ready(function(){
 		$("#debug").val("true");
 	});
 	// ------ //
+	$( "td.ajaxdata" ).html('<span class="text-danger">waiting..</span>');
     var lastClickedCoin = localStorage.getItem('lastClickedCoin');
+
 	$(document).delegate(".coin", "click",function(){
 	
 		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
-
+		// <--
 		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		lastClickedCoin = $(this).attr('id');
 		console.log("Next coin: " + lastClickedCoin);
+		// -->
 
 		$("#lomake select[name='miner']").val($(this).attr('miner'));
 		$("#lomake input[name='host']").val($(this).attr('host'));
@@ -208,8 +225,11 @@ $(document).ready(function(){
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
 		$("#lomake select[name='debug']").val($(this).attr('debug'));
 
+		$("#lomake").css({'border':'4px green solid'});
 		setTimeout(function() { 
     		$("#lomake").submit();
+    		$("#lomake").css({'border':'none'});
+    		return false;
 		}, 1000);
 
 	});
@@ -236,12 +256,13 @@ $(document).ready(function(){
 		$.ajax({
 		    url: 'coins.php',
 		    method: 'POST',
-		    data: { getData : true },
+		    data: { getData : true, hashrateSum : $("#hashrateSum").length > 0 ? parseInt($("#hashrateSum").text()) : 0 },
 		    success: function(data) {
 		        data = JSON.parse(data);
 				$("#allCoins").html(data);
 
-				if (lastClickedCoin) {
+				if (lastClickedCoin && !$("#" + lastClickedCoin).hasClass('active')) {
+					$("#" + lastClickedCoin).closest('tr').find('td').addClass('active');
 					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white active');
 				}
 				// ------ //
@@ -299,64 +320,69 @@ $(document).ready(function(){
 	setInterval(allCoins, 120000);
 
 
-	pendingBlocks();
+	setTimeout(function() { 
+		pendingBlocks();
+	}, 10000);
 
 	function pendingBlocks() {
 
-		$("#header").html('<h2>SOLO mining helpper for https://pool.rplant.xyz</h2>');
+		if($("#allCoins").find('.active').length > 0)
+		{
+			$("#header").html('<h2>SOLO mining helpper V3</h2>');
 
-		$.ajax({
-		    url: 'pending_blocks.php',
-		    method: 'POST',
-		    data: { getData : true },
-		    success: function(data) {
-		        data = JSON.parse(data);
-				$("#my_pending_blocks").html(data);
-				
-				// Найти все элементы с классом "pvm" и извлечь текст времени
-				var times = $('.pvm').map(function() {
-					return new Date($(this).attr('for')).getTime();
-				}).get();
+			$.ajax({
+				url: 'pending_blocks.php',
+				method: 'POST',
+				data: { getData : true, active : $("#allCoins").find('.active').text() },
+				success: function(data) {
+				    data = JSON.parse(data);
+					$("#my_pending_blocks").html(data);
+					
+					// Найти все элементы с классом "pvm" и извлечь текст времени
+					var times = $('.pvm').map(function() {
+						return new Date($(this).attr('for')).getTime();
+					}).get();
 
-				// Найти самое свежее время
-				var freshestTime = new Date(Math.max.apply(null, times));
+					// Найти самое свежее время
+					var freshestTime = new Date(Math.max.apply(null, times));
 
-				// ------ //
-				
-				$('.tr_block').each(function(){
-				    // Получаем значение времени из ячейки с классом pvm
-				    var timeString = $(this).find('.pvm').attr('for');
-				    // Преобразуем строку времени в объект Date
-				    var time = new Date(timeString);
-				    // Получаем текущее время
-				    var currentTime = new Date();
-				    // Разница между текущим временем и временем в ячейке pvm в минутах
-				    var diffMinutes = (currentTime - time) / (1000 * 60);
+					if(!localStorage.getItem('freshestTime') || localStorage.getItem('freshestTime') != freshestTime)
+					{
+						localStorage.setItem('freshestTime', freshestTime);
 
-				    // Если разница меньше 10 минут, добавляем класс highlight
+						$("#header").html('<h1 class="alert bg-success text-white">* * * BLOCK FOUND * * *</h1>');
+						alertFunc(alertPC);
+					}
+					// ------ //
+					
+					$('.tr_block').each(function(){
+						// Получаем значение времени из ячейки с классом pvm
+						var timeString = $(this).find('.pvm').attr('for');
+						// Преобразуем строку времени в объект Date
+						var time = new Date(timeString);
+						// Получаем текущее время
+						var currentTime = new Date();
+						// Разница между текущим временем и временем в ячейке pvm в минутах
+						var diffMinutes = (currentTime - time) / (1000 * 60);
 
-				    if (diffMinutes <= 10)
-				    {
-				        $(this).addClass('bg-success text-white');
+						// Если разница меньше 10 минут, добавляем класс highlight
 
-						//console.log("New fresh time" + freshestTime);
-
-						if(!localStorage.getItem('freshestTime') || localStorage.getItem('freshestTime') != freshestTime)
+						if (diffMinutes <= 10)
 						{
-							localStorage.setItem('freshestTime', freshestTime);
-
-							$("#header").html('<h1 class="alert bg-success text-white">* * * BLOCK FOUND * * *</h1>');
-							alertFunc(alertPC);
+						    $(this).addClass('bg-success text-white');
 						}
-				    }
+					});
 
-				});
-
-		    },
-		    error: function(xhr, status, error) {
-		        console.error('Ошибка при выполнении запроса:', error);
-		    }
-		});
+				},
+				error: function(xhr, status, error) {
+				    console.error('Ошибка при выполнении запроса:', error);
+				}
+			});
+		}
+		else
+		{
+			$("#my_pending_blocks").html("");
+		}
 	}
 
 	setInterval(pendingBlocks, 120000);
@@ -374,41 +400,42 @@ $(document).ready(function(){
 		        //console.log("Sended:");
 		        data = JSON.parse(data);
 
+				var selectedId = 0;
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
 					if(value['temperature'] && value['temperature'] != '')
 					{
-						$("#" + value['id']).find('.temperature').html(value['temperature']);
+						$("#worker_" + value['id']).find('.temperature').html(value['temperature']);
 					}
 					if(value['hashrate'] && value['hashrate'] != '')
 					{
-						$("#" + value['id']).find('.hashrate').html(value['hashrate']);
+						$("#worker_" + value['id']).find('.hashrate').html(value['hashrate']);
 					}
 					if(value['pool'] && value['pool'] != '')
 					{
-						$("#" + value['id']).find('.pool').html(value['pool']);
+						$("#worker_" + value['id']).find('.pool').html(value['pool']);
 					}
 					if(value['time'] && value['time'] != '')
 					{
-						$("#" + value['id']).find('.time').html(value['time']);
+						$("#worker_" + value['id']).find('.time').html(value['time']);
 					}
 					if(value['session'] && value['session'] != '')
 					{
-						$("#" + value['id']).find('.session').html(value['session']);
+						$("#worker_" + value['id']).find('.session').html(value['session']);
 					}
 
 					// ------ //
-					
+
 					if(workersControl == "auto" && value['time'] && value['time'] == 'OFF')
 					{
 						$("#lomake_workers option:selected").removeAttr("selected");
-						var selectedIds = value['id'];
-						//console.log(selectedIds)
+						selectedId = value['id'];
+						//console.log(selectedId)
 
 						// Пройдемся по каждому элементу select с атрибутом name='workers'
 						$("#lomake_workers option").each(function() {
 							// Проверим, содержится ли значение id текущего option в списке выбранных id
-							if (selectedIds.includes($(this).val())) {
+							if (selectedId.includes($(this).val())) {
 								// Если содержится, установим атрибут selected для данного option
 								$(this).prop("selected", true);
 							} else {
@@ -416,68 +443,72 @@ $(document).ready(function(){
 								$(this).prop("selected", false);
 							}
 						});
-
-						if(selectedIds > 0)
-						{
-							$("#lomake").addClass('bg-danger');
-							setTimeout(function() { 
-								$("#allCoins").find('.active').click();
-							}, 10000);
-
-							return false;
-						}
+						
+						return false;
 					}
-
-					if(value['time'] && value['time'] == 'OFF')
-					{
-						alertFunc(alertPC);
-					}
-					
-					// ------ //
-
-					var sum = 0;
-					$('.hashrate').each(function(index, element) {
-
-						if(parseInt($(element).text()) > 0)
-						{
-							sum += parseInt($(element).text());
-						}
-					});
-					$("#hashrateSum").html("<center><h3><b>" + sum + " H/s</b></h3></center>");
 
 				});
+
+				// ------ //
+
+				var sum = 0;
+				$('.hashrate').each(function(index, element) {
+
+					if(parseInt($(element).text()) > 0)
+					{
+						sum += parseInt($(element).text());
+					}
+				});
+				$("#hashrateSum").html(sum);
+
+				// ------ //
+
+				$('.time').each(function(index, element) {
+					// Получаем текущее время
+					var currentTime = new Date();
+
+					// Разбиваем строку времени на часы, минуты и секунды
+					var timeParts = $(element).text().split(":");
+					var hours = parseInt(timeParts[0], 10);
+					var minutes = parseInt(timeParts[1], 10);
+					var seconds = parseInt(timeParts[2], 10);
+
+					// Создаем новый объект даты с текущей датой и временем из строки
+					var specifiedTime = new Date();
+					specifiedTime.setHours(hours);
+					specifiedTime.setMinutes(minutes);
+					specifiedTime.setSeconds(seconds);
+
+					// Добавляем 10 минут к устаревшему времени
+					var outdatedTime = new Date(specifiedTime.getTime() + 5 * 60000); // 60000 миллисекунд в минуте
+
+					// Сравниваем текущее время с устаревшим временем
+					if (currentTime > outdatedTime) {
+						$( this ).closest('tr').addClass('bg-danger text-white');
+					} else {
+						$( this ).closest('tr').removeClass('bg-danger text-white');
+					}
+
+				});
+
+				// ------ //
+
+				// <--
+				if(selectedId > 0)
+				{
+					$("#worker_" + selectedId).addClass('bg-danger text-white');
+					setTimeout(function() {
+						console.log("Reload: " + selectedId);
+						$("#allCoins").find('.active').click();
+					}, 2000);
+				}
+				// -->
+				
+				return false;
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
 		    }
-		});
-		
-		$('.time').each(function(index, element) {
-			// Получаем текущее время
-			var currentTime = new Date();
-
-			// Разбиваем строку времени на часы, минуты и секунды
-			var timeParts = $(element).text().split(":");
-			var hours = parseInt(timeParts[0], 10);
-			var minutes = parseInt(timeParts[1], 10);
-			var seconds = parseInt(timeParts[2], 10);
-
-			// Создаем новый объект даты с текущей датой и временем из строки
-			var specifiedTime = new Date();
-			specifiedTime.setHours(hours);
-			specifiedTime.setMinutes(minutes);
-			specifiedTime.setSeconds(seconds);
-
-			// Добавляем 10 минут к устаревшему времени
-			var outdatedTime = new Date(specifiedTime.getTime() + 5 * 60000); // 60000 миллисекунд в минуте
-
-			// Сравниваем текущее время с устаревшим временем
-			if (currentTime > outdatedTime || $(element).text() == "OFF") {
-				$( this ).closest('tr').addClass('bg-danger text-white');
-			} else {
-				$( this ).closest('tr').removeClass('bg-danger text-white');
-			}
-
 		});
 	}
 
@@ -485,38 +516,42 @@ $(document).ready(function(){
 	setInterval(sendAjaxRequest, 30000);
 
 	function profit(d, callback) {
-		var usd = 0;
-		var yht = 0;
-		var moneyData = "<table class=\"table table-striped\"><tr><th colspan=\"2\">" + d + "</th>";
+
+		if($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').text() != "ZEPH")
+		{
+			var usd = 0;
+			var yht = 0;
+			var moneyData = "<table class=\"table table-striped\"><tr><th colspan=\"2\">" + d + "</th>";
 		
-		$.ajax({
-		    url: 'money.php',
-		    method: 'GET',
-		    async: false, // Здесь была опечатка: 'async' вместо 'assync'
-		    data: { day: d },
-		    success: function(data) {
-		        //console.log("money:" + data);
-		        data = JSON.parse(data);
-		        
-		        $.each(data, function(index, value) {
-		            $.each(value, function(coin, sum) {
-		                if ($("#coin_" + coin).closest('tr').find('.price').length > 0) {
-		                    usd = (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
-		                    yht += parseFloat(usd);
-		                    moneyData += "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
-		                }
-		            });
-		        });
+			$.ajax({
+				url: 'money.php',
+				method: 'GET',
+				async: false, // Здесь была опечатка: 'async' вместо 'assync'
+				data: { day: d },
+				success: function(data) {
+				    //console.log("money:" + data);
+				    data = JSON.parse(data);
+				    
+				    $.each(data, function(index, value) {
+				        $.each(value, function(coin, sum) {
+				            if ($("#coin_" + coin).closest('tr').find('.price').length > 0) {
+				                usd = (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
+				                yht += parseFloat(usd);
+				                moneyData += "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
+				            }
+				        });
+				    });
 
-		        moneyData += "<tr class=\"bg-secondary\"><th></th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
+				    moneyData += "<tr class=\"bg-secondary\"><th></th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
 
-		        // Вызываем колбэк с полученными данными
-		        callback(moneyData);
-		    },
-		    error: function(xhr, status, error) {
-		        console.error('Ошибка при выполнении запроса:', error);
-		    }
-		});
+				    // Вызываем колбэк с полученными данными
+				    callback(moneyData);
+				},
+				error: function(xhr, status, error) {
+				    console.error('Ошибка при выполнении запроса:', error);
+				}
+			});
+		}
 	}
 });
 </script>

@@ -57,6 +57,11 @@ foreach($coins as $coin)
 	echo '</pre>';
 	*/
 
+	if($coin['coin'] == 'ZEPH' and isset($response['usdValue']))
+	{
+		$response['usdValue'] = round($response['usdValue'], 2);
+	}
+
 	$usdvalue 	= ($response['usdValue']??'0');
 	$diff 		= round(($rplantData[$coin['coin']]['difficulty']??'0'), 5);
 	$reward 	= round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 4);
