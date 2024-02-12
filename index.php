@@ -31,8 +31,8 @@ body{
 	color: white;
 }
 td.active{
-	background: #ddd;
-	color: #333 !important;
+	border-top: 3px orange solid;
+	border-bottom: 3px orange solid;
 }
 .table td, .table th{
 	padding: 6px 0.75rem 3px;
@@ -210,6 +210,7 @@ $(document).ready(function(){
 
 	$(document).delegate(".coin", "click",function(){
 	
+		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
 		// <--
@@ -222,6 +223,7 @@ $(document).ready(function(){
 		$("#lomake input[name='host']").val($(this).attr('host'));
 		$("#lomake input[name='algo']").val($(this).attr('algo'));
 		$("#lomake input[name='user']").val($(this).attr('user'));
+		$("#lomake input[name='pass']").val($(this).attr('pass'));
 		$("#lomake select[name='theads']").val($(this).attr('theads'));
 		$("#lomake select[name='debug']").val($(this).attr('debug'));
 
@@ -267,34 +269,46 @@ $(document).ready(function(){
 				}
 				// ------ //
 
-		        var rows = $(".tr_tb");
+				// Находим все строки таблицы, кроме заголовка
+				var rows = $('.tr_tb').not(':first');
+				var data = [];
 
-		        // Инициализируем переменные для хранения индекса строки с наименьшей сложностью и наибольшей выплатой
-		        var minDiffIndex = -1;
-		        var maxReward = 0;
+				rows.each(function() {
+					var diff 	= parseFloat($(this).find('.diff').text());
 
-		        // Находим строку с самой высокой выплатой и наименьшей сложностью
-		        rows.each(function(index) {
-		            var diff = parseFloat($(this).find(".diff").text());
-		            var reward = parseFloat($(this).find(".reward").text());
+					if(diff > 0)
+					{
+						data.push({row: $(this), diff: diff});
+					}
+				});
 
-		            if (minDiffIndex === -1 || (diff < parseFloat(rows.eq(minDiffIndex).find(".diff").text()) && reward > maxReward)) {
-		                minDiffIndex = index;
-		                maxReward = reward;
-		            }
-		        });
+				data.sort(function(a, b) {
+					return a.diff - b.diff;
+				});
 
-		        // Подсвечиваем строку с наибольшей выплатой и наименьшей сложностью
-		        if (minDiffIndex !== -1) {
-		            rows.eq(minDiffIndex).addClass("bg-secondary text-white best");
-		            
-		            // <-- AUTO
-		            if(systemControl == "auto" && !$("#" + lastClickedCoin).closest('tr').hasClass('best'))
-		            {
-		            	rows.eq(minDiffIndex).find('button').click();
-		            }
-		            // AUTO -->
-		        }
+				var maxReward = 0;
+				var maxRewardId = 0;
+
+				for (var i = 0; i < 4; i++)
+				{
+					if(maxReward < parseFloat(data[i].row.find('.reward').text()))
+					{
+						maxReward 	= parseFloat(data[i].row.find('.reward').text());
+						maxRewardId = data[i].row.attr('id');
+					}
+				}
+				
+				console.log("BEST id " + maxRewardId);
+				$("#" + maxRewardId).addClass("bg-secondary text-white best");
+
+	            // <-- AUTO
+	            if(systemControl == "auto" && !$("#" + lastClickedCoin).closest('tr').hasClass('best'))
+	            {
+	            	rows.eq(minDiffIndex).find('button').click();
+	            }
+	            // AUTO -->
+
+
 
 				// ------ //
 

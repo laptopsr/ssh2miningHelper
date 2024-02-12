@@ -11,15 +11,8 @@ include "config.php";
 
 $bd			= "";
 $coins8Symb = [];
+$rplant		= true;
 
-if (isset($_POST['active']) and $_POST['active'] == 'ZEPH')
-{
-	$rplant	= false;
-}
-else
-{
-	$rplant	= true;
-}
 
 // ------ //
 

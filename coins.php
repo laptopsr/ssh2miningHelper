@@ -67,12 +67,12 @@ foreach($coins as $coin)
 	$reward 	= round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 4);
 
 	$bd .= '
-	<tr class="tr_tb">
+	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'">
 		<td class="price">'.$usdvalue.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
 		<td>
-			<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">'.$coin['coin'].'</button>
+			<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">'.$coin['coin'].'</button>
 		</td>
 	</tr>';
 }
