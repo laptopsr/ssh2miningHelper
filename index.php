@@ -213,6 +213,8 @@ $(document).ready(function(){
 		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
+		$('tr').find('td').removeClass('active');
+		$( this ).closest('tr').find('td').addClass('active');
 		// <--
 		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		lastClickedCoin = $(this).attr('id');
@@ -289,7 +291,7 @@ $(document).ready(function(){
 				var maxReward = 0;
 				var maxRewardId = 0;
 
-				for (var i = 0; i < 4; i++)
+				for (var i = 0; i < 5; i++)
 				{
 					if(maxReward < parseFloat(data[i].row.find('.reward').text()))
 					{
@@ -304,7 +306,7 @@ $(document).ready(function(){
 	            // <-- AUTO
 	            if(systemControl == "auto" && !$("#" + lastClickedCoin).closest('tr').hasClass('best'))
 	            {
-	            	rows.eq(minDiffIndex).find('button').click();
+	            	$("#" + maxRewardId).find('button').click();
 	            }
 	            // AUTO -->
 

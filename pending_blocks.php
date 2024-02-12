@@ -82,7 +82,12 @@ if($rplant)
 		}
 		foreach($oldData as $k => $v)
 		{
-			//if($v[5] == "NEW") { continue; }
+			if(date("Ymd", $v[4]) < date("Ymd", strtotime("-2 days")))
+			{
+				//echo date("Ymd", $v[4]).'<br>';
+				continue;
+			}
+
 			$newData[$k] = $v;
 		}
 
@@ -90,8 +95,9 @@ if($rplant)
 		echo '<pre>';
 		print_r($newData);
 		echo '</pre>';
+		exit;
 		*/
-		
+
 		file_put_contents($myLogFile, json_encode($newData));
 	}
 	else
