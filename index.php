@@ -25,7 +25,7 @@ body{
 	color: #ddd;
 }
 .coin{
-	margin-bottom: 5px;
+	margin-bottom: 2px;
 }
 .bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
 	color: white;
@@ -38,6 +38,9 @@ td.active{
 	padding: 6px 0.75rem 3px;
 	color: #ddd;
 }
+.table th{
+	color: orange;
+}
 .form-control{
 	background: #ededed;
 }
@@ -45,7 +48,7 @@ td.active{
 </head>
 <body>
 	<div class="container-fluid" style="margin-top: 30px;">
-	<center><div id="header"></div></center>
+	<center><div id="header"></div><div id="debugResponse"></div></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3">
@@ -107,7 +110,7 @@ td.active{
 				</select>
 				<br>
 				<div id="all_computers">
-					<div class="alert bg-secondary"><center><h3><b id="hashrateSum"></b> H/s</h3></center></div>
+					<div class="well bg-secondary"><center><h4><b id="hashrateSum"></b> H/s</h4></center></div>
 					<table class="table table-striped">
 					<tr>
 						<th>Worker</th>
@@ -124,7 +127,7 @@ td.active{
 						{
 							echo '
 							<tr class="model">
-								<td colspan="6" class="bg-secondary" align="center"><h5><b>'.$v['model'].'</b></h5></td>
+								<td colspan="6" class="bg-secondary"><b>'.$v['model'].'</b></td>
 							</tr>
 							';
 						}
@@ -136,7 +139,7 @@ td.active{
 							<td class="time ajaxdata"></td>
 							<td class="hashrate ajaxdata"></td>
 							<td class="pool ajaxdata"></td>
-							<td class="session ajaxdata"></td>
+							<td class="session ajaxdata" align="center"></td>
 						</tr>';
 						
 						$last_model = $v['model'];
@@ -173,6 +176,11 @@ $(document).ready(function(){
 		    	data = JSON.parse(data);
 		        console.log("Form send: " + data);
 		        $("#lomake_workers option").prop("selected", true);
+		        
+		        if(data['debug'])
+		        {
+		        	$("#debugResponse").html(data['debug']);
+		        }
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
@@ -321,7 +329,7 @@ $(document).ready(function(){
 				});
 
 				profit("<?=date("Y-m-d")?>", function(result) {
-					$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
+					$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"width:50%; vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
 					//console.log(result);
 				});
 
@@ -344,7 +352,7 @@ $(document).ready(function(){
 
 		if($("#allCoins").find('.active').length > 0)
 		{
-			$("#header").html('<h2>SOLO mining helpper V3</h2>');
+			$("#header").html('<h2>Mining helpper V3</h2>');
 
 			$.ajax({
 				url: 'pending_blocks.php',
@@ -442,6 +450,16 @@ $(document).ready(function(){
 
 					// ------ //
 
+					if(value['session'] && value['session'] == "offline")
+					{
+						$("#worker_" + value['id']).find('.session').addClass('bg-danger');
+						//alertFunc(alertPC);
+					}
+					else
+					{
+						$("#worker_" + value['id']).find('.session').removeClass('bg-danger');
+					}
+
 					if(workersControl == "auto" && value['time'] && value['time'] == 'OFF')
 					{
 						$("#lomake_workers option:selected").removeAttr("selected");
@@ -459,8 +477,6 @@ $(document).ready(function(){
 								$(this).prop("selected", false);
 							}
 						});
-						
-						return false;
 					}
 
 				});
@@ -512,7 +528,7 @@ $(document).ready(function(){
 				// <--
 				if(selectedId > 0)
 				{
-					$("#worker_" + selectedId).addClass('bg-danger text-white');
+					$("#worker_" + selectedId).addClass('bg-danger');
 					setTimeout(function() {
 						console.log("Reload: " + selectedId);
 						$("#allCoins").find('.active').click();

@@ -19,17 +19,17 @@ if(isset($_POST['command']))
 		$prepare = '';
 		if($_POST['miner'] != '')
 		{
-			$prepare = 'killall cpuminer-ryzen; sudo killall xmrig; killall SRBMiner-MULTI; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log; ';
+			$prepare = 'timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log; ';
 
 			if($_POST['miner'] == 'xmrig')
 			{
-				$start = 'timeout 1 sudo screen -dmS xmrig '.$path_xmrig.' --log-file=/home/laptopsr/xmrig.log';
+				$start = 'timeout 1 sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file=/home/laptopsr/xmrig.log';
 				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
 
 			if($_POST['miner'] == 'cpuminer')
 			{
-				$start = 'timeout 1 screen -dmS cpuminer '.$path_cpuminer.' --syslog';
+				$start = 'timeout 1 screen -dmS cpuminer '.$v['path_cpuminer'].' --syslog';
 				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
 
@@ -74,7 +74,7 @@ if(isset($_POST['command']))
 
 	if($_POST['debug'] == "true")
 	{
-		echo json_encode($bd);
+		echo json_encode(['debug' => $bd]);
 	}
 	else
 	{
