@@ -21,7 +21,9 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 
 $rplantData = json_decode(curl_exec($ch), true);
 curl_close($ch);
+
 /*
+// 24h_blocks
 echo '<pre>';
 print_r($rplantData);
 echo '</pre>';
@@ -29,7 +31,7 @@ exit;
 */
 
 $bd = '
-<table class="table table-striped">
+<table class="table table-striped coins">
 <tr>
 	<th>Price</th>
 	<th>Diff</th>

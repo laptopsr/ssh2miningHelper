@@ -277,10 +277,29 @@ $(document).ready(function(){
 					$("#" + lastClickedCoin).closest('tr').find('td').addClass('active');
 					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white active');
 				}
+
 				// ------ //
 
-				// Находим все строки таблицы, кроме заголовка
-				var rows = $('.tr_tb').not(':first');
+				// Затем сортируем строки на основе значения Diff
+				var rows = $('table.coins tbody').find('tr').not(':first');
+
+				rows.sort(function(a, b) {
+					var diffA = parseFloat($(a).find('.diff').text());
+					var diffB = parseFloat($(b).find('.diff').text());
+					return diffA - diffB;
+				});
+
+				// Удаляем все строки из таблицы
+				$('table.coins tbody').empty();
+
+				// После сортировки добавляем отсортированные строки обратно в таблицу
+				$.each(rows, function(index, row) {
+					$('table.coins tbody').append(row);
+				});
+
+				// ------ //
+
+				// Находим maxReward
 				var data = [];
 
 				rows.each(function() {
@@ -317,8 +336,6 @@ $(document).ready(function(){
 	            	$("#" + maxRewardId).find('button').click();
 	            }
 	            // AUTO -->
-
-
 
 				// ------ //
 
