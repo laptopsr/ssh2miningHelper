@@ -24,6 +24,8 @@ curl_close($ch);
 
 /*
 // 24h_blocks
+// network_hashrate
+
 echo '<pre>';
 print_r($rplantData);
 echo '</pre>';
@@ -32,12 +34,15 @@ exit;
 
 $bd = '
 <table class="table table-striped coins">
-<tr>
-	<th>Price</th>
-	<th>Diff</th>
-	<th>Rew.</th>
-	<th></th>
-</tr>';
+<thead>
+	<tr>
+		<th>Price</th>
+		<th>Diff</th>
+		<th>Rew.</th>
+		<th>Coin</th>
+	</tr>
+</thead>
+<tbody>';
 
 $i = 0;
 foreach($coins as $coin)
@@ -67,9 +72,10 @@ foreach($coins as $coin)
 	$usdvalue 	= ($response['usdValue']??'0');
 	$diff 		= round(($rplantData[$coin['coin']]['difficulty']??'0'), 5);
 	$reward 	= round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 4);
+	$network_hashrate = $rplantData[$coin['coin']]['network_hashrate']??'0';
 
 	$bd .= '
-	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'">
+	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'">
 		<td class="price">'.$usdvalue.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
@@ -78,7 +84,7 @@ foreach($coins as $coin)
 		</td>
 	</tr>';
 }
-$bd .= '</table>';
+$bd .= '</tbody></table>';
 
 echo json_encode($bd);
 ?>

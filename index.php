@@ -16,6 +16,10 @@ include "config.php";
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
 
+<!-- DataTable -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/fontawesome.min.css" />  
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css" /> 
 
@@ -44,6 +48,9 @@ td.active{
 .form-control{
 	background: #ededed;
 }
+#datatable_length, #datatable_filter, .dataTables_filter{
+	display:none;
+}
 </style>
 </head>
 <body>
@@ -54,6 +61,8 @@ td.active{
 			<div class="col-md-3">
 				<center>
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
+					<br>
+					<h4>Current effort <b id="cur_effort"></b> %</h4>
 				</center>
 				<br>
 				<div id="my_pending_blocks">
@@ -113,6 +122,7 @@ td.active{
 					<div class="well bg-secondary"><center><h4><b id="hashrateSum"></b> H/s</h4></center></div>
 					<table class="table table-striped">
 					<tr>
+						<td></td>
 						<th>Worker</th>
 						<th>Temp.</th>
 						<th>Time</th>
@@ -127,13 +137,14 @@ td.active{
 						{
 							echo '
 							<tr class="model">
-								<td colspan="6" class="bg-secondary"><b>'.$v['model'].'</b></td>
+								<td colspan="7" class="bg-secondary"><b>'.$v['model'].'</b></td>
 							</tr>
 							';
 						}
 
 						echo '
-						<tr id="worker_'.$v['worker'].'" class="worker_tr">
+						<tr id="worker_'.$v['worker'].'" class="worker_tr" worker="'.$v['worker'].'">
+							<td><input class="worker_chk" type="checkbox" '.($v['worker'] != 205 ? 'checked' : '').'></td>
 							<th class="host">'.$v['host'].'</th>
 							<td class="temperature ajaxdata"></td>
 							<td class="time ajaxdata"></td>
@@ -146,6 +157,10 @@ td.active{
 					}
 					?>
 					</table>
+					<hr>
+					<h3>
+						With selected: <button class="btn btn-danger rebootAll">Reboot</button> <button class="btn btn-danger clrScreen">Clear screen</button>
+					</h3>
 				</div>
 			</div>
 		</div>
@@ -155,6 +170,48 @@ td.active{
 
 <script>
 $(document).ready(function(){
+
+	$(document).delegate(".rebootAll", "click",function(){
+		WorkerCommand('timeout 1 sudo reboot');
+	});
+	$(document).delegate(".clrScreen", "click",function(){
+		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log;');
+	});
+
+	function WorkerCommand(cmd)
+	{
+
+		$("#lomake_workers option:selected").removeAttr("selected");
+
+		var wrk = [];
+		$('.worker_chk').each(function(){
+			if( $( this ).prop("checked") )
+			{
+				console.log($(this))
+				$("#lomake select[name='miner']").val('');
+				$("#lomake input[name='host']").val('');
+				$("#lomake input[name='algo']").val('');
+				$("#lomake input[name='user']").val('');
+				$("#lomake input[name='pass']").val('');
+				$("#lomake select[name='theads']").val('');
+				$("#lomake select[name='debug']").val('false');
+				$("#lomake input[name='command']").val(cmd);
+				
+				wrk.push($(this).closest('tr').attr('worker'));
+			}
+		});
+
+		$("#lomake_workers").val(wrk);
+
+		$("#lomake").css({'border':'4px green solid'});
+		setTimeout(function() { 
+    		$("#lomake").submit();
+    		$("#lomake").css({'border':'none'});
+    		return false;
+		}, 2000);
+	}
+
+	// ------ //
 
 	$("#lomake").on('submit', function(e){
 		e.preventDefault();
@@ -208,7 +265,9 @@ $(document).ready(function(){
 		localStorage.setItem('workersControl', $(this, 'option;selected').val());
 		workersControl = $(this, 'option;selected').val();
 	});
+
 	// ------ //
+
 	$("#command").keyup(function(){
 		$("#debug").val("true");
 	});
@@ -223,6 +282,7 @@ $(document).ready(function(){
 		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
 		$('tr').find('td').removeClass('active');
 		$( this ).closest('tr').find('td').addClass('active');
+
 		// <--
 		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		lastClickedCoin = $(this).attr('id');
@@ -278,64 +338,23 @@ $(document).ready(function(){
 					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white active');
 				}
 
-				// ------ //
+				// --- BEST --- //
 
-				// Затем сортируем строки на основе значения Diff
-				var rows = $('table.coins tbody').find('tr').not(':first');
-
-				rows.sort(function(a, b) {
-					var diffA = parseFloat($(a).find('.diff').text());
-					var diffB = parseFloat($(b).find('.diff').text());
-					return diffA - diffB;
+				new DataTable('table.coins', {
+					"order": [ [1,'asc'], [2,'desc'] ],
+					paging: false
 				});
 
-				// Удаляем все строки из таблицы
-				$('table.coins tbody').empty();
-
-				// После сортировки добавляем отсортированные строки обратно в таблицу
-				$.each(rows, function(index, row) {
-					$('table.coins tbody').append(row);
-				});
-
-				// ------ //
-
-				// Находим maxReward
-				var data = [];
-
-				rows.each(function() {
-					var diff 	= parseFloat($(this).find('.diff').text());
-
-					if(diff > 0)
-					{
-						data.push({row: $(this), diff: diff});
-					}
-				});
-
-				data.sort(function(a, b) {
-					return a.diff - b.diff;
-				});
-
-				var maxReward = 0;
-				var maxRewardId = 0;
-
-				for (var i = 0; i < 5; i++)
-				{
-					if(maxReward < parseFloat(data[i].row.find('.reward').text()))
-					{
-						maxReward 	= parseFloat(data[i].row.find('.reward').text());
-						maxRewardId = data[i].row.attr('id');
-					}
-				}
-				
-				console.log("BEST id " + maxRewardId);
-				$("#" + maxRewardId).addClass("bg-secondary text-white best");
-
-	            // <-- AUTO
-	            if(systemControl == "auto" && !$("#" + lastClickedCoin).closest('tr').hasClass('best'))
+	            var firstRow = $('tr.tr_tb').first();
+	            firstRow.addClass('best bg-secondary');
+	            
+	            if(systemControl == "auto")
 	            {
-	            	$("#" + maxRewardId).find('button').click();
+	            	if(!$("#" + lastClickedCoin).closest('tr').hasClass('best'))
+	            	{
+	            		firstRow.find('button').click();
+	            	}
 	            }
-	            // AUTO -->
 
 				// ------ //
 
@@ -394,6 +413,18 @@ $(document).ready(function(){
 						$("#header").html('<h1 class="alert bg-success text-white">* * * BLOCK FOUND * * *</h1>');
 						alertFunc(alertPC);
 					}
+
+					// --- EFFORT % --- //
+
+					var ct = new Date();
+					// Разница между текущим временем и freshestTime
+					var df 					= ((ct - freshestTime) / (1000 * 60)) * 60;
+					var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
+					var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
+					var summ				= (df / network_diff) / 1000;
+					//console.log( summ.toFixed() );
+					$("#cur_effort").html(summ.toFixed());
+					
 					// ------ //
 					
 					$('.tr_block').each(function(){
@@ -441,7 +472,8 @@ $(document).ready(function(){
 		        //console.log("Sended:");
 		        data = JSON.parse(data);
 
-				var selectedId = 0;
+				var trbl_worker = [];
+
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
 					if(value['temperature'] && value['temperature'] != '')
@@ -477,26 +509,23 @@ $(document).ready(function(){
 						$("#worker_" + value['id']).find('.session').removeClass('bg-danger');
 					}
 
-					if(workersControl == "auto" && value['time'] && value['time'] == 'OFF')
+					if(value['time'] && value['time'] == 'OFF')
 					{
-						$("#lomake_workers option:selected").removeAttr("selected");
-						selectedId = value['id'];
-						//console.log(selectedId)
-
-						// Пройдемся по каждому элементу select с атрибутом name='workers'
-						$("#lomake_workers option").each(function() {
-							// Проверим, содержится ли значение id текущего option в списке выбранных id
-							if (selectedId.includes($(this).val())) {
-								// Если содержится, установим атрибут selected для данного option
-								$(this).prop("selected", true);
-							} else {
-								// Иначе снимем атрибут selected (если он ранее был установлен)
-								$(this).prop("selected", false);
-							}
-						});
+						trbl_worker.push(value['id']);
+						$("#worker_" + value['id']).addClass('bg-danger');
 					}
 
 				});
+
+				if(workersControl == "auto" && trbl_worker.length > 0)
+				{
+					$("#lomake_workers option:selected").removeAttr("selected");
+					$("#lomake_workers").val(trbl_worker);
+
+					setTimeout(function() {
+						$("#allCoins").find('.active').click();
+					}, 2000);
+				}
 
 				// ------ //
 
@@ -540,20 +569,6 @@ $(document).ready(function(){
 
 				});
 
-				// ------ //
-
-				// <--
-				if(selectedId > 0)
-				{
-					$("#worker_" + selectedId).addClass('bg-danger');
-					setTimeout(function() {
-						console.log("Reload: " + selectedId);
-						$("#allCoins").find('.active').click();
-					}, 2000);
-				}
-				// -->
-				
-				return false;
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
