@@ -28,11 +28,15 @@ body{
 	background: #333;
 	color: #ddd;
 }
-.coin{
-	margin-bottom: 2px;
+button.coin{
+	padding: 0px 4px;
+	margin-bottom: 0px;
 }
 .bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
-	color: white;
+	color: #ddd;
+}
+.text-orange{
+	color: orange;
 }
 td.active{
 	border-top: 3px orange solid;
@@ -51,18 +55,23 @@ td.active{
 #datatable_length, #datatable_filter, .dataTables_filter{
 	display:none;
 }
+#cur_effort{
+	position: absolute;
+	top: 0px; left: 0;
+	padding: 7px 7px 0px;
+	z-index: 999999;
+}
 </style>
 </head>
 <body>
-	<div class="container-fluid" style="margin-top: 30px;">
+	<div class="container-fluid" style="margin-top: 20px;">
+	<div id="cur_effort" class="btn btn-secondary text-orange"></div>
 	<center><div id="header"></div><div id="debugResponse"></div></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3">
 				<center>
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
-					<br>
-					<h4>Current effort <b id="cur_effort"></b> %</h4>
 				</center>
 				<br>
 				<div id="my_pending_blocks">
@@ -144,7 +153,7 @@ td.active{
 
 						echo '
 						<tr id="worker_'.$v['worker'].'" class="worker_tr" worker="'.$v['worker'].'">
-							<td><input class="worker_chk" type="checkbox" '.($v['worker'] != 205 ? 'checked' : '').'></td>
+							<td><input class="worker_chk" type="checkbox" checked></td>
 							<th class="host">'.$v['host'].'</th>
 							<td class="temperature ajaxdata"></td>
 							<td class="time ajaxdata"></td>
@@ -158,9 +167,9 @@ td.active{
 					?>
 					</table>
 					<hr>
-					<h3>
-						With selected: <button class="btn btn-danger rebootAll">Reboot</button> <button class="btn btn-danger clrScreen">Clear screen</button>
-					</h3>
+					<h5>
+						With selected: <button class="btn btn-danger btn-sm rebootAll">Reboot</button> <button class="btn btn-danger btn-sm clrScreen">Clear screen</button>
+					</h5>
 				</div>
 			</div>
 		</div>
@@ -233,7 +242,16 @@ $(document).ready(function(){
 		    	data = JSON.parse(data);
 		        console.log("Form send: " + data);
 		        $("#lomake_workers option").prop("selected", true);
-		        
+
+				$("#lomake select[name='miner']").val('');
+				$("#lomake input[name='host']").val('');
+				$("#lomake input[name='algo']").val('');
+				$("#lomake input[name='user']").val('');
+				$("#lomake input[name='pass']").val('');
+				$("#lomake select[name='theads']").val('');
+				$("#lomake select[name='debug']").val('');
+				$("#lomake input[name='command']").val('');
+        
 		        if(data['debug'])
 		        {
 		        	$("#debugResponse").html(data['debug']);
@@ -341,8 +359,27 @@ $(document).ready(function(){
 				// --- BEST --- //
 
 				new DataTable('table.coins', {
-					"order": [ [1,'asc'], [2,'desc'] ],
-					paging: false
+					"order": [ [2,'desc'], [1,'asc'] ],
+					paging: false,
+					columnDefs: [
+						{ targets: [0, 3], orderable: false }, // Запретить сортировку для первой и четвертой колонок
+						{
+							targets: [1], // Вторая колонка
+							orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
+							render: function (data, type, row, meta) {
+								// Используем дополнительную информацию, если необходимо
+								return parseFloat(data); // Если данные числовые, преобразуем в числа для корректной сортировки
+							}
+						},
+						{
+							targets: [2], // Третья колонка
+							orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
+							render: function (data, type, row, meta) {
+								// Используем дополнительную информацию, если необходимо
+								return parseFloat(data); // Если данные числовые, преобразуем в числа для корректной сортировки
+							}
+						}
+					]
 				});
 
 	            var firstRow = $('tr.tr_tb').first();
@@ -386,10 +423,10 @@ $(document).ready(function(){
 
 	function pendingBlocks() {
 
+		$("#header").html('<h2>Mining helpper V3</h2>');
+
 		if($("#allCoins").find('.active').length > 0)
 		{
-			$("#header").html('<h2>Mining helpper V3</h2>');
-
 			$.ajax({
 				url: 'pending_blocks.php',
 				method: 'POST',
@@ -410,7 +447,7 @@ $(document).ready(function(){
 					{
 						localStorage.setItem('freshestTime', freshestTime);
 
-						$("#header").html('<h1 class="alert bg-success text-white">* * * BLOCK FOUND * * *</h1>');
+						$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
 						alertFunc(alertPC);
 					}
 
@@ -419,11 +456,19 @@ $(document).ready(function(){
 					var ct = new Date();
 					// Разница между текущим временем и freshestTime
 					var df 					= ((ct - freshestTime) / (1000 * 60)) * 60;
+					var my_hashrate			= parseInt($("#hashrateSum").text());
 					var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
 					var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
-					var summ				= (df / network_diff) / 1000;
+					//var summ				= (df / network_diff) / 1000;
+					
 					//console.log( summ.toFixed() );
-					$("#cur_effort").html(summ.toFixed());
+					
+					if(my_hashrate > 0)
+					{
+						var summ = ((df * my_hashrate) / (network_diff / 2)) / 100000000;
+						
+						$("#cur_effort").html("<h1><b>" +summ.toFixed() + " %</b></h1>");
+					}
 					
 					// ------ //
 					
@@ -457,7 +502,7 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(pendingBlocks, 120000);
+	setInterval(pendingBlocks, 60000);
 
 	// Функция для отправки AJAX-запроса
 	sendAjaxRequest();

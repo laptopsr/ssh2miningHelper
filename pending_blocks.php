@@ -106,13 +106,16 @@ if($rplant)
 	}
 	// ------ //
 
-	$bd .= '
+	/*
 	<style>
 	#my_pending_blocks {
 		height: 200px;
 		overflow-y: auto;
 	}
 	</style>
+	*/
+	
+	$bd .= '
 	<h4>My pending blocks rplant.xyz</h4>
 	<table class="table table-striped">
 	<tr class="">

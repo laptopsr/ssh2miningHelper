@@ -31,12 +31,13 @@ foreach($arr as $v)
 	if (ssh2_auth_password($connection, $v['user'], $v['pass']))
 	{
 
+		// speed real: $6, avg: $14 
 		$command = "
 		echo $( timeout 1 sensors | awk '/Tctl/ {print $2}' ); 
 		echo \"|\"; 
 		echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"accepted\" | awk '/accepted/ {print $2}' ); 
 		echo \"|\"; 
-		echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"speed\" | awk '/speed/ {print $6}' ); 
+		echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"speed\" | awk '/speed/ {print $14}' ); 
 		echo \"|\"; 
 		echo $( timeout 1 tail -f $path_xmriglog  | grep -m 1 \"new job\" | awk '/new job/ {print $7}' )
 		echo \"|\"; 
@@ -95,6 +96,7 @@ foreach($arr as $v)
 				'session' 		=> $session,
 			];
 
+			/*
 			if($return[$v['host']]['session'] == "false")
 			{
 
@@ -132,6 +134,7 @@ foreach($arr as $v)
 					'session' 		=> $session,
 				];
 			}
+			*/
 		}
 		
 		fclose($stream);
