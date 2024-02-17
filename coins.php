@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 include "config.php";
+include "xeggex_balances.php"; // $xeggexBalances
 
 // ------ //
 
@@ -36,6 +37,7 @@ $bd = '
 <table class="table table-striped coins">
 <thead>
 	<tr>
+		<th>Balance</th>
 		<th>Price</th>
 		<th>Diff</th>
 		<th>Rew.</th>
@@ -73,9 +75,11 @@ foreach($coins as $coin)
 	$diff 		= round(($rplantData[$coin['coin']]['difficulty']??'0'), 5);
 	$reward 	= round((($response['usdValue']??'1') * ($rplantData[$coin['coin']]['reward']??'0')), 4);
 	$network_hashrate = $rplantData[$coin['coin']]['network_hashrate']??'0';
+	$balance	= (isset($xeggexBalances[$coin['coin']]['available'])) ? round(($xeggexBalances[$coin['coin']]['available'] * $usdvalue), 2) : 0;
 
 	$bd .= '
 	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'">
+		<td class="balance">'.$balance.'</td>
 		<td class="price">'.$usdvalue.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>

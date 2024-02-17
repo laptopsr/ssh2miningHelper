@@ -113,7 +113,7 @@ td.active{
 					<button class="btn btn-info btn-block" type="submit">OK</button>
 				</form>
 			</div>
-			<div class="col-md-3">
+			<div class="col-md-4">
 				<select id="systemControl" class="form-control">
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
@@ -121,7 +121,7 @@ td.active{
 				<br>
 				<div id="allCoins"></div>
 			</div>
-			<div class="col-md-6">
+			<div class="col-md-5">
 				<select id="workersControl" class="form-control">
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
