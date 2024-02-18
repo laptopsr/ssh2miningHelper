@@ -76,7 +76,7 @@ table.herominers th{
 	<div class="container-fluid" style="margin-top: 20px;">
 	<div id="cur_effort" class="btn btn-secondary text-orange"></div>
 	<div id="cur_balance" class="btn btn-secondary text-orange"></div>
-	<center><div id="header">Mining helpper V3</div><div id="debugResponse"></div></center>
+	<center><div id="header">---</div><div id="debugResponse"></div></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3">
@@ -465,10 +465,11 @@ $(document).ready(function(){
 
 	function pendingBlocks() {
 
-		$("#header").html('<h2>Mining helpper V3</h2>');
-
 		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
 		{
+
+			$("#header").html('<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>');
+
 			$.ajax({
 				url: 'pending_blocks.php',
 				method: 'POST',
@@ -562,7 +563,8 @@ $(document).ready(function(){
 			
 			//console.log(coin_name + " " + address);
 			
-			$("#header").html('<h2>Mining helpper V3 - <span class="text-orange">Herominers</span></h2>');
+			$("#header").html('<h2><?=$softName?> <?=$version?> - <span class="text-orange">Herominers</span></h2>');
+
 			$.ajax({
 				url: 'herominers_api.php',
 				method: 'GET',
@@ -602,6 +604,7 @@ $(document).ready(function(){
 
 						htmlData += "<tr><td>Pending</td><th>" + (data['stats']['balance'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
 						htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data['stats']['payments_24h'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+						htmlData += "<tr><td>Last Week Paid</td><th>" + (data['stats']['paid'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
 						//htmlData += "<tr><td>Current Payout Estimate</td><th>" + (data['stats']['roundScore'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
 						htmlData += "</table>";
 						

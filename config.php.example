@@ -1,4 +1,6 @@
 <?php
+$softName 	= "CPU Mining Helper";
+$version 	= "V4";
 
 // XEGGEX API-ключ и API Secret
 $apiKey = "xxx";
