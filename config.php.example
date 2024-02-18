@@ -7,42 +7,70 @@ $apiSecret = "xxx";
 // -- Настройки путей -- //
 $path_xmrig 	= "/home/laptopsr/MINERS/xmrig/xmrig";
 $path_cpuminer	= "/home/laptopsr/MINERS/cpuminer-rplant/cpuminer-sse2";
+$path_srbminer  = "/home/laptopsr/MINERS/SRBMiner-Multi/SRBMiner-MULTI ";
 $path_syslog	= "/var/log/syslog";
 $path_xmriglog 	= "/home/laptopsr/xmrig.log";
-$path_srbminerlog 	= "/home/laptopsr/xmrig.log";
+$path_srbminerlog 	= "/home/laptopsr/srbminer.log";
 $ssh_user		= "laptopsr";
 $ssh_pass		= "xxx";
 
 // -- Монеты для быстрого перехода -- //
 $coins = [
-	['coin' => 'GPRX', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7031', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'BBC', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7082', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'FSC', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7095', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'MECU', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7094', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'MAXE', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7028', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'NIKI', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7099', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'SKYT', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7084', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'SUBI', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7090', 'algo' => 'gr', 'user' => 'xxx', 'theads' => 'auto'],
-	['coin' => 'SUGAR', 'miner' => 'cpuminer-sse2', 'host' => 'stratum-eu.rplant.xyz:7042', 'algo' => 'yespowersugar', 'user' => 'xxx', 'theads' => 'manual'],
-	['coin' => 'VISH', 'miner' => 'cpuminer-sse2', 'host' => 'stratum-eu.rplant.xyz:7079', 'algo' => 'yespower', 'user' => 'xxx', 'theads' => 'manual'],
+
+	['coin' => 'GPRX', 'coin_name' => 'gainprox', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7031', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'BBC', 'coin_name' => 'babacoin', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7082', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'BTRM', 'coin_name' => 'bitoreum', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7075', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'FSC', 'coin_name' => 'fsociety', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7095', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'MECU', 'coin_name' => 'mecuai', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7094', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'MAXE', 'coin_name' => 'maxeter', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7028', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'NIKI', 'coin_name' => 'nikito', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7099', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'OSN', 'coin_name' => 'osinpay', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7071', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'RTC', 'coin_name' => 'reaction', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7054', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'SKYT', 'coin_name' => 'skytere', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7084', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'SUBI', 'coin_name' => 'subi', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7090', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'VARSE', 'coin_name' => 'varsechain', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7093', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'RTM', 'coin_name' => 'raptoreum', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7056', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+
+	['coin' => 'SMT', 'coin_name' => 'smartiecoin', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7111', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	['coin' => 'SUGAR', 'coin_name' => 'sugarchain', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7042', 'algo' => 'yespowersugar', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	['coin' => 'VISH', 'coin_name' => 'vishai', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7079', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	['coin' => 'YTN', 'coin_name' => 'yenten', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:3382', 'algo' => 'yespowerR16', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	/*
+	https://dex-trade.com/ru/wallet-spot
+	['coin' => 'WHIVE', 'coin_name' => 'whive', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7070', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	*/
+	//['coin' => 'BIT', 'coin_name' => 'gainprox', 'miner' => 'srbminer', 'host' => 'stratum-eu.rplant.xyz:7109', 'algo' => 'aurum', 'user' => 'xxx', 'theads' => 'auto', 'debug' => 'true'],
+
+	/*
+	['coin' => 'ZEPH', 'coin_name' => 'zephyr', 'miner' => 'xmrig', 'host' => 'randomx.rplant.xyz:7100', 'algo' => 'randomx', 'user' => 'xxx', 'pass' => 'x', 'theads' => 'auto', 'debug' => 'false'],
+	*/
+	['coin' => 'ZEPH', 'coin_name' => 'zephyr', 'miner' => 'xmrig', 'host' => 'fi.zephyr.herominers.com:1123', 'algo' => 'randomx', 'user' => 'ZEPHsBDtuMFeUqifG1VLfagkgEnnp1ph2Uz6eyUViigkjShoC8WjrcXgzZ5f4J9tgNDcHig95xGjC8UzmSRZz3UB6XcnQ3uPj39', 'pass' => 'x', 'theads' => 'auto', 'debug' => 'false'],
+	/*
+['coin' => 'TABO', 'coin_name' => 'tabo', 'miner' => 'xmrig', 'host' => 'randomx.rplant.xyz:7107', 'algo' => 'randomx', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'QRL','coin_name' => 'qrl', 'miner' => 'xmrig', 'host' => 'fi.qrl.herominers.com:1166', 'algo' => 'rx/0', 'user' => 'solo:xxx', 'pass' => 'STAN', 'theads' => 'auto', 'debug' => 'false'],
+	*/
 ];
 
 // -- Воркеры -- //
 $arr = [
-	['host' => '192.168.1.201', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '201', 'theads' => 5],
-	['host' => '192.168.1.202', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '202', 'theads' => 6],
-	['host' => '192.168.1.203', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '203', 'theads' => 5],
-	['host' => '192.168.1.204', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '204', 'theads' => 12],
-	['host' => '192.168.1.205', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '205', 'theads' => 7],
-	['host' => '192.168.1.207', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '207', 'theads' => 11],
-	['host' => '192.168.1.208', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '208', 'theads' => 11],
-	['host' => '192.168.1.210', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '210', 'theads' => 11],
-	['host' => '192.168.1.211', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '211', 'theads' => 12],
-	['host' => '192.168.1.212', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '212', 'theads' => 12],
-	['host' => '192.168.1.213', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '213', 'theads' => 11],
-	['host' => '192.168.1.214', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '214', 'theads' => 11],
-	['host' => '192.168.1.215', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '215', 'theads' => 11],
-	['host' => '192.168.1.246', 'user' => 'laptopsr', 'pass' => 'xxx', 'worker' => '246', 'theads' => 4],
+	['host' => '192.168.1.201', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '201', 'theads' => 5, 'model' => 'R5-3600', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.202', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '202', 'theads' => 6, 'model' => 'R5-3600', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.203', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '203', 'theads' => 5, 'model' => 'R5-3600', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+
+	['host' => '192.168.1.205', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '205', 'theads' => 7, 'model' => 'R7-5800x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	
+	['host' => '192.168.1.207', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '207', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.208', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '208', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.210', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '210', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.213', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '213', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.214', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '214', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.215', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '215', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.216', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '216', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.217', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '217', 'theads' => 11, 'model' => 'R9-5900x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+
+	['host' => '192.168.1.204', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '204', 'theads' => 12, 'model' => 'R9-5950x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.211', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '211', 'theads' => 12, 'model' => 'R9-5950x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
+	['host' => '192.168.1.212', 'user' => $ssh_user, 'pass' => $ssh_pass, 'worker' => '212', 'theads' => 12, 'model' => 'R9-5950x', 'path_xmrig' => $path_xmrig, 'path_cpuminer' => $path_cpuminer],
 ];
 
 if (!function_exists('str_contains')) {

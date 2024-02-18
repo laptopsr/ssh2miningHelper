@@ -44,6 +44,17 @@ if(isset($response[0]['asset']))
 	}
 
 	/*
+    [VARSE] => Array
+        (
+            [asset] => VARSE
+            [name] => Varse Chain
+            [available] => 41159.79430105
+            [pending] => 0.00000000
+            [held] => 0.00000000
+            [assetid] => 64f52efb0b79ddeddd3eeefc
+        )
+	*/
+	/*
 	echo '<pre>';
 	print_r($xeggexBalances);
 	echo '</pre>';

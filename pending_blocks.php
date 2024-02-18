@@ -34,6 +34,9 @@ if($rplant)
 		}
 	}
 
+	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
+	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
+
 	$url = 'https://pool.rplant.xyz/api/blocks';
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);

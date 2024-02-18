@@ -61,12 +61,22 @@ td.active{
 	padding: 7px 7px 0px;
 	z-index: 999999;
 }
+#cur_balance{
+	position: absolute;
+	top: 0px; right: 0;
+	padding: 7px 7px 0px;
+	z-index: 999999;
+}
+table.herominers th{
+	text-align: right;
+}
 </style>
 </head>
 <body>
 	<div class="container-fluid" style="margin-top: 20px;">
 	<div id="cur_effort" class="btn btn-secondary text-orange"></div>
-	<center><div id="header"></div><div id="debugResponse"></div></center>
+	<div id="cur_balance" class="btn btn-secondary text-orange"></div>
+	<center><div id="header">Mining helpper V3</div><div id="debugResponse"></div></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3">
@@ -74,9 +84,8 @@ td.active{
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
 				</center>
 				<br>
-				<div id="my_pending_blocks">
-					<span class="btn btn-sm btn-block btn-secondary text-white">waiting..</span>
-				</div>
+				<div id="herominers_data"></div>
+				<div id="my_pending_blocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
 				<hr>
@@ -180,6 +189,16 @@ td.active{
 <script>
 $(document).ready(function(){
 
+
+	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
+	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
+	/*
+	var source = new EventSource('https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111');
+	source.addEventListener('message', function(e) {
+	  console.log(e.data);
+	}, false);
+	*/
+
 	$(document).delegate(".rebootAll", "click",function(){
 		WorkerCommand('timeout 1 sudo reboot');
 	});
@@ -234,6 +253,15 @@ $(document).ready(function(){
 			//console.log(index+" "+value)
 		});
 
+		$("#lomake select[name='miner']").val('');
+		$("#lomake input[name='host']").val('');
+		$("#lomake input[name='algo']").val('');
+		$("#lomake input[name='user']").val('');
+		$("#lomake input[name='pass']").val('');
+		$("#lomake select[name='theads']").val('');
+		$("#lomake select[name='debug']").val('');
+		$("#lomake input[name='command']").val('');
+
 		$.ajax({
 		    url: 'form_submit.php',
 		    method: 'POST',
@@ -242,15 +270,6 @@ $(document).ready(function(){
 		    	data = JSON.parse(data);
 		        console.log("Form send: " + data);
 		        $("#lomake_workers option").prop("selected", true);
-
-				$("#lomake select[name='miner']").val('');
-				$("#lomake input[name='host']").val('');
-				$("#lomake input[name='algo']").val('');
-				$("#lomake input[name='user']").val('');
-				$("#lomake input[name='pass']").val('');
-				$("#lomake select[name='theads']").val('');
-				$("#lomake select[name='debug']").val('');
-				$("#lomake input[name='command']").val('');
         
 		        if(data['debug'])
 		        {
@@ -349,7 +368,11 @@ $(document).ready(function(){
 		    data: { getData : true, hashrateSum : $("#hashrateSum").length > 0 ? parseInt($("#hashrateSum").text()) : 0 },
 		    success: function(data) {
 		        data = JSON.parse(data);
-				$("#allCoins").html(data);
+		        
+		        if(data['html_data'])
+		        {
+					$("#allCoins").html(data['html_data']);
+				}
 
 				if (lastClickedCoin && !$("#" + lastClickedCoin).hasClass('active')) {
 					$("#" + lastClickedCoin).closest('tr').find('td').addClass('active');
@@ -382,6 +405,21 @@ $(document).ready(function(){
 					]
 				});
 
+				// --- BALANCE --- //
+
+				// Инициализируем переменную для хранения суммы
+				var totalBalance = 0;
+
+				// Проходим по каждой ячейке с классом "balance" и суммируем их значения
+				$('.balance').each(function() {
+					// Преобразуем текст ячейки в число и добавляем его к общей сумме
+					totalBalance += parseFloat($(this).text());
+				});
+
+				$("#cur_balance").html("<h2>USDT: <b>" + (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + "</b> | Coins: <b>" + totalBalance.toFixed(2) + " $</b></h2>");
+
+				// ------ //
+				
 	            var firstRow = $('tr.tr_tb').first();
 	            firstRow.addClass('best bg-secondary');
 	            
@@ -393,18 +431,22 @@ $(document).ready(function(){
 	            	}
 	            }
 
-				// ------ //
+				// --- Profit today and yesterday RPLANT only --- //
 
-				var res1 = '';
-				profit("<?=date("Y-m-d", strtotime("-1 day"))?>", function(result) {
-					res1 = result;
-					//console.log(result);
-				});
+				if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
+				{
+				
+					var res1 = '';
+					profit("<?=date("Y-m-d", strtotime("-1 day"))?>", function(result) {
+						res1 = result;
+						//console.log(result);
+					});
 
-				profit("<?=date("Y-m-d")?>", function(result) {
-					$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"width:50%; vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
-					//console.log(result);
-				});
+					profit("<?=date("Y-m-d")?>", function(result) {
+						$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"width:50%; vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
+						//console.log(result);
+					});
+				}
 
 		    },
 		    error: function(xhr, status, error) {
@@ -425,7 +467,7 @@ $(document).ready(function(){
 
 		$("#header").html('<h2>Mining helpper V3</h2>');
 
-		if($("#allCoins").find('.active').length > 0)
+		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
 		{
 			$.ajax({
 				url: 'pending_blocks.php',
@@ -467,7 +509,7 @@ $(document).ready(function(){
 					{
 						var summ = ((df * my_hashrate) / (network_diff / 2)) / 100000000;
 						
-						$("#cur_effort").html("<h1><b>" +summ.toFixed() + " %</b></h1>");
+						$("#cur_effort").html("<h2><b>" +summ.toFixed() + " %</b></h2>");
 					}
 					
 					// ------ //
@@ -503,6 +545,83 @@ $(document).ready(function(){
 	}
 
 	setInterval(pendingBlocks, 60000);
+
+	// ------ //
+
+	setTimeout(function() { 
+		herominersApi();
+	}, 10000);
+
+	function herominersApi() {
+
+		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('herominers'))
+		{
+			var coin_name 	= $("#allCoins").find('.active').closest('tr').find('button').attr('coin_name');
+			var coin_asset 	= $("#allCoins").find('.active').closest('tr').find('button').text();
+			var address 	= $("#allCoins").find('.active').closest('tr').find('button').attr('user');
+			
+			//console.log(coin_name + " " + address);
+			
+			$("#header").html('<h2>Mining helpper V3 - <span class="text-orange">Herominers</span></h2>');
+			$.ajax({
+				url: 'herominers_api.php',
+				method: 'GET',
+				data: { coin_name : coin_name, address : address },
+				success: function(data) {
+				    data = JSON.parse(data);
+					//console.log(data);
+
+				    if(data['stats'])
+				    {
+				    	var htmlData = "<table class=\"table table-striped herominers\">";
+				    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data['stats']['hashrate']) / 1000).toFixed() + " KH/s</th></tr>";
+				    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data['stats']['hashrate_1h']) / 1000).toFixed() + " KH/s</th></tr>";
+				    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data['stats']['hashrate_6h']) / 1000).toFixed() + " KH/s</th></tr>";
+				    	htmlData += "<tr><td>Hashrate 24h</td><th>" + (parseFloat(data['stats']['hashrate_24h']) / 1000).toFixed() + " KH/s</th></tr>";
+
+						var unconfirmed = 0;
+						$.each(data['unconfirmed'], function(index, value) {
+							//console.log(value['reward']);
+							unconfirmed += parseFloat(value['reward']);
+						});
+						htmlData += "<tr><td>Unconfirmed</td><th>" + (unconfirmed / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+						
+						// ------ //
+/*
+						var unlocked = 0;
+						$.each(data['unlocked'], function(index, value) {
+							var sp = value.split(":");
+							if(!sp[1])
+							{
+								console.log(sp[0]);
+								unlocked += parseFloat(sp[0]);
+							}
+						});
+						htmlData += "<tr><td>Pending</td><th>" + (unlocked / 1000000000000).toFixed(5) + " " + coin_asset + "</th></tr>";
+*/
+
+						htmlData += "<tr><td>Pending</td><th>" + (data['stats']['balance'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+						htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data['stats']['payments_24h'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+						//htmlData += "<tr><td>Current Payout Estimate</td><th>" + (data['stats']['roundScore'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+						htmlData += "</table>";
+						
+						$("#herominers_data").html(htmlData);
+					}
+				},
+				error: function(xhr, status, error) {
+				    console.error('Ошибка при выполнении запроса:', error);
+				}
+			});
+		}
+		else
+		{
+			$("#herominers_data").html("");
+		}
+	}
+
+	setInterval(herominersApi, 60000);
+
+	// ------ //
 
 	// Функция для отправки AJAX-запроса
 	sendAjaxRequest();
@@ -626,41 +745,38 @@ $(document).ready(function(){
 
 	function profit(d, callback) {
 
-		if($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').text() != "ZEPH")
-		{
-			var usd = 0;
-			var yht = 0;
-			var moneyData = "<table class=\"table table-striped\"><tr><th colspan=\"2\">" + d + "</th>";
-		
-			$.ajax({
-				url: 'money.php',
-				method: 'GET',
-				async: false, // Здесь была опечатка: 'async' вместо 'assync'
-				data: { day: d },
-				success: function(data) {
-				    //console.log("money:" + data);
-				    data = JSON.parse(data);
-				    
-				    $.each(data, function(index, value) {
-				        $.each(value, function(coin, sum) {
-				            if ($("#coin_" + coin).closest('tr').find('.price').length > 0) {
-				                usd = (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
-				                yht += parseFloat(usd);
-				                moneyData += "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
-				            }
-				        });
-				    });
+		var usd = 0;
+		var yht = 0;
+		var moneyData = "<table class=\"table table-striped\"><tr><th colspan=\"2\">" + d + "</th>";
+	
+		$.ajax({
+			url: 'money.php',
+			method: 'GET',
+			async: false, // Здесь была опечатка: 'async' вместо 'assync'
+			data: { day: d },
+			success: function(data) {
+			    //console.log("money:" + data);
+			    data = JSON.parse(data);
+			    
+			    $.each(data, function(index, value) {
+			        $.each(value, function(coin, sum) {
+			            if ($("#coin_" + coin).closest('tr').find('.price').length > 0) {
+			                usd = (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
+			                yht += parseFloat(usd);
+			                moneyData += "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
+			            }
+			        });
+			    });
 
-				    moneyData += "<tr class=\"bg-secondary\"><th></th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
+			    moneyData += "<tr class=\"bg-secondary\"><th></th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
 
-				    // Вызываем колбэк с полученными данными
-				    callback(moneyData);
-				},
-				error: function(xhr, status, error) {
-				    console.error('Ошибка при выполнении запроса:', error);
-				}
-			});
-		}
+			    // Вызываем колбэк с полученными данными
+			    callback(moneyData);
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
 	}
 });
 </script>
