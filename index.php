@@ -76,7 +76,7 @@ table.herominers th{
 	<div class="container-fluid" style="margin-top: 20px;">
 	<div id="cur_effort" class="btn btn-secondary text-orange"></div>
 	<div id="cur_balance" class="btn btn-secondary text-orange"></div>
-	<center><div id="header">---</div><div id="debugResponse"></div></center>
+	<center><div id="header">Please wait...</div><div id="debugResponse"></div></center>
 	<br>
 		<div class="row">
 			<div class="col-md-3">
@@ -140,7 +140,7 @@ table.herominers th{
 					<div class="well bg-secondary"><center><h4><b id="hashrateSum"></b> H/s</h4></center></div>
 					<table class="table table-striped">
 					<tr>
-						<td></td>
+						<td><input class="global_select" type="checkbox" checked></td>
 						<th>Worker</th>
 						<th>Temp.</th>
 						<th>Time</th>
@@ -177,7 +177,7 @@ table.herominers th{
 					</table>
 					<hr>
 					<h5>
-						With selected: <button class="btn btn-danger btn-sm rebootAll">Reboot</button> <button class="btn btn-danger btn-sm clrScreen">Clear screen</button>
+						With selected: <button class="btn btn-info btn-sm rebootAll">Reboot</button> <button class="btn btn-info btn-sm clrScreen">Clear screen</button>
 					</h5>
 				</div>
 			</div>
@@ -198,6 +198,11 @@ $(document).ready(function(){
 	  console.log(e.data);
 	}, false);
 	*/
+
+	$(document).delegate(".global_select", "click",function(){
+		var isChecked = $(this).prop('checked');
+		$('.worker_chk').prop('checked', isChecked);
+	});
 
 	$(document).delegate(".rebootAll", "click",function(){
 		WorkerCommand('timeout 1 sudo reboot');
@@ -390,16 +395,14 @@ $(document).ready(function(){
 							targets: [1], // Вторая колонка
 							orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
 							render: function (data, type, row, meta) {
-								// Используем дополнительную информацию, если необходимо
-								return parseFloat(data); // Если данные числовые, преобразуем в числа для корректной сортировки
+								return parseFloat(data);
 							}
 						},
 						{
 							targets: [2], // Третья колонка
 							orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
 							render: function (data, type, row, meta) {
-								// Используем дополнительную информацию, если необходимо
-								return parseFloat(data); // Если данные числовые, преобразуем в числа для корректной сортировки
+								return parseFloat(data);
 							}
 						}
 					]
@@ -461,7 +464,7 @@ $(document).ready(function(){
 
 	setTimeout(function() { 
 		pendingBlocks();
-	}, 10000);
+	}, 15000);
 
 	function pendingBlocks() {
 
@@ -499,15 +502,13 @@ $(document).ready(function(){
 					var ct = new Date();
 					// Разница между текущим временем и freshestTime
 					var df 					= ((ct - freshestTime) / (1000 * 60)) * 60;
-					var my_hashrate			= parseInt($("#hashrateSum").text());
-					var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
-					var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
-					//var summ				= (df / network_diff) / 1000;
 					
-					//console.log( summ.toFixed() );
-					
-					if(my_hashrate > 0)
+					if(freshestTime > 0 && my_hashrate > 0)
 					{
+						var my_hashrate			= parseInt($("#hashrateSum").text());
+						var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
+						var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
+						//var summ				= (df / network_diff) / 1000;
 						var summ = ((df * my_hashrate) / (network_diff / 2)) / 100000000;
 						
 						$("#cur_effort").html("<h2><b>" +summ.toFixed() + " %</b></h2>");
@@ -551,7 +552,7 @@ $(document).ready(function(){
 
 	setTimeout(function() { 
 		herominersApi();
-	}, 10000);
+	}, 15000);
 
 	function herominersApi() {
 
@@ -725,13 +726,13 @@ $(document).ready(function(){
 					specifiedTime.setSeconds(seconds);
 
 					// Добавляем 10 минут к устаревшему времени
-					var outdatedTime = new Date(specifiedTime.getTime() + 5 * 60000); // 60000 миллисекунд в минуте
+					var outdatedTime = new Date(specifiedTime.getTime() + 7 * 60000); // 60000 миллисекунд в минуте
 
 					// Сравниваем текущее время с устаревшим временем
 					if (currentTime > outdatedTime) {
-						$( this ).closest('tr').addClass('bg-danger text-white');
+						$( this ).closest('tr').addClass('bg-danger');
 					} else {
-						$( this ).closest('tr').removeClass('bg-danger text-white');
+						$( this ).closest('tr').removeClass('bg-danger');
 					}
 
 				});
