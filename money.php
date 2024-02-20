@@ -18,6 +18,7 @@ foreach($coins as $coin)
 	foreach($arr as $v)
 	{
 		$coins8Symb[$first_four.$last_four.'.'.$v['worker']] = $coin;
+		$coins8Symb[$first_four.$last_four] = $coin;
 	}
 }
 

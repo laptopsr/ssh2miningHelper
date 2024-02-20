@@ -67,7 +67,7 @@ td.active{
 	padding: 7px 7px 0px;
 	z-index: 999999;
 }
-table.herominers th{
+table.herominers th, table.miner_table th{
 	text-align: right;
 }
 </style>
@@ -189,6 +189,7 @@ table.herominers th{
 <script>
 $(document).ready(function(){
 
+	var blockFound	= 0;
 
 	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
@@ -470,17 +471,41 @@ $(document).ready(function(){
 
 		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
 		{
+			var active_coin_name 	= $("#allCoins").find('.active').closest('tr').find('button').attr('coin_name');
+			var active_coin_asset 	= $("#allCoins").find('.active').closest('tr').find('button').text();
+			var active_address 		= $("#allCoins").find('.active').closest('tr').find('button').attr('user');
+			var origin_header 		= '<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>';
 
-			$("#header").html('<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>');
+			$("#header").html(origin_header);
 
 			$.ajax({
 				url: 'pending_blocks.php',
 				method: 'POST',
-				data: { getData : true, active : $("#allCoins").find('.active').text() },
+				data: { getData : true, active : $("#allCoins").find('.active').text(), active_coin_name : active_coin_name, active_address : active_address },
 				success: function(data) {
 				    data = JSON.parse(data);
 					$("#my_pending_blocks").html(data);
 					
+					
+					// --- BLOCK FOUND --- //
+
+					if($("#block_found").length > 0 && blockFound != parseInt($("#block_found").text()))
+					{
+						if(blockFound > 0)
+						{
+							$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
+							alertFunc(alertPC);
+						}
+
+						blockFound = parseInt($("#block_found").text());
+
+						setTimeout(function() { 
+							$("#header").html(origin_header);
+						}, 15000);
+					}
+
+					// --- EFFORT % --- //
+
 					// Найти все элементы с классом "pvm" и извлечь текст времени
 					var times = $('.pvm').map(function() {
 						return new Date($(this).attr('for')).getTime();
@@ -489,28 +514,33 @@ $(document).ready(function(){
 					// Найти самое свежее время
 					var freshestTime = new Date(Math.max.apply(null, times));
 
-					if(!localStorage.getItem('freshestTime') || localStorage.getItem('freshestTime') != freshestTime)
-					{
-						localStorage.setItem('freshestTime', freshestTime);
+					// ------ //
+					
+					var shares = $('.pvm').map(function() {
+						return $(this).closest('tr').attr('shares');
+					}).get();
 
-						$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
-						alertFunc(alertPC);
-					}
-
-					// --- EFFORT % --- //
+					var freshesShare = parseFloat(Math.max.apply(null, shares));
 
 					var ct = new Date();
 					// Разница между текущим временем и freshestTime
-					var df 					= ((ct - freshestTime) / (1000 * 60)) * 60;
-					
-					if(freshestTime > 0 && my_hashrate > 0)
-					{
-						var my_hashrate			= parseInt($("#hashrateSum").text());
-						var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
-						var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
-						//var summ				= (df / network_diff) / 1000;
-						var summ = ((df * my_hashrate) / (network_diff / 2)) / 100000000;
+					var df 				= ((ct - freshestTime) / (1000 * 60)) * 60;
+
+					var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
+					var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
 						
+					var my_hashrate		= parseInt($("#hashrateSum").text()??0);
+					var soloSharesNow	= parseFloat($("#soloShares").text()??0);
+					var hrs				= parseFloat($("#hrs").text()??0);
+						
+					if(soloSharesNow > 0)
+					{
+						//var summ				= (df / network_diff) / 1000;
+						//var summ = ((df * my_hashrate) / (network_diff / 2)) / 100000000;
+						var summ				= (soloSharesNow / (network_hashrate*1000)) * 1000;
+
+						console.log("soloSharesNow: " + soloSharesNow + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
+					
 						$("#cur_effort").html("<h2><b>" +summ.toFixed() + " %</b></h2>");
 					}
 					
