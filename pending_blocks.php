@@ -7,8 +7,8 @@ error_reporting(E_ALL);
 
 include "config.php";
 
-$active_coin_name 	= $_POST['active_coin_name']??'null';
-$active_address		= $_POST['active_address']??'null';
+$active_coin_name 	= $_POST['active_coin_name']??'vishai';
+$active_address		= $_POST['active_address']??'umWgGLUku8NS3nZ1ufyx9nhaFbqKzpwNrK';
 
 include "rplant_statistic.php";
 
@@ -40,24 +40,22 @@ if($rplant)
 		}
 	}
 
-	if(!isset($blocks) or (isset($blocks) and count($blocks) == 0)) // rplant_statistic.php
-	{
-		// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
-		// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 
-		$url = 'https://pool.rplant.xyz/api/blocks';
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-		  'accept: application/json'
-		));
+	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
+	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 
-		$blocks = json_decode(curl_exec($ch), true);
-		curl_close($ch);
-	}
+	$url = 'https://pool.rplant.xyz/api/blocks';
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+	  'accept: application/json'
+	));
+
+	$blocks = json_decode(curl_exec($ch), true);
+	curl_close($ch);
 
 	if(is_array($blocks))
 	{
@@ -80,7 +78,7 @@ if($rplant)
 
 	/*
 	echo '<pre>';
-	print_r($pendingDataBlocks);
+	print_r($pendingDataBlocks); // $rplant_full[0]['net']['hr']
 	echo '</pre>';
 	exit;
 	*/
@@ -172,23 +170,31 @@ if($rplant)
 
 	$bd .= '</table>';
 
+	$net_hr 	= $rplant_full[0]['net']['hr']??0;
+	$net_d		= $rplant_full[0]['net']['d']??0;
+	$hrs		= $rplant_miners['hrs']??0;
+	$immature 	= $rplant_miners['immature']??0;
+	$balance	= isset($rplant_miners['balance']) ? round(($rplant_miners['balance']/1000000000000), 2) : 0;
+	$paid		= isset($rplant_miners['paid']) ? round(($rplant_miners['paid']/1000000000000), 2) : 0;
+	$soloShares = $rplant_miners['soloShares']??0;
+	$wcs		= $rplant_miners['wcs']??0;
+	$block_found = $rplant_miners['found']['solo']??0;
+
 	$bd .= '
 	<h4>Miner rplant.xyz</h4>
-	<table class="table table-striped miner_table">';
+	<table class="table table-striped miner_table">
 
-	if(isset($rplant_miners['miner']))
-	{
-		$bd .= '
-			<tr class="tr_miner"><td>Hashrate solo</td><th><span id="hrs">'.round($rplant_miners['hrs']/1000).'</span></th></tr>
-			<tr class="tr_miner"><td>Immature</td><th>'.$rplant_miners['immature'].'</th></tr>
-			<tr class="tr_miner"><td>Balance</td><th>'.round(($rplant_miners['balance']/1000000000000), 2).'</th></tr>
-			<tr class="tr_miner"><td>Paid</td><th>'.round(($rplant_miners['paid']/1000000000000), 2).'</th></tr>
-			<tr class="tr_miner"><td>Shares</td><th><span id="soloShares">'.$rplant_miners['soloShares'].'</span></th></tr>
-			<tr class="tr_miner"><td>Workers</td><th>'.$rplant_miners['wcs'].'</th></tr>
-			<tr class="tr_miner"><td>Solo blocks found</td><th><span id="block_found">'.$rplant_miners['found']['solo'].'</span></th></tr>
-		';	
-	}
-	$bd .= '</table>';
+		<tr class="tr_miner"><td>Network hashrate</td><th><span id="net_hr">'.$net_hr.'</span></th></tr>
+		<tr class="tr_miner"><td>Network diff</td><th><span id="net_d">'.$net_d.'</span></th></tr>
+		<tr class="tr_miner"><td>Hashrate solo</td><th><span id="hrs">'.$hrs.'</span></th></tr>
+		<tr class="tr_miner"><td>Immature</td><th>'.$immature.'</th></tr>
+		<tr class="tr_miner"><td>Balance</td><th>'.$balance.'</th></tr>
+		<tr class="tr_miner"><td>Paid</td><th>'.$paid.'</th></tr>
+		<tr class="tr_miner"><td>Shares</td><th><span id="soloShares">'.$soloShares.'</span></th></tr>
+		<tr class="tr_miner"><td>Workers</td><th><span id="wcs">'.$wcs.'</span></th></tr>
+		<tr class="tr_miner"><td>Solo blocks found</td><th><span id="block_found">'.$block_found.'</span></th></tr>
+
+	</table>';
 }
 
 echo json_encode($bd);

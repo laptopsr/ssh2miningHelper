@@ -189,7 +189,8 @@ table.herominers th, table.miner_table th{
 <script>
 $(document).ready(function(){
 
-	var blockFound	= 0;
+	var totalWorkers 	= parseInt("<?=count($arr)?>");
+	var blockFound		= 0;
 
 	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
@@ -319,7 +320,9 @@ $(document).ready(function(){
     var lastClickedCoin = localStorage.getItem('lastClickedCoin');
 
 	$(document).delegate(".coin", "click",function(){
-	
+
+		blockFound = 0;
+
 		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
@@ -526,20 +529,24 @@ $(document).ready(function(){
 					// Разница между текущим временем и freshestTime
 					var df 				= ((ct - freshestTime) / (1000 * 60)) * 60;
 
-					var network_diff 		= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_diff'));
-					var network_hashrate 	= parseFloat($("#allCoins").find('.active').closest('tr').attr('network_hashrate'));
-						
-					var my_hashrate		= parseInt($("#hashrateSum").text()??0);
-					var soloSharesNow	= parseFloat($("#soloShares").text()??0);
-					var hrs				= parseFloat($("#hrs").text()??0);
-						
-					if(soloSharesNow > 0)
-					{
-						//var summ				= (df / network_diff) / 1000;
-						//var summ = ((df * my_hashrate) / (network_diff / 2)) / 100000000;
-						var summ				= (soloSharesNow / (network_hashrate*1000)) * 1000;
 
-						console.log("soloSharesNow: " + soloSharesNow + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
+					var network_hashrate 	= parseFloat($("#net_hr").text()??0);
+					var network_diff 		= parseFloat($("#net_d").text()??0);						
+					//var my_hashrate			= parseInt($("#hashrateSum").text()??0) * 1000;
+					var soloSharesNow		= parseFloat($("#soloShares").text()??0);
+					var hrs					= parseFloat($("#hrs").text()??0);
+					var wcs					= parseInt($("#wcs").text()??0);
+
+					if(wcs > 0 && totalWorkers != wcs)
+					{
+						$("#wcs").closest('tr').addClass('bg-danger');
+					}
+
+					if(soloSharesNow > 0 && network_hashrate > 0)
+					{
+						var summ	= (soloSharesNow / network_hashrate) * 100000;
+
+						//console.log("wcs: " + wcs + ", soloSharesNow: " + soloSharesNow + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
 					
 						$("#cur_effort").html("<h2><b>" +summ.toFixed() + " %</b></h2>");
 					}
@@ -576,7 +583,7 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(pendingBlocks, 60000);
+	setInterval(pendingBlocks, 30000);
 
 	// ------ //
 

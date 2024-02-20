@@ -19,7 +19,7 @@ source.addEventListener('message', function(e) {
 $url = 'https://pool.rplant.xyz/api2/poolminer2x/'.$active_coin_name.'/'.$active_address.'/111111';
 $context = stream_context_create([
     'http' => [
-        'timeout' => 2
+        'timeout' => 3
     ]
 ]);
 
@@ -54,6 +54,7 @@ if ($data === false) {
 
 	$blocks 		= $phpData[0]['blocks']??[];
 	$rplant_miners 	= $phpData[2]['miner']??[];
+	$rplant_full 	= $phpData??[];
 	
 	/*
 	echo '<pre>';
