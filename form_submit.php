@@ -23,7 +23,7 @@ if(isset($_POST['command']))
 
 			if($_POST['miner'] == 'xmrig')
 			{
-				$start = 'timeout 1 sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file=/home/laptopsr/xmrig.log';
+				$start = 'timeout 1 sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file=/home/laptopsr/xmrig.log --randomx-1gb-pages ';
 				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
 

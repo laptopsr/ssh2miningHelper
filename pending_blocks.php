@@ -170,12 +170,13 @@ if($rplant)
 
 	$bd .= '</table>';
 
+	$net_v 		= $rplant_full[0]['net']['v']??0;
 	$net_hr 	= $rplant_full[0]['net']['hr']??0;
 	$net_d		= $rplant_full[0]['net']['d']??0;
 	$hrs		= $rplant_miners['hrs']??0;
 	$immature 	= $rplant_miners['immature']??0;
-	$balance	= isset($rplant_miners['balance']) ? round(($rplant_miners['balance']/1000000000000), 2) : 0;
-	$paid		= isset($rplant_miners['paid']) ? round(($rplant_miners['paid']/1000000000000), 2) : 0;
+	$balance	= $rplant_miners['balance']??0;
+	$paid		= $rplant_miners['paid']??0;
 	$soloShares = $rplant_miners['soloShares']??0;
 	$wcs		= $rplant_miners['wcs']??0;
 	$block_found = $rplant_miners['found']['solo']??0;
@@ -184,6 +185,7 @@ if($rplant)
 	<h4>Miner rplant.xyz</h4>
 	<table class="table table-striped miner_table">
 
+		<tr class="tr_miner"><td>Network name</td><th><span id="net_v">'.$net_v.'</span></th></tr>
 		<tr class="tr_miner"><td>Network hashrate</td><th><span id="net_hr">'.$net_hr.'</span></th></tr>
 		<tr class="tr_miner"><td>Network diff</td><th><span id="net_d">'.$net_d.'</span></th></tr>
 		<tr class="tr_miner"><td>Hashrate solo</td><th><span id="hrs">'.$hrs.'</span></th></tr>

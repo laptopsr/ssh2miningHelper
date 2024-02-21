@@ -55,28 +55,29 @@ td.active{
 #datatable_length, #datatable_filter, .dataTables_filter{
 	display:none;
 }
-#cur_effort{
-	position: absolute;
-	top: 0px; left: 0;
-	padding: 7px 7px 0px;
-	z-index: 999999;
-}
-#cur_balance{
-	position: absolute;
-	top: 0px; right: 0;
-	padding: 7px 7px 0px;
-	z-index: 999999;
-}
 table.herominers th, table.miner_table th{
 	text-align: right;
+}
+.progress{
+	height: 50px;
+}
+#cur_effort h1{
+	margin-top: 7px;
+	color: orange;
+	font-weight: bold;
 }
 </style>
 </head>
 <body>
 	<div class="container-fluid" style="margin-top: 20px;">
-	<div id="cur_effort" class="btn btn-secondary text-orange"></div>
-	<div id="cur_balance" class="btn btn-secondary text-orange"></div>
-	<center><div id="header">Please wait...</div><div id="debugResponse"></div></center>
+	<center>
+		<div id="header">Please wait...</div><div id="debugResponse"></div>
+
+		<div class="progress">
+			<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="200"></div>
+		</div>
+
+	</center>
 	<br>
 		<div class="row">
 			<div class="col-md-3">
@@ -127,6 +128,8 @@ table.herominers th, table.miner_table th{
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
 				</select>
+				<br>
+				<div id="cur_balance" class="btn btn-block btn-secondary text-orange"></div>
 				<br>
 				<div id="allCoins"></div>
 			</div>
@@ -492,7 +495,7 @@ $(document).ready(function(){
 					
 					// --- BLOCK FOUND --- //
 
-					if($("#block_found").length > 0 && blockFound != parseInt($("#block_found").text()))
+					if($("#block_found").length > 0 && blockFound != parseInt($("#block_found").text()) && parseInt($("#block_found").text()) > 0)
 					{
 						if(blockFound > 0)
 						{
@@ -537,18 +540,33 @@ $(document).ready(function(){
 					var hrs					= parseFloat($("#hrs").text()??0);
 					var wcs					= parseInt($("#wcs").text()??0);
 
-					if(wcs > 0 && totalWorkers != wcs)
+					if(wcs > 0 && wcs < totalWorkers)
 					{
 						$("#wcs").closest('tr').addClass('bg-danger');
 					}
 
 					if(soloSharesNow > 0 && network_hashrate > 0)
 					{
-						var summ	= (soloSharesNow / network_hashrate) * 100000;
+						var summ	= (soloSharesNow / network_hashrate) * (network_diff > 100000 ? 1 : 100000);
 
 						//console.log("wcs: " + wcs + ", soloSharesNow: " + soloSharesNow + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
-					
-						$("#cur_effort").html("<h2><b>" +summ.toFixed() + " %</b></h2>");
+						
+						var effort_origin 	= summ.toFixed();
+						var effort 			= effort_origin / 2;
+						
+						if(effort_origin > 100 && effort_origin <= 150)
+						{
+							$("#cur_effort").removeClass('bg-secondary bg-info').addClass('bg-info');
+						} else if(effort_origin > 150)
+						{
+							$("#cur_effort").removeClass('bg-secondary bg-info').addClass('bg-danger');
+						} else {
+							$("#cur_effort").removeClass('bg-danger bg-info').addClass('bg-secondary');
+						}
+						
+						$("#cur_effort").css({"width" :  effort + "%"});
+						$("#cur_effort").html("<h1>EFFORT: " + effort_origin + " %</h1>");
+						$("#cur_effort").attr("aria-valuenow" , effort);
 					}
 					
 					// ------ //
@@ -583,7 +601,7 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(pendingBlocks, 30000);
+	setInterval(pendingBlocks, 60000);
 
 	// ------ //
 
