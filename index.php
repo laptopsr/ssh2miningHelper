@@ -49,7 +49,7 @@ td.active{
 .table th{
 	color: orange;
 }
-.form-control{
+.form-control, .progress{
 	background: #ededed;
 }
 #datatable_length, #datatable_filter, .dataTables_filter{
@@ -74,7 +74,7 @@ table.herominers th, table.miner_table th{
 		<div id="header">Please wait...</div><div id="debugResponse"></div>
 
 		<div class="progress">
-			<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="200"></div>
+			<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
 		</div>
 
 	</center>
@@ -85,6 +85,22 @@ table.herominers th, table.miner_table th{
 					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
 				</center>
 				<br>
+				<div id="rplnt_api" style="display: none">
+				<h4>Miner rplant.xyz</h4>
+				<table class="table table-striped miner_table">
+					<tr class="tr_miner"><td>Network name</td><th><span id="v"></span></th></tr>
+					<tr class="tr_miner"><td>Network hashrate</td><th><span id="hr"></span></th></tr>
+					<tr class="tr_miner"><td>Network diff</td><th><span id="d"></span></th></tr>
+					<tr class="tr_miner"><td>Hashrate solo</td><th><span id="hrs"></span></th></tr>
+					<tr class="tr_miner"><td>Immature</td><th><span id="immature"></span></th></tr>
+					<tr class="tr_miner"><td>Balance</td><th><span id="balance"></span></th></tr>
+					<tr class="tr_miner"><td>Paid</td><th><span id="paid"></span></th></tr>
+					<tr class="tr_miner"><td>Shares</td><th><span id="soloShares"></span></th></tr>
+					<tr class="tr_miner"><td>Workers</td><th><span id="wcs"></span></th></tr>
+					<tr class="tr_miner"><td>Solo blocks found</td><th><span id="block_found"></span></th></tr>
+					<tr class="tr_miner"><td>Offline workers</td><th><span id="wcs_offline"></span></th></tr>
+				</table>
+				</div>
 				<div id="herominers_data"></div>
 				<div id="my_pending_blocks"></div>
 				<hr>
@@ -152,8 +168,11 @@ table.herominers th, table.miner_table th{
 						<th>Session</th>
 					</tr>
 					<?php
+					$allMyWorkers = [];
 					foreach($arr as $v)
 					{
+						$allMyWorkers[$v['worker']] = $v;
+
 						if(!isset($last_model) or (isset($last_model) and $last_model != $v['model']))
 						{
 							echo '
@@ -192,8 +211,10 @@ table.herominers th, table.miner_table th{
 <script>
 $(document).ready(function(){
 
+	var origin_header_rpl	= '<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>';
 	var totalWorkers 	= parseInt("<?=count($arr)?>");
 	var blockFound		= 0;
+	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
 
 	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
@@ -321,7 +342,13 @@ $(document).ready(function(){
 	// ------ //
 	$( "td.ajaxdata" ).html('<span class="text-danger">waiting..</span>');
     var lastClickedCoin = localStorage.getItem('lastClickedCoin');
+    var lastClickedData = localStorage.getItem('lastClickedData');
 
+	if(lastClickedData)
+	{
+		rplantApiStream(lastClickedData);
+	}
+	
 	$(document).delegate(".coin", "click",function(){
 
 		blockFound = 0;
@@ -353,6 +380,18 @@ $(document).ready(function(){
     		return false;
 		}, 1000);
 
+		if(lastClickedData)
+		{
+			var parseLastData = JSON.parse(lastClickedData);
+			if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] == $(this).attr('coin_name'))
+			{
+				return false;
+			}
+		}
+
+		lastClickedData = JSON.stringify([{coin_name: $(this).attr('coin_name'), user: $(this).attr('user')}]);
+		localStorage.setItem('lastClickedData', lastClickedData);
+		rplantApiStream(lastClickedData);
 	});
 
 	function alertFunc(ip)
@@ -471,46 +510,24 @@ $(document).ready(function(){
 
 	setTimeout(function() { 
 		pendingBlocks();
-	}, 15000);
+	}, 10000);
 
 	function pendingBlocks() {
 
 		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
 		{
-			var active_coin_name 	= $("#allCoins").find('.active').closest('tr').find('button').attr('coin_name');
-			var active_coin_asset 	= $("#allCoins").find('.active').closest('tr').find('button').text();
-			var active_address 		= $("#allCoins").find('.active').closest('tr').find('button').attr('user');
-			var origin_header 		= '<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>';
+			// --- RPLANT API stream --- //
 
-			$("#header").html(origin_header);
+			$("#header").html(origin_header_rpl);
 
 			$.ajax({
 				url: 'pending_blocks.php',
 				method: 'POST',
-				data: { getData : true, active : $("#allCoins").find('.active').text(), active_coin_name : active_coin_name, active_address : active_address },
+				data: { getData : true },
 				success: function(data) {
 				    data = JSON.parse(data);
+				    
 					$("#my_pending_blocks").html(data);
-					
-					
-					// --- BLOCK FOUND --- //
-
-					if($("#block_found").length > 0 && blockFound != parseInt($("#block_found").text()) && parseInt($("#block_found").text()) > 0)
-					{
-						if(blockFound > 0)
-						{
-							$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
-							alertFunc(alertPC);
-						}
-
-						blockFound = parseInt($("#block_found").text());
-
-						setTimeout(function() { 
-							$("#header").html(origin_header);
-						}, 15000);
-					}
-
-					// --- EFFORT % --- //
 
 					// Найти все элементы с классом "pvm" и извлечь текст времени
 					var times = $('.pvm').map(function() {
@@ -531,43 +548,7 @@ $(document).ready(function(){
 					var ct = new Date();
 					// Разница между текущим временем и freshestTime
 					var df 				= ((ct - freshestTime) / (1000 * 60)) * 60;
-
-
-					var network_hashrate 	= parseFloat($("#net_hr").text()??0);
-					var network_diff 		= parseFloat($("#net_d").text()??0);						
-					//var my_hashrate			= parseInt($("#hashrateSum").text()??0) * 1000;
-					var soloSharesNow		= parseFloat($("#soloShares").text()??0);
-					var hrs					= parseFloat($("#hrs").text()??0);
-					var wcs					= parseInt($("#wcs").text()??0);
-
-					if(wcs > 0 && wcs < totalWorkers)
-					{
-						$("#wcs").closest('tr').addClass('bg-danger');
-					}
-
-					if(soloSharesNow > 0 && network_hashrate > 0)
-					{
-						var summ	= (soloSharesNow / network_hashrate) * (network_diff > 100000 ? 1 : 100000);
-
-						//console.log("wcs: " + wcs + ", soloSharesNow: " + soloSharesNow + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
-						
-						var effort_origin 	= summ.toFixed();
-						var effort 			= effort_origin / 2;
-						
-						if(effort_origin > 100 && effort_origin <= 150)
-						{
-							$("#cur_effort").removeClass('bg-secondary bg-info').addClass('bg-info');
-						} else if(effort_origin > 150)
-						{
-							$("#cur_effort").removeClass('bg-secondary bg-info').addClass('bg-danger');
-						} else {
-							$("#cur_effort").removeClass('bg-danger bg-info').addClass('bg-secondary');
-						}
-						
-						$("#cur_effort").css({"width" :  effort + "%"});
-						$("#cur_effort").html("<h1>EFFORT: " + effort_origin + " %</h1>");
-						$("#cur_effort").attr("aria-valuenow" , effort);
-					}
+					//var my_hashrate	= parseInt($("#hashrateSum").text()??0) * 1000;
 					
 					// ------ //
 					
@@ -601,7 +582,7 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(pendingBlocks, 60000);
+	setInterval(pendingBlocks, 30000);
 
 	// ------ //
 
@@ -836,6 +817,156 @@ $(document).ready(function(){
 			    console.error('Ошибка при выполнении запроса:', error);
 			}
 		});
+	}
+
+	var source;
+	
+	function rplantApiStream(data)
+	{
+			$("#rplnt_api").show();
+
+			var parseLastData = JSON.parse(data);
+			if(!parseLastData[0]['coin_name'])
+			{
+				return false;
+			}
+
+			var active_coin_name 	= parseLastData[0]['coin_name'];
+			var active_address 		= parseLastData[0]['user'];
+			var block_found_stream	= 0;
+
+			var network_name 		= '';
+			var network_hashrate 	= 0;
+			var network_diff 		= 0;					
+			var soloShares			= 0;
+			var hrs					= 0;
+			var wcs					= 0;
+			var immature			= 0;
+			var balance				= 0;
+			var paid				= 0;
+			var miner				= [];
+			var net					= [];
+			var miner_address		= '';
+
+			// Закрытие предыдущего соединения, если оно существует
+			if (source) {
+				source.close();
+			}
+
+			// <--	
+			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
+			source = new EventSource(url);
+			source.addEventListener('message', function(e) {
+
+				var parsed = JSON.parse(e.data);
+
+				if(parsed['net'])
+				{
+					net					= parsed['net'];
+					network_name		= net.v;
+					network_hashrate	= net.hr;
+					network_diff		= net.d;
+					
+					//console.log(network_name);
+				}
+
+				if(parsed['miner'])
+				{
+					miner				= parsed['miner'];
+					miner_address		= miner["miner"];			
+					soloShares			= miner["soloShares"];
+					hrs					= miner["hrs"];
+					wcs					= miner["wcs"];
+					immature			= miner["immature"];
+					balance				= miner["balance"];
+					paid				= miner["paid"];
+					block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
+
+					if(miner["workers"].length > 0)
+					{
+						var workers_online = [];
+						$.each(miner["workers"], function(index, value) {
+							var sp = value.split(":");
+							workers_online.push(sp[0]);
+						});
+
+						var workers_offline = [];
+						$.each(allMyWorkers, function(index, value) {
+							if(workers_online.indexOf(index) === -1)
+							{
+								workers_offline.push(index);
+							}
+						});
+					}
+
+					if (workers_offline && workers_offline.length > 0)
+					{
+						$("#wcs_offline").html(workers_offline.join(", "));
+						$("#wcs_offline").closest('tr').addClass("bg-danger");
+					}
+					else
+					{
+						$("#wcs_offline").html('');
+						$("#wcs_offline").closest('tr').removeClass("bg-danger");
+					}
+
+				}
+
+				if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
+				{
+					//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
+					if(network_diff > 100000)
+					{
+						offset = (soloShares / network_hashrate);
+					}
+					else
+					{
+						offset = ((soloShares / network_hashrate) * 100000) / 2;
+					}
+
+					var summ =  offset;
+					
+					//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
+					
+					var effort_origin 	= summ.toFixed(); // .toFixed()
+					var effort 			= effort_origin / 3;
+					
+					$("#cur_effort").css({"width" :  effort + "%"});
+					$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
+					$("#cur_effort").attr("aria-valuenow" , effort);
+				}
+
+				if(network_name !== ''){ 			$("#v").html(network_name) };
+				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
+				if(network_diff !== 0){ 			$("#d").html(network_diff) };
+				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
+				if(hrs !== 0){ 						$("#hrs").html(hrs) };
+				if(wcs !== 0){ 						$("#wcs").html(wcs) };
+				if(immature !== 0){ 				$("#immature").html(immature) };
+				if(balance !== 0){ 					$("#balance").html(balance) };
+				if(paid !== 0){ 					$("#paid").html(paid) };
+				if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
+				
+				// --- BLOCK FOUND --- //
+				
+				if(blockFound != block_found_stream && block_found_stream > 0)
+				{
+					if(blockFound > 0)
+					{
+						$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
+						alertFunc(alertPC);
+
+						setTimeout(function() { 
+							$("#header").html(origin_header_rpl);
+						}, 15000);
+					}
+
+					blockFound = block_found_stream;
+				}
+
+			}, false);
+			// -->
+
 	}
 });
 </script>

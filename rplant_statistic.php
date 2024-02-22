@@ -24,7 +24,7 @@ $context = stream_context_create([
 ]);
 
 // Чтение данных с URL с учетом контекста потока
-$data = file_get_contents($url, false, $context);
+$data = @file_get_contents($url, false, $context);
 
 if ($data === false) {
     // Обработка ошибки
@@ -55,7 +55,19 @@ if ($data === false) {
 	$blocks 		= $phpData[0]['blocks']??[];
 	$rplant_miners 	= $phpData[2]['miner']??[];
 	$rplant_full 	= $phpData??[];
-	
+
+	$workers_online = [];
+	if(isset($rplant_miners['workers']))
+	{
+		foreach($rplant_miners['workers'] as $csv)
+		{
+			$expl = explode(":", $csv);
+			if(isset($expl[0]))
+			{
+				$workers_online[$expl[0]] = true;
+			}
+		}
+	}
 	/*
 	echo '<pre>';
 	print_r($rplant_miners);
