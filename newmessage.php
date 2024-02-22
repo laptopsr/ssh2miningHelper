@@ -10,7 +10,32 @@ if(isset($_POST['getMessages']))
 {
 	// $_POST['count']
     $currentContent = file_get_contents("messages.txt");
-    echo json_encode(str_replace("\n", "<br>", $currentContent));
+    echo json_encode($currentContent);
+}
+if(isset($_POST['removeMessage'])) {
+
+        // Получаем идентификатор сообщения из POST запроса
+        $idToRemove = $_POST['id'];
+
+        // Получаем текущее содержимое файла
+        $currentContent = file_get_contents("messages.txt");
+
+        // Разбиваем содержимое файла на массив строк
+        $lines = explode("\n", $currentContent);
+
+        // Ищем строку, которая содержит идентификатор для удаления и удаляем ее из массива
+        $updatedLines = array_filter($lines, function($line) use ($idToRemove) {
+            return strpos($line, 'for="'.$idToRemove.'"') === false;
+        });
+
+        // Объединяем строки обратно в одну строку
+        $updatedContent = implode("\n", $updatedLines);
+
+        // Сохраняем обновленное содержимое в файл
+        file_put_contents("messages.txt", $updatedContent);
+
+        // Отправляем обновленное содержимое в формате JSON
+        echo json_encode(array('status' => 'success', 'message' => 'Message removed successfully'));
 }
 exit;
 ?>

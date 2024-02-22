@@ -359,6 +359,9 @@ $(document).ready(function(){
 			}
 		}
 
+		// --- message --- //
+		newMessage("Coin change to: " + $(this).attr('coin_name'));
+
 		lastClickedData = JSON.stringify([{coin_name: $(this).attr('coin_name'), user: $(this).attr('user')}]);
 		localStorage.setItem('lastClickedData', lastClickedData);
 		rplantApiStream(lastClickedData);
@@ -698,9 +701,8 @@ $(document).ready(function(){
 
 					setTimeout(function() {
 
-						// --- Popup message --- //
-						newMessage("Worker reload miner: " + trbl_worker);
-						// -->
+						// --- message --- //
+						newMessage("Miner reload: " + trbl_worker);
 						
 						$("#allCoins").find('.active').click();
 					}, 2000);
@@ -812,6 +814,7 @@ $(document).ready(function(){
 		var active_coin_name 	= parseLastData[0]['coin_name'];
 		var active_address 		= parseLastData[0]['user'];
 		var block_found_stream	= 0;
+		var block_found_before 	= 0;
 
 		var network_name 		= '';
 		var network_hashrate 	= 0;
@@ -858,6 +861,7 @@ $(document).ready(function(){
 				immature			= miner["immature"];
 				balance				= miner["balance"];
 				paid				= miner["paid"];
+				block_found_before 	= block_found_stream;
 				block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
 
 				// --- Check Offline workers --- //
@@ -948,7 +952,7 @@ $(document).ready(function(){
 			{
 
 				$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
-				newMessage("BLOCK FOUND: " + active_coin_name);
+				newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + block_found_before + "</effort> %</blockfound>");
 				alertFunc(alertPC);
 
 				setTimeout(function() { 
@@ -964,12 +968,27 @@ $(document).ready(function(){
 		// -->
 	}
 
+	$(document).delegate(".remove_row", "click",function(){
+		var thisFor = $(this).attr('for');
+
+		$.ajax({
+			url: 'newmessage.php',
+			method: 'POST',
+			data: { removeMessage: true, id : thisFor },
+			success: function(data) {
+			    console.log(data);
+			    getLastMessages(20);
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
+	});
+
 	function newMessage(mess)
 	{
-		var newMessage = "<b>" + getTimeNow() + "</b> - " + mess;
-
-		$('.popup_container').addClass('bougasetun-open');
-		$('#popup_content').prepend(newMessage);
+		let randomId 	= generateRandomId(11);
+		var newMessage 	= "<button class=\"remove_row bg-danger\" for=\"" + randomId + "\">x</button> <b>" + getTimeNow() + "</b> " + mess;
 
 		$.ajax({
 			url: 'newmessage.php',
@@ -977,6 +996,8 @@ $(document).ready(function(){
 			data: { newMessage: newMessage },
 			success: function(data) {
 			    //console.log(data);
+			    getLastMessages(20);
+			    $('.popup_container').addClass('bougasetun-open');
 			},
 			error: function(xhr, status, error) {
 			    console.error('Ошибка при выполнении запроса:', error);
@@ -997,7 +1018,8 @@ $(document).ready(function(){
 			    data = JSON.parse(data);
 
 				//$('.popup_container').addClass('bougasetun-open');
-				$('#popup_content').prepend(data);
+				var replacedData = data.replace(/\n/g, '<br>');
+				$('#popup_content').html(replacedData);
 
 			},
 			error: function(xhr, status, error) {
@@ -1009,14 +1031,29 @@ $(document).ready(function(){
 	function getTimeNow()
 	{
 		var now = new Date();
+		var day = now.getDate();
+		var month = now.getMonth() + 1; // Месяцы начинаются с 0, поэтому добавляем 1
+		var year = now.getFullYear();
 		var hours = now.getHours();
 		var minutes = now.getMinutes();
 
 		// Добавляем ноль перед однозначными числами
+		day = (day < 10) ? '0' + day : day;
+		month = (month < 10) ? '0' + month : month;
 		hours = (hours < 10) ? '0' + hours : hours;
 		minutes = (minutes < 10) ? '0' + minutes : minutes;
 
-		return hours + ':' + minutes;
+		return "[" + day + '.' + month + '.' + year + ' ' + hours + ':' + minutes + "]";
+	}
+
+	function generateRandomId(length) {
+		let result = '';
+		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		const charactersLength = characters.length;
+		for (let i = 0; i < length; i++) {
+		    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
 	}
 });
 </script>

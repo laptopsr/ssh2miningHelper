@@ -56,13 +56,15 @@ table.herominers th, table.miner_table th{
 	width: 40%;
 	height: 100%;
 	margin: 0;
-	padding: 18px 37px;
+	padding: 18px 20px;
 	transition: all 600ms cubic-bezier(0.86, 0, 0.07, 1);
 	top: 100%;
 	position: fixed;
 	right: 0;
 	text-align: left;
 	z-index: 999999;
+	box-shadow: -5px -5px 10px rgba(0, 0, 0, 0.5);
+	overflow: auto;
 }
 
 .popup_container.bougasetun-open .bougasetun {
