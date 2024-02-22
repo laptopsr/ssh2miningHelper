@@ -1,0 +1,81 @@
+body{
+	background: #333;
+	color: #ddd;
+}
+button.coin{
+	padding: 0px 4px;
+	margin-bottom: 0px;
+}
+.bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
+	color: #ddd;
+}
+.text-orange{
+	color: orange;
+}
+td.active{
+	border-top: 3px orange solid;
+	border-bottom: 3px orange solid;
+}
+.table td, .table th{
+	padding: 6px 0.75rem 3px;
+	color: #ddd;
+}
+.table th{
+	color: orange;
+}
+.form-control, .progress{
+	background: #ededed;
+}
+#datatable_length, #datatable_filter, .dataTables_filter{
+	display:none;
+}
+table.herominers th, table.miner_table th{
+	text-align: right;
+}
+.progress{
+	height: 50px;
+}
+#cur_effort h1{
+	margin-top: 7px;
+	color: orange;
+	font-weight: bold;
+}
+.pull-right{
+	float: right;
+}
+/* ------ */
+
+.popup_container {
+
+}
+.bougasetun {
+	border-top: 1px #ccc solid;
+	border-left: 1px #ccc solid;
+	background: rgb(51, 51, 51);
+	color: rgb(162, 252, 162);
+	width: 40%;
+	height: 100%;
+	margin: 0;
+	padding: 18px 37px;
+	transition: all 600ms cubic-bezier(0.86, 0, 0.07, 1);
+	top: 100%;
+	position: fixed;
+	right: 0;
+	text-align: left;
+	z-index: 999999;
+}
+
+.popup_container.bougasetun-open .bougasetun {
+ 	top: 70%;
+}
+
+.bottom-right-button {
+    position: fixed;
+    bottom: 0px;
+    right: 0;
+    cursor: pointer;
+    background: rgb(51, 51, 51);
+    color: rgb(162, 252, 162);
+    
+    
+}

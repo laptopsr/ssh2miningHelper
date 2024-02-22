@@ -7,68 +7,42 @@ include "config.php";
 ?>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+	<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
 
-<!-- DataTable -->
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+	<!-- DataTable -->
+	<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/fontawesome.min.css" />  
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css" /> 
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/fontawesome.min.css" />  
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css" /> 
 
-<style>
-body{
-	background: #333;
-	color: #ddd;
-}
-button.coin{
-	padding: 0px 4px;
-	margin-bottom: 0px;
-}
-.bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
-	color: #ddd;
-}
-.text-orange{
-	color: orange;
-}
-td.active{
-	border-top: 3px orange solid;
-	border-bottom: 3px orange solid;
-}
-.table td, .table th{
-	padding: 6px 0.75rem 3px;
-	color: #ddd;
-}
-.table th{
-	color: orange;
-}
-.form-control, .progress{
-	background: #ededed;
-}
-#datatable_length, #datatable_filter, .dataTables_filter{
-	display:none;
-}
-table.herominers th, table.miner_table th{
-	text-align: right;
-}
-.progress{
-	height: 50px;
-}
-#cur_effort h1{
-	margin-top: 7px;
-	color: orange;
-	font-weight: bold;
-}
-</style>
+	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+	<div class="popup_container">
+		<div class="bougasetun">
+			<button class="btn btn-info btn-sm close_button pull-right">Close</button>
+			<div id="popup_content"></div>
+		</div>
+	</div>
+	<script>
+	$(document).ready(function() {
+		$(document).delegate(".open_button", "click",function(){
+			$('.popup_container').addClass('bougasetun-open');
+		});
+		$(document).delegate(".close_button", "click",function(){
+			$('.popup_container').removeClass('bougasetun-open');
+		});
+	});
+	</script>
+
 	<div class="container-fluid" style="margin-top: 20px;">
 	<center>
 		<div id="header">Please wait...</div><div id="debugResponse"></div>
@@ -213,7 +187,6 @@ $(document).ready(function(){
 
 	var origin_header_rpl	= '<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>';
 	var totalWorkers 	= parseInt("<?=count($arr)?>");
-	var blockFound		= 0;
 	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
 
 	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
@@ -299,7 +272,7 @@ $(document).ready(function(){
 		    data: formData,
 		    success: function(data) {
 		    	data = JSON.parse(data);
-		        console.log("Form send: " + data);
+		        //console.log("Form send: " + data);
 		        $("#lomake_workers option").prop("selected", true);
         
 		        if(data['debug'])
@@ -351,8 +324,6 @@ $(document).ready(function(){
 	
 	$(document).delegate(".coin", "click",function(){
 
-		blockFound = 0;
-
 		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
@@ -362,7 +333,6 @@ $(document).ready(function(){
 		// <--
 		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		lastClickedCoin = $(this).attr('id');
-		console.log("Next coin: " + lastClickedCoin);
 		// -->
 
 		$("#lomake select[name='miner']").val($(this).attr('miner'));
@@ -727,6 +697,11 @@ $(document).ready(function(){
 					$("#lomake_workers").val(trbl_worker);
 
 					setTimeout(function() {
+
+						// --- Popup message --- //
+						newMessage("Worker reload miner: " + trbl_worker);
+						// -->
+						
 						$("#allCoins").find('.active').click();
 					}, 2000);
 				}
@@ -820,153 +795,229 @@ $(document).ready(function(){
 	}
 
 	var source;
-	
+
 	function rplantApiStream(data)
 	{
-			$("#rplnt_api").show();
 
-			var parseLastData = JSON.parse(data);
-			if(!parseLastData[0]['coin_name'])
+		$("#rplnt_api").show();
+
+		var parseLastData = JSON.parse(data);
+		if(!parseLastData[0]['coin_name'])
+		{
+			return false;
+		}
+
+		var blockFound 			= 0;
+		var offline_count		= 0;
+		var active_coin_name 	= parseLastData[0]['coin_name'];
+		var active_address 		= parseLastData[0]['user'];
+		var block_found_stream	= 0;
+
+		var network_name 		= '';
+		var network_hashrate 	= 0;
+		var network_diff 		= 0;					
+		var soloShares			= 0;
+		var hrs					= 0;
+		var wcs					= 0;
+		var immature			= 0;
+		var balance				= 0;
+		var paid				= 0;
+		var miner				= [];
+		var net					= [];
+		var miner_address		= '';
+
+		// Закрытие предыдущего соединения, если оно существует
+		if (source) {
+			source.close();
+		}
+
+		// <--	
+		var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
+		source = new EventSource(url);
+		source.addEventListener('message', function(e) {
+
+			var parsed = JSON.parse(e.data);
+
+			if(parsed['net'])
 			{
-				return false;
+				net					= parsed['net'];
+				network_name		= net.v;
+				network_hashrate	= net.hr;
+				network_diff		= net.d;
+				
+				//console.log(network_name);
 			}
 
-			var active_coin_name 	= parseLastData[0]['coin_name'];
-			var active_address 		= parseLastData[0]['user'];
-			var block_found_stream	= 0;
+			if(parsed['miner'])
+			{
+				miner				= parsed['miner'];
+				miner_address		= miner["miner"];			
+				soloShares			= miner["soloShares"];
+				hrs					= miner["hrs"];
+				wcs					= miner["wcs"];
+				immature			= miner["immature"];
+				balance				= miner["balance"];
+				paid				= miner["paid"];
+				block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
 
-			var network_name 		= '';
-			var network_hashrate 	= 0;
-			var network_diff 		= 0;					
-			var soloShares			= 0;
-			var hrs					= 0;
-			var wcs					= 0;
-			var immature			= 0;
-			var balance				= 0;
-			var paid				= 0;
-			var miner				= [];
-			var net					= [];
-			var miner_address		= '';
+				// --- Check Offline workers --- //
+				// <--
+				if(miner["workers"].length > 0)
+				{
+					var workers_online = [];
+					$.each(miner["workers"], function(index, value) {
+						var sp = value.split(":");
+						workers_online.push(sp[0]);
+					});
 
-			// Закрытие предыдущего соединения, если оно существует
-			if (source) {
-				source.close();
+					var workers_offline = [];
+					$.each(allMyWorkers, function(index, value) {
+						if(workers_online.indexOf(index) === -1)
+						{
+							workers_offline.push(index);
+						}
+					});
+				}
+
+				if (workers_offline && workers_offline.length > 0)
+				{
+					offline_count += 1;
+
+					newMessage("wcs_offline: " + workers_offline.join(", "));
+					$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/5");
+					$("#wcs_offline").closest('tr').addClass("bg-danger");
+					
+					if(offline_count => 5)
+					{
+						$("#allCoins").find('.active').click();
+						offline_count = 0;
+					}
+				}
+				else
+				{
+					$("#wcs_offline").html('');
+					$("#wcs_offline").closest('tr').removeClass("bg-danger");
+					offline_count = 0;
+				}
+				// -->
 			}
 
-			// <--	
-			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
-			source = new EventSource(url);
-			source.addEventListener('message', function(e) {
-
-				var parsed = JSON.parse(e.data);
-
-				if(parsed['net'])
+			if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
+			{
+				//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
+				if(network_diff > 100000)
 				{
-					net					= parsed['net'];
-					network_name		= net.v;
-					network_hashrate	= net.hr;
-					network_diff		= net.d;
-					
-					//console.log(network_name);
+					offset = (soloShares / network_hashrate);
+				}
+				else
+				{
+					offset = ((soloShares / network_hashrate) * 100000) / 2;
 				}
 
-				if(parsed['miner'])
-				{
-					miner				= parsed['miner'];
-					miner_address		= miner["miner"];			
-					soloShares			= miner["soloShares"];
-					hrs					= miner["hrs"];
-					wcs					= miner["wcs"];
-					immature			= miner["immature"];
-					balance				= miner["balance"];
-					paid				= miner["paid"];
-					block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
-
-					if(miner["workers"].length > 0)
-					{
-						var workers_online = [];
-						$.each(miner["workers"], function(index, value) {
-							var sp = value.split(":");
-							workers_online.push(sp[0]);
-						});
-
-						var workers_offline = [];
-						$.each(allMyWorkers, function(index, value) {
-							if(workers_online.indexOf(index) === -1)
-							{
-								workers_offline.push(index);
-							}
-						});
-					}
-
-					if (workers_offline && workers_offline.length > 0)
-					{
-						$("#wcs_offline").html(workers_offline.join(", "));
-						$("#wcs_offline").closest('tr').addClass("bg-danger");
-					}
-					else
-					{
-						$("#wcs_offline").html('');
-						$("#wcs_offline").closest('tr').removeClass("bg-danger");
-					}
-
-				}
-
-				if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
-				{
-					//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
-					if(network_diff > 100000)
-					{
-						offset = (soloShares / network_hashrate);
-					}
-					else
-					{
-						offset = ((soloShares / network_hashrate) * 100000) / 2;
-					}
-
-					var summ =  offset;
-					
-					//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
-					
-					var effort_origin 	= summ.toFixed(); // .toFixed()
-					var effort 			= effort_origin / 3;
-					
-					$("#cur_effort").css({"width" :  effort + "%"});
-					$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
-					$("#cur_effort").attr("aria-valuenow" , effort);
-				}
-
-				if(network_name !== ''){ 			$("#v").html(network_name) };
-				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
-				if(network_diff !== 0){ 			$("#d").html(network_diff) };
-				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-				if(hrs !== 0){ 						$("#hrs").html(hrs) };
-				if(wcs !== 0){ 						$("#wcs").html(wcs) };
-				if(immature !== 0){ 				$("#immature").html(immature) };
-				if(balance !== 0){ 					$("#balance").html(balance) };
-				if(paid !== 0){ 					$("#paid").html(paid) };
-				if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
+				var summ =  offset;
 				
-				// --- BLOCK FOUND --- //
+				//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
 				
-				if(blockFound != block_found_stream && block_found_stream > 0)
-				{
-					if(blockFound > 0)
-					{
-						$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
-						alertFunc(alertPC);
+				var effort_origin 	= summ.toFixed(); // .toFixed()
+				var effort 			= effort_origin / 3;
+				
+				$("#cur_effort").css({"width" :  effort + "%"});
+				$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
+				$("#cur_effort").attr("aria-valuenow" , effort);
+			}
 
-						setTimeout(function() { 
-							$("#header").html(origin_header_rpl);
-						}, 15000);
-					}
+			if(network_name !== ''){ 			$("#v").html(network_name) };
+			if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
+			if(network_diff !== 0){ 			$("#d").html(network_diff) };
+			if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
+			if(hrs !== 0){ 						$("#hrs").html(hrs) };
+			if(wcs !== 0){ 						$("#wcs").html(wcs) };
+			if(immature !== 0){ 				$("#immature").html(immature) };
+			if(balance !== 0){ 					$("#balance").html(balance) };
+			if(paid !== 0){ 					$("#paid").html(paid) };
+			if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
+			
+			// --- BLOCK FOUND --- //
 
-					blockFound = block_found_stream;
-				}
+			if(block_found_stream > 0 && blockFound == 0)
+			{
+				blockFound = block_found_stream;
+			}
 
-			}, false);
-			// -->
+			if(blockFound > 0 && blockFound != block_found_stream)
+			{
 
+				$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
+				newMessage("BLOCK FOUND: " + active_coin_name);
+				alertFunc(alertPC);
+
+				setTimeout(function() { 
+					$("#header").html(origin_header_rpl);
+				}, 20000);
+
+				blockFound = block_found_stream;
+			}
+			
+			//console.log("offline_count: " + offline_count +"/5");
+
+		}, false);
+		// -->
+	}
+
+	function newMessage(mess)
+	{
+		var newMessage = "<b>" + getTimeNow() + "</b> - " + mess;
+
+		$('.popup_container').addClass('bougasetun-open');
+		$('#popup_content').prepend(newMessage);
+
+		$.ajax({
+			url: 'newmessage.php',
+			method: 'POST',
+			data: { newMessage: newMessage },
+			success: function(data) {
+			    //console.log(data);
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
+	}
+
+	getLastMessages(20);
+
+	function getLastMessages(count)
+	{
+		$.ajax({
+			url: 'newmessage.php',
+			method: 'POST',
+			data: { getMessages: true, count : count },
+			success: function(data) {
+			    //console.log(data);
+			    data = JSON.parse(data);
+
+				//$('.popup_container').addClass('bougasetun-open');
+				$('#popup_content').prepend(data);
+
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
+	}
+
+	function getTimeNow()
+	{
+		var now = new Date();
+		var hours = now.getHours();
+		var minutes = now.getMinutes();
+
+		// Добавляем ноль перед однозначными числами
+		hours = (hours < 10) ? '0' + hours : hours;
+		minutes = (minutes < 10) ? '0' + minutes : minutes;
+
+		return hours + ':' + minutes;
 	}
 });
 </script>
+<button class="btn btn-lg btn-info bottom-right-button open_button">Open console</button>
