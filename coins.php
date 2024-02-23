@@ -99,6 +99,7 @@ $bd = '
 <thead>
 	<tr>
 		<th>Balance</th>
+		<th>Change</th>
 		<th>Price</th>
 		<th>Diff</th>
 		<th>Rew.</th>
@@ -110,15 +111,17 @@ $bd = '
 $i = 0;
 foreach($coins as $coin)
 {
-	$last_price = $xeggexTickers[$coin['coin']]['last_price']??0;
-	$diff 		= round(($rplantData[$coin['coin']]['difficulty']??'0'), 5);
-	$reward 	= round(($last_price * ($rplantData[$coin['coin']]['reward']??'0')), 4);
+	$last_price 	= $xeggexTickers[$coin['coin']]['last_price']??0;
+	$change_percent = $xeggexTickers[$coin['coin']]['change_percent']??0;
+	$diff 			= round(($rplantData[$coin['coin']]['difficulty']??'0'), 5);
+	$reward 		= round(($last_price * ($rplantData[$coin['coin']]['reward']??'0')), 4);
 	$network_hashrate = $rplantData[$coin['coin']]['network_hashrate']??'0';
-	$balance	= (isset($xeggexBalances[$coin['coin']]['available'])) ? round(($xeggexBalances[$coin['coin']]['available'] * $last_price), 2) : 0;
+	$balance		= (isset($xeggexBalances[$coin['coin']]['available'])) ? round(($xeggexBalances[$coin['coin']]['available'] * $last_price), 2) : 0;
 
 	$bd .= '
 	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'">
 		<td class="balance">'.$balance.'</td>
+		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'%</b></td>
 		<td class="price">'.$last_price.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>

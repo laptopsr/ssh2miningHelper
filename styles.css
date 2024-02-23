@@ -10,10 +10,10 @@ button.coin{
 	color: #ddd;
 }
 .text-orange{
-	color: orange;
+	color: orange !important;
 }
 .text-success{
-	color: rgb(162, 252, 162);
+	color: rgb(162, 252, 162) !important;
 }
 td.active{
 	border-top: 3px orange solid;

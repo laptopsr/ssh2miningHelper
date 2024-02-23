@@ -406,19 +406,19 @@ $(document).ready(function(){
 				// --- BEST --- //
 
 				new DataTable('table.coins', {
-					"order": [ [2,'desc'], [1,'asc'] ],
+					"order": [ [3,'desc'], [2,'asc'] ],
 					paging: false,
 					columnDefs: [
-						{ targets: [0, 3], orderable: false }, // Запретить сортировку для первой и четвертой колонок
+						{ targets: [0, 1, 3], orderable: false }, // Запретить сортировку для первой и четвертой колонок
 						{
-							targets: [1], // Вторая колонка
+							targets: [2], // Вторая колонка
 							orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
 							render: function (data, type, row, meta) {
 								return parseFloat(data);
 							}
 						},
 						{
-							targets: [2], // Третья колонка
+							targets: [3], // Третья колонка
 							orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
 							render: function (data, type, row, meta) {
 								return parseFloat(data);
