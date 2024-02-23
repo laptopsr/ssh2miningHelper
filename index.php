@@ -60,7 +60,7 @@ include "config.php";
 				</center>
 				<br>
 				<div id="rplnt_api" style="display: none">
-				<h4>Miner rplant.xyz</h4>
+				<h4 class="text-orange">Miner rplant.xyz (<span id="source_count"></span>)</h4>
 				<table class="table table-striped miner_table">
 					<tr class="tr_miner"><td>Network name</td><th><span id="v"></span></th></tr>
 					<tr class="tr_miner"><td>Network hashrate</td><th><span id="hr"></span></th></tr>
@@ -119,7 +119,7 @@ include "config.php";
 					<option value="manual">MANUAL</option>
 				</select>
 				<br>
-				<div id="cur_balance" class="btn btn-block btn-secondary text-orange"></div>
+				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
 				<br>
 				<div id="allCoins"></div>
 			</div>
@@ -130,7 +130,7 @@ include "config.php";
 				</select>
 				<br>
 				<div id="all_computers">
-					<div class="well bg-secondary"><center><h4><b id="hashrateSum"></b> H/s</h4></center></div>
+					<div class="well bg-secondary"><center><h4 class="text-orange"><b id="hashrateSum"></b> H/s</h4></center></div>
 					<table class="table table-striped">
 					<tr>
 						<td><input class="global_select" type="checkbox" checked></td>
@@ -185,7 +185,7 @@ include "config.php";
 <script>
 $(document).ready(function(){
 
-	var origin_header_rpl	= '<h2><?=$softName?> <?=$version?> - <span class="text-orange">RPLANT</span></h2>';
+	var origin_header_rpl	= '<h2><?=$softName?> <?=$version?> - <span class="text-success">RPLANT</span></h2>';
 	var totalWorkers 	= parseInt("<?=count($arr)?>");
 	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
 
@@ -478,7 +478,7 @@ $(document).ready(function(){
 		
 	}
 
-	setInterval(allCoins, 120000);
+	setInterval(allCoins, 60000);
 
 
 	setTimeout(function() { 
@@ -573,7 +573,7 @@ $(document).ready(function(){
 			
 			//console.log(coin_name + " " + address);
 			
-			$("#header").html('<h2><?=$softName?> <?=$version?> - <span class="text-orange">Herominers</span></h2>');
+			$("#header").html('<h2><?=$softName?> <?=$version?> - <span class="text-success">Herominers</span></h2>');
 
 			$.ajax({
 				url: 'herominers_api.php',
@@ -809,12 +809,14 @@ $(document).ready(function(){
 			return false;
 		}
 
+		var source_count		= 0;
 		var blockFound 			= 0;
 		var offline_count		= 0;
 		var active_coin_name 	= parseLastData[0]['coin_name'];
 		var active_address 		= parseLastData[0]['user'];
 		var block_found_stream	= 0;
-		var block_found_before 	= 0;
+		var effort_origin		= 0;
+		var last_effort			= 0;
 
 		var network_name 		= '';
 		var network_hashrate 	= 0;
@@ -839,6 +841,9 @@ $(document).ready(function(){
 		source = new EventSource(url);
 		source.addEventListener('message', function(e) {
 
+			source_count += 1;
+			$("#source_count").html(source_count);
+
 			var parsed = JSON.parse(e.data);
 
 			if(parsed['net'])
@@ -861,7 +866,6 @@ $(document).ready(function(){
 				immature			= miner["immature"];
 				balance				= miner["balance"];
 				paid				= miner["paid"];
-				block_found_before 	= block_found_stream;
 				block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
 
 				// --- Check Offline workers --- //
@@ -887,7 +891,7 @@ $(document).ready(function(){
 				{
 					offline_count += 1;
 
-					newMessage("wcs_offline: " + workers_offline.join(", "));
+					newMessage("OFFLINE: " + workers_offline.join(", "));
 					$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/5");
 					$("#wcs_offline").closest('tr').addClass("bg-danger");
 					
@@ -901,7 +905,6 @@ $(document).ready(function(){
 				{
 					$("#wcs_offline").html('');
 					$("#wcs_offline").closest('tr').removeClass("bg-danger");
-					offline_count = 0;
 				}
 				// -->
 			}
@@ -922,9 +925,14 @@ $(document).ready(function(){
 				
 				//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
 				
-				var effort_origin 	= summ.toFixed(); // .toFixed()
+				effort_origin 		= summ.toFixed(); // .toFixed()
 				var effort 			= effort_origin / 3;
 				
+				if(effort_origin > last_effort)
+				{
+					last_effort = effort_origin;
+				}
+
 				$("#cur_effort").css({"width" :  effort + "%"});
 				$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
 				$("#cur_effort").attr("aria-valuenow" , effort);
@@ -934,7 +942,7 @@ $(document).ready(function(){
 			if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
 			if(network_diff !== 0){ 			$("#d").html(network_diff) };
 			if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-			if(hrs !== 0){ 						$("#hrs").html(hrs) };
+			if(hrs !== 0){ 						$("#hrs").html("<h4 class=\"text-orange\"><b>" + hrs + " H/s</b></h1>") };
 			if(wcs !== 0){ 						$("#wcs").html(wcs) };
 			if(immature !== 0){ 				$("#immature").html(immature) };
 			if(balance !== 0){ 					$("#balance").html(balance) };
@@ -948,11 +956,19 @@ $(document).ready(function(){
 				blockFound = block_found_stream;
 			}
 
-			if(blockFound > 0 && blockFound != block_found_stream)
+			if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
 			{
 
-				$("#header").html('<h1 class="alert bg-secondary text-orange">* * * BLOCK FOUND * * *</h1>');
-				newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + block_found_before + "</effort> %</blockfound>");
+				$("#header").html('<h1 class="alert bg-secondary text-success">* * * BLOCK FOUND * * *</h1>');
+				newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + last_effort + "</effort> %</blockfound>");
+				
+				last_effort 	= 0;
+				effort_origin 	= 0;
+
+				$("#cur_effort").css({"width" :  "0%"});
+				$("#cur_effort").html("<h1>0 %</h1>");
+				$("#cur_effort").attr("aria-valuenow" , "0");
+
 				alertFunc(alertPC);
 
 				setTimeout(function() { 
@@ -968,6 +984,9 @@ $(document).ready(function(){
 		// -->
 	}
 
+	$(document).delegate("table", "click",function(){
+		$('.popup_container').removeClass('bougasetun-open');
+	});
 	$(document).delegate(".remove_row", "click",function(){
 		var thisFor = $(this).attr('for');
 
@@ -998,6 +1017,11 @@ $(document).ready(function(){
 			    //console.log(data);
 			    getLastMessages(20);
 			    $('.popup_container').addClass('bougasetun-open');
+
+				setTimeout(function() { 
+					$('.popup_container').removeClass('bougasetun-open');
+				}, 60000);
+
 			},
 			error: function(xhr, status, error) {
 			    console.error('Ошибка при выполнении запроса:', error);
@@ -1005,7 +1029,7 @@ $(document).ready(function(){
 		});
 	}
 
-	getLastMessages(20);
+	getLastMessages(17);
 
 	function getLastMessages(count)
 	{

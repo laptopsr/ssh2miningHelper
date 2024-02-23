@@ -8,9 +8,12 @@ if(isset($_POST['newMessage']))
 }
 if(isset($_POST['getMessages']))
 {
-	// $_POST['count']
-    $currentContent = file_get_contents("messages.txt");
-    echo json_encode($currentContent);
+    $currentContent 	= file_get_contents("messages.txt");
+    $contentArray 		= explode("\n", $currentContent);
+    $firstTwentyLines 	= array_slice($contentArray, 0, $_POST['count']);
+    $outputContent 		= implode("\n", $firstTwentyLines);
+
+    echo json_encode($outputContent);
 }
 if(isset($_POST['removeMessage'])) {
 

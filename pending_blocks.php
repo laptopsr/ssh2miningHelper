@@ -116,7 +116,7 @@ if($rplant)
 	// ------ //
 
 	$bd .= '
-	<h4>My pending blocks rplant.xyz</h4>
+	<h4 class="text-orange">My pending blocks rplant.xyz</h4>
 	<table class="table table-striped">
 	<tr class="">
 		<th>Wallet</th>

@@ -12,6 +12,9 @@ button.coin{
 .text-orange{
 	color: orange;
 }
+.text-success{
+	color: rgb(162, 252, 162);
+}
 td.active{
 	border-top: 3px orange solid;
 	border-bottom: 3px orange solid;
@@ -21,7 +24,7 @@ td.active{
 	color: #ddd;
 }
 .table th{
-	color: orange;
+	color: rgb(162, 252, 162);
 }
 .form-control, .progress{
 	background: #ededed;
@@ -53,7 +56,7 @@ table.herominers th, table.miner_table th{
 	border-left: 1px #ccc solid;
 	background: rgb(51, 51, 51);
 	color: rgb(162, 252, 162);
-	width: 40%;
+	width: 41%;
 	height: 100%;
 	margin: 0;
 	padding: 18px 20px;
@@ -68,9 +71,12 @@ table.herominers th, table.miner_table th{
 }
 
 .popup_container.bougasetun-open .bougasetun {
- 	top: 70%;
+ 	top: 50%;
 }
-
+.remove_row{
+	padding: 0;
+	margin: 0;
+}
 .bottom-right-button {
     position: fixed;
     bottom: 0px;
