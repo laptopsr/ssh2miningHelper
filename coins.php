@@ -125,8 +125,8 @@ foreach($coins as $coin)
 		<td class="price">'.$last_price.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
-		<td>
-			<button class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">'.$coin['coin'].'</button>
+		<td class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
+			'.$coin['coin'].'
 		</td>
 	</tr>';
 }

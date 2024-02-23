@@ -1,4 +1,30 @@
 <?php
+
+if(isset($_POST['getSettings']))
+{
+    $currentContent = json_decode(file_get_contents("settings.txt"), true);
+    echo json_encode($currentContent);
+}
+if(isset($_POST['saveSettings']))
+{
+    $currentContent = json_decode(file_get_contents("settings.txt"), true);
+	$newContent		= [];
+
+	foreach($currentContent as $k => $v)
+	{
+		$newContent[$k] = $v;
+	}
+	if(is_array($_POST['set']))
+	{
+		foreach($_POST['set'] as $k => $v)
+		{
+			$newContent[$k] = $v;
+		}
+	}
+
+    file_put_contents("settings.txt", json_encode($newContent));
+    echo "ok";
+}
 if(isset($_POST['newMessage']))
 {
     $currentContent = file_get_contents("messages.txt");

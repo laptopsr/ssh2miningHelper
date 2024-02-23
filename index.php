@@ -2,6 +2,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+session_start();
 
 include "config.php";
 ?>
@@ -26,6 +27,58 @@ include "config.php";
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+	<?php
+	//unset($_SESSION['login']);
+
+	if(isset($_POST['login']) and $_POST['login'] == $web_login and $_POST['salasana'] == $web_pass)
+	{
+		$_SESSION['login'] 	= true;
+		$_SESSION['demo'] 	= false;
+
+		header('Location: index.php');
+	} else if(isset($_POST['login']) and $_POST['login'] == "demo" and $_POST['salasana'] == "demo")
+	{
+		$_SESSION['login'] 	= true;
+		$_SESSION['demo'] 	= true;
+
+		header('Location: index.php');
+	}
+
+	if(!isset($_SESSION['login']))
+	{
+		echo '
+		<div class="row text-center">
+		 <div class="col-md-12">
+		  <center>
+		   <div class="col-md-4">
+			<form class="form-signin" method="POST">
+			  <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+			  <label for="inputEmail" class="sr-only">Email address</label>
+			  <input type="text" name="login" class="form-control" placeholder="Username" required autofocus>
+			  <label for="inputPassword" class="sr-only">Password</label>
+			  <input type="password" name="salasana" id="inputPassword" class="form-control" placeholder="Password" required>
+			  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+			  <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>
+			</form>
+			</center>
+		   </div>
+		 </div>
+		</div>';
+		exit;
+	}
+
+	if($_SESSION['demo'])
+	{
+		echo '
+		<style>
+		input, select, .submit_form, button.coin, .rebootAll {
+			pointer-events: none;
+			opacity: 0.7;
+		}
+		</style>
+		';
+	}
+	?>
 	<div class="popup_container">
 		<div class="bougasetun">
 			<button class="btn btn-info btn-sm close_button pull-right">Close</button>
@@ -110,11 +163,11 @@ include "config.php";
 					<br>
 					<input type="text" class="form-control" name="command" id="command" placeholder="Command">
 					<br>
-					<button class="btn btn-info btn-block" type="submit">OK</button>
+					<button class="btn btn-info btn-block submit_form" type="submit">OK</button>
 				</form>
 			</div>
 			<div class="col-md-4">
-				<select id="systemControl" class="form-control">
+				<select id="bestCoinControl" class="form-control">
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
 				</select>
@@ -137,7 +190,7 @@ include "config.php";
 						<th>Worker</th>
 						<th>Temp.</th>
 						<th>Time</th>
-						<th>Hashrate</th>
+						<th>H/s</th>
 						<th>Pool</th>
 						<th>Session</th>
 					</tr>
@@ -173,7 +226,7 @@ include "config.php";
 					</table>
 					<hr>
 					<h5>
-						With selected: <button class="btn btn-info btn-sm rebootAll">Reboot</button> <button class="btn btn-info btn-sm clrScreen">Clear screen</button>
+						With selected: <button class="btn btn-info btn-sm rebootAll">Reboot</button> <button class="btn btn-info btn-sm clrScreen">Reload miner</button>
 					</h5>
 				</div>
 			</div>
@@ -184,6 +237,79 @@ include "config.php";
 
 <script>
 $(document).ready(function(){
+
+	// --- SETTINGS --- //
+	var alertPC			= '';
+	var workersControl	= 'manual';
+	var bestCoinControl = 'manual';
+	var lastClickedCoin = 'coin_VISH'; // coins.php button
+	var lastClickedData = JSON.stringify([{coin_name: "", user: ""}]);
+
+	$("#workersControl").val(workersControl);
+	$("#alertPC").val(alertPC);
+	$("#bestCoinControl").val(bestCoinControl);
+
+
+	$.ajax({
+		url: 'ajax_saver.php',
+		method: 'POST',
+		data: { getSettings: true },
+		success: function(data) {
+			//console.log(data);
+			data = JSON.parse(data);
+
+			if(data["workersControl"])
+			{
+				workersControl = data["workersControl"];
+				$("#workersControl").val(workersControl);
+			}
+			if(data["alertPC"])
+			{
+				alertPC = data["alertPC"];
+				$("#alertPC").val(alertPC);
+			}
+			if(data["bestCoinControl"])
+			{
+				bestCoinControl = data["bestCoinControl"];
+				$("#bestCoinControl").val(bestCoinControl);
+			}
+			if(data["lastClickedCoin"])
+			{
+				lastClickedCoin = data["lastClickedCoin"];
+			}
+			if(data["lastClickedData"])
+			{
+				lastClickedData = data["lastClickedData"];
+				
+				var parseLastData = JSON.parse(lastClickedData);
+				if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] != "")
+				{
+					rplantApiStream(lastClickedData);
+				}
+			}
+		},
+		error: function(xhr, status, error) {
+			console.error('Ошибка при выполнении запроса:', error);
+		}
+	});
+
+	// ------ //
+	$(document).delegate("#workersControl", "change",function(){
+		var set = [{workersControl : $(this, 'option;selected').val()}];
+		saveSettings(set);
+		workersControl = $(this, 'option;selected').val();
+	});
+	$(document).delegate("#alertPC", "blur",function(){
+		var set = [{alertPC : $(this).val()}];
+		saveSettings(set);
+		alertPC = $(this).val();
+	});
+	$(document).delegate("#bestCoinControl", "change",function(){
+		var set = [{bestCoinControl : $(this, 'option;selected').val()}];
+		saveSettings(set);
+		bestCoinControl = $(this, 'option;selected').val();
+	});
+	// --- SETTINGS END --- //
 
 	var origin_header_rpl	= '<h2><?=$softName?> <?=$version?> - <span class="text-success">RPLANT</span></h2>';
 	var totalWorkers 	= parseInt("<?=count($arr)?>");
@@ -286,53 +412,24 @@ $(document).ready(function(){
 		});
 	});
 	// ------ //
-	var alertPC	= localStorage.getItem('alertPC')??'';
-	$("#alertPC").val(alertPC);
-	$(document).delegate("#alertPC", "blur",function(){
-		localStorage.setItem('alertPC', $(this).val());
-		alertPC = $(this).val();
-	});
-	// ------ //
-	var systemControl	= localStorage.getItem('systemControl')??'manual';
-	$("#systemControl").val(systemControl);
-	$(document).delegate("#systemControl", "change",function(){
-		localStorage.setItem('systemControl', $(this, 'option;selected').val());
-		systemControl = $(this, 'option;selected').val();
-	});
-	// ------ //
-	var workersControl	= localStorage.getItem('workersControl')??'manual';
-	$("#workersControl").val(workersControl);
-	$(document).delegate("#workersControl", "change",function(){
-		localStorage.setItem('workersControl', $(this, 'option;selected').val());
-		workersControl = $(this, 'option;selected').val();
-	});
-
-	// ------ //
-
 	$("#command").keyup(function(){
 		$("#debug").val("true");
 	});
 	// ------ //
 	$( "td.ajaxdata" ).html('<span class="text-danger">waiting..</span>');
-    var lastClickedCoin = localStorage.getItem('lastClickedCoin');
-    var lastClickedData = localStorage.getItem('lastClickedData');
 
-	if(lastClickedData)
-	{
-		rplantApiStream(lastClickedData);
-	}
-	
 	$(document).delegate(".coin", "click",function(){
 
 		$( "tr" ).removeClass('active');
-		$( ".coin" ).removeClass('btn-success text-white active').addClass('btn-info');
-		$( this ).removeClass('btn-info').addClass('btn-success text-white active');
+		$( ".coin" ).removeClass('btn-secondary text-white active').addClass('btn-info');
+		$( this ).removeClass('btn-info').addClass('btn-secondary text-white active');
 		$('tr').find('td').removeClass('active');
 		$( this ).closest('tr').find('td').addClass('active');
 
 		// <--
-		localStorage.setItem('lastClickedCoin', $(this).attr('id'));
 		lastClickedCoin = $(this).attr('id');
+		var set = [{lastClickedCoin : $(this).attr('id')}];
+		saveSettings(set);
 		// -->
 
 		$("#lomake select[name='miner']").val($(this).attr('miner'));
@@ -362,8 +459,11 @@ $(document).ready(function(){
 		// --- message --- //
 		newMessage("Coin change to: " + $(this).attr('coin_name'));
 
-		lastClickedData = JSON.stringify([{coin_name: $(this).attr('coin_name'), user: $(this).attr('user')}]);
-		localStorage.setItem('lastClickedData', lastClickedData);
+		lastClickedData = JSON.stringify([{coin_name: $(this).attr('coin_name'), user: $(this).attr('user'), host : $(this).attr('host')}]);
+
+		var set = [{lastClickedData : lastClickedData}];
+		saveSettings(set);
+
 		rplantApiStream(lastClickedData);
 	});
 
@@ -400,7 +500,7 @@ $(document).ready(function(){
 
 				if (lastClickedCoin && !$("#" + lastClickedCoin).hasClass('active')) {
 					$("#" + lastClickedCoin).closest('tr').find('td').addClass('active');
-					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-success text-white active');
+					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-secondary text-white active');
 				}
 
 				// --- BEST --- //
@@ -443,19 +543,19 @@ $(document).ready(function(){
 				// ------ //
 				
 	            var firstRow = $('tr.tr_tb').first();
-	            firstRow.addClass('best bg-secondary');
+	            firstRow.addClass('best');
 	            
-	            if(systemControl == "auto")
+	            if(bestCoinControl == "auto")
 	            {
 	            	if(!$("#" + lastClickedCoin).closest('tr').hasClass('best'))
 	            	{
-	            		firstRow.find('button').click();
+	            		firstRow.find('td.coin').click();
 	            	}
 	            }
 
 				// --- Profit today and yesterday RPLANT only --- //
 
-				if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
+				if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('td.coin').attr('host').includes('rplant'))
 				{
 				
 					var res1 = '';
@@ -478,7 +578,7 @@ $(document).ready(function(){
 		
 	}
 
-	setInterval(allCoins, 60000);
+	setInterval(allCoins, 120000);
 
 
 	setTimeout(function() { 
@@ -487,7 +587,7 @@ $(document).ready(function(){
 
 	function pendingBlocks() {
 
-		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('rplant'))
+		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('td.coin').attr('host').includes('rplant'))
 		{
 			// --- RPLANT API stream --- //
 
@@ -561,15 +661,16 @@ $(document).ready(function(){
 
 	setTimeout(function() { 
 		herominersApi();
-	}, 15000);
+	}, 10000);
 
 	function herominersApi() {
 
-		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('button').attr('host').includes('herominers'))
+		var parseLastData = JSON.parse(lastClickedData);
+		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('herominers'))
 		{
-			var coin_name 	= $("#allCoins").find('.active').closest('tr').find('button').attr('coin_name');
-			var coin_asset 	= $("#allCoins").find('.active').closest('tr').find('button').text();
-			var address 	= $("#allCoins").find('.active').closest('tr').find('button').attr('user');
+			var coin_name 	= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
+			var coin_asset 	= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
+			var address 	= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
 			
 			//console.log(coin_name + " " + address);
 			
@@ -800,188 +901,204 @@ $(document).ready(function(){
 
 	function rplantApiStream(data)
 	{
-
-		$("#rplnt_api").show();
-
-		var parseLastData = JSON.parse(data);
-		if(!parseLastData[0]['coin_name'])
+		var parseLastData = JSON.parse(lastClickedData);
+		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
 		{
-			return false;
-		}
 
-		var source_count		= 0;
-		var blockFound 			= 0;
-		var offline_count		= 0;
-		var active_coin_name 	= parseLastData[0]['coin_name'];
-		var active_address 		= parseLastData[0]['user'];
-		var block_found_stream	= 0;
-		var effort_origin		= 0;
-		var last_effort			= 0;
+			$(".progress").show();
+			$("#cur_effort").show();
+			$("#rplnt_api").show();
+			$("#my_pending_blocks").show();
 
-		var network_name 		= '';
-		var network_hashrate 	= 0;
-		var network_diff 		= 0;					
-		var soloShares			= 0;
-		var hrs					= 0;
-		var wcs					= 0;
-		var immature			= 0;
-		var balance				= 0;
-		var paid				= 0;
-		var miner				= [];
-		var net					= [];
-		var miner_address		= '';
-
-		// Закрытие предыдущего соединения, если оно существует
-		if (source) {
-			source.close();
-		}
-
-		// <--	
-		var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
-		source = new EventSource(url);
-		source.addEventListener('message', function(e) {
-
-			source_count += 1;
-			$("#source_count").html(source_count);
-
-			var parsed = JSON.parse(e.data);
-
-			if(parsed['net'])
+			var parseLastData = JSON.parse(data);
+			if(!parseLastData[0]['coin_name'])
 			{
-				net					= parsed['net'];
-				network_name		= net.v;
-				network_hashrate	= net.hr;
-				network_diff		= net.d;
-				
-				//console.log(network_name);
+				return false;
 			}
 
-			if(parsed['miner'])
-			{
-				miner				= parsed['miner'];
-				miner_address		= miner["miner"];			
-				soloShares			= miner["soloShares"];
-				hrs					= miner["hrs"];
-				wcs					= miner["wcs"];
-				immature			= miner["immature"];
-				balance				= miner["balance"];
-				paid				= miner["paid"];
-				block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
+			var source_count		= 0;
+			var blockFound 			= 0;
+			var offline_count		= 0;
+			var active_coin_name 	= parseLastData[0]['coin_name'];
+			var active_address 		= parseLastData[0]['user'];
+			var block_found_stream	= 0;
+			var effort_origin		= 0;
+			var effort_last			= 0;
 
-				// --- Check Offline workers --- //
-				// <--
-				if(miner["workers"].length > 0)
+			var network_name 		= '';
+			var network_hashrate 	= 0;
+			var network_diff 		= 0;					
+			var soloShares			= 0;
+			var hrs					= 0;
+			var wcs					= 0;
+			var immature			= 0;
+			var balance				= 0;
+			var paid				= 0;
+			var miner				= [];
+			var net					= [];
+			var miner_address		= '';
+
+			// Закрытие предыдущего соединения, если оно существует
+			if (source) {
+				source.close();
+			}
+
+			// <--	
+			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
+			source = new EventSource(url);
+			source.addEventListener('message', function(e) {
+
+				source_count += 1;
+				$("#source_count").html(source_count);
+
+				var parsed = JSON.parse(e.data);
+
+				if(parsed['net'])
 				{
-					var workers_online = [];
-					$.each(miner["workers"], function(index, value) {
-						var sp = value.split(":");
-						workers_online.push(sp[0]);
-					});
-
-					var workers_offline = [];
-					$.each(allMyWorkers, function(index, value) {
-						if(workers_online.indexOf(index) === -1)
-						{
-							workers_offline.push(index);
-						}
-					});
-				}
-
-				if (workers_offline && workers_offline.length > 0)
-				{
-					offline_count += 1;
-
-					newMessage("OFFLINE: " + workers_offline.join(", "));
-					$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/5");
-					$("#wcs_offline").closest('tr').addClass("bg-danger");
+					net					= parsed['net'];
+					network_name		= net.v;
+					network_hashrate	= net.hr;
+					network_diff		= net.d;
 					
-					if(offline_count => 5)
+					//console.log(network_name);
+				}
+
+				if(parsed['miner'])
+				{
+					miner				= parsed['miner'];
+					miner_address		= miner["miner"];			
+					soloShares			= miner["soloShares"];
+					hrs					= miner["hrs"];
+					wcs					= miner["wcs"];
+					immature			= miner["immature"];
+					balance				= miner["balance"];
+					paid				= miner["paid"];
+					block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
+
+					// --- Check Offline workers --- //
+					// <--
+					if(miner["workers"].length > 0)
 					{
-						$("#allCoins").find('.active').click();
-						offline_count = 0;
+						var workers_online = [];
+						$.each(miner["workers"], function(index, value) {
+							var sp = value.split(":");
+							workers_online.push(sp[0]);
+						});
+
+						var workers_offline = [];
+						$.each(allMyWorkers, function(index, value) {
+							if(workers_online.indexOf(index) === -1)
+							{
+								workers_offline.push(index);
+							}
+						});
 					}
+
+					if (workers_offline && workers_offline.length > 0)
+					{
+						offline_count += 1;
+
+						newMessage("OFFLINE: " + workers_offline.join(", "));
+						$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/5");
+						$("#wcs_offline").closest('tr').addClass("bg-danger");
+						
+						if(offline_count => 5)
+						{
+							$("#allCoins").find('.active').click();
+							offline_count = 0;
+						}
+					}
+					else
+					{
+						$("#wcs_offline").html('');
+						$("#wcs_offline").closest('tr').removeClass("bg-danger");
+					}
+					// -->
 				}
-				else
+
+				if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
 				{
-					$("#wcs_offline").html('');
-					$("#wcs_offline").closest('tr').removeClass("bg-danger");
-				}
-				// -->
-			}
+					//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
+					if(network_diff > 100000)
+					{
+						offset = (soloShares / network_hashrate);
+					}
+					else
+					{
+						offset = ((soloShares / network_hashrate) * 100000) / 2;
+					}
 
-			if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
-			{
-				//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
-				if(network_diff > 100000)
+					var summ =  offset;
+					
+					//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
+
+					effort_origin 		= summ.toFixed(); // .toFixed()
+					var effort 			= effort_origin / 3;
+
+					if(effort_origin > effort_last)
+					{
+						effort_last	= effort_origin;
+					}
+
+					$("#cur_effort").css({"width" :  effort + "%"});
+					$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
+					$("#cur_effort").attr("aria-valuenow" , effort);
+				}
+
+				if(network_name !== ''){ 			$("#v").html(network_name) };
+				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
+				if(network_diff !== 0){ 			$("#d").html(network_diff) };
+				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
+				if(hrs !== 0){ 						$("#hrs").html("<h4 class=\"text-orange\"><b>" + hrs + " H/s</b></h1>") };
+				if(wcs !== 0){ 						$("#wcs").html(wcs) };
+				if(immature !== 0){ 				$("#immature").html(immature) };
+				if(balance !== 0){ 					$("#balance").html(balance) };
+				if(paid !== 0){ 					$("#paid").html(paid) };
+				if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
+				
+				// --- BLOCK FOUND --- //
+
+				if(block_found_stream > 0 && blockFound == 0)
 				{
-					offset = (soloShares / network_hashrate);
+					blockFound = block_found_stream;
 				}
-				else
+
+				if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
 				{
-					offset = ((soloShares / network_hashrate) * 100000) / 2;
+
+					$("#header").html('<h1 class="alert bg-secondary text-success">* * * BLOCK FOUND * * *</h1>');
+					alertFunc(alertPC);
+
+					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
+
+					setTimeout(function() { 
+						effort_origin 	= 0;
+						effort_last		= 0;
+
+						$("#cur_effort").css({"width" :  "0%"});
+						$("#cur_effort").html("<h1>0 %</h1>");
+						$("#cur_effort").attr("aria-valuenow" , "0");
+					}, 2000);
+
+					setTimeout(function() { 
+						$("#header").html(origin_header_rpl);
+					}, 20000);
+
+					blockFound = block_found_stream;
 				}
-
-				var summ =  offset;
 				
-				//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
-				
-				effort_origin 		= summ.toFixed(); // .toFixed()
-				var effort 			= effort_origin / 3;
-				
-				if(effort_origin > last_effort)
-				{
-					last_effort = effort_origin;
-				}
+				//console.log("offline_count: " + offline_count +"/5");
 
-				$("#cur_effort").css({"width" :  effort + "%"});
-				$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
-				$("#cur_effort").attr("aria-valuenow" , effort);
-			}
-
-			if(network_name !== ''){ 			$("#v").html(network_name) };
-			if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
-			if(network_diff !== 0){ 			$("#d").html(network_diff) };
-			if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-			if(hrs !== 0){ 						$("#hrs").html("<h4 class=\"text-orange\"><b>" + hrs + " H/s</b></h1>") };
-			if(wcs !== 0){ 						$("#wcs").html(wcs) };
-			if(immature !== 0){ 				$("#immature").html(immature) };
-			if(balance !== 0){ 					$("#balance").html(balance) };
-			if(paid !== 0){ 					$("#paid").html(paid) };
-			if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
-			
-			// --- BLOCK FOUND --- //
-
-			if(block_found_stream > 0 && blockFound == 0)
-			{
-				blockFound = block_found_stream;
-			}
-
-			if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
-			{
-
-				$("#header").html('<h1 class="alert bg-secondary text-success">* * * BLOCK FOUND * * *</h1>');
-				newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + last_effort + "</effort> %</blockfound>");
-				
-				last_effort 	= 0;
-				effort_origin 	= 0;
-
-				$("#cur_effort").css({"width" :  "0%"});
-				$("#cur_effort").html("<h1>0 %</h1>");
-				$("#cur_effort").attr("aria-valuenow" , "0");
-
-				alertFunc(alertPC);
-
-				setTimeout(function() { 
-					$("#header").html(origin_header_rpl);
-				}, 20000);
-
-				blockFound = block_found_stream;
-			}
-			
-			//console.log("offline_count: " + offline_count +"/5");
-
-		}, false);
-		// -->
+			}, false);
+			// -->
+		}
+		else
+		{
+			$(".progress").hide();
+			$("#cur_effort").hide();
+			$("#rplnt_api").hide();
+			$("#my_pending_blocks").hide();
+		}
 	}
 
 	$(document).delegate("table", "click",function(){
@@ -991,7 +1108,7 @@ $(document).ready(function(){
 		var thisFor = $(this).attr('for');
 
 		$.ajax({
-			url: 'newmessage.php',
+			url: 'ajax_saver.php',
 			method: 'POST',
 			data: { removeMessage: true, id : thisFor },
 			success: function(data) {
@@ -1010,7 +1127,7 @@ $(document).ready(function(){
 		var newMessage 	= "<button class=\"remove_row bg-danger\" for=\"" + randomId + "\">x</button> <b>" + getTimeNow() + "</b> " + mess;
 
 		$.ajax({
-			url: 'newmessage.php',
+			url: 'ajax_saver.php',
 			method: 'POST',
 			data: { newMessage: newMessage },
 			success: function(data) {
@@ -1034,7 +1151,7 @@ $(document).ready(function(){
 	function getLastMessages(count)
 	{
 		$.ajax({
-			url: 'newmessage.php',
+			url: 'ajax_saver.php',
 			method: 'POST',
 			data: { getMessages: true, count : count },
 			success: function(data) {
@@ -1078,6 +1195,21 @@ $(document).ready(function(){
 		    result += characters.charAt(Math.floor(Math.random() * charactersLength));
 		}
 		return result;
+	}
+
+	function saveSettings(set)
+	{
+		$.ajax({
+			url: 'ajax_saver.php',
+			method: 'POST',
+			data: { saveSettings: true, set : set[0] },
+			success: function(data) {
+			    console.log(data);
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
 	}
 });
 </script>

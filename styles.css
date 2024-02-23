@@ -2,6 +2,17 @@ body{
 	background: #333;
 	color: #ddd;
 }
+table.dataTable th, table.dataTable td{
+	box-sizing: border-box !important;
+}
+.btn{
+	border-radius: 0;
+	border: none;
+	border-left: 1px #ccc solid;
+	border-top: 1px #ccc solid;
+	border-bottom: 1px #ccc solid;
+	box-shadow: none;
+}
 button.coin{
 	padding: 0px 4px;
 	margin-bottom: 0px;
@@ -16,8 +27,10 @@ button.coin{
 	color: rgb(162, 252, 162) !important;
 }
 td.active{
-	border-top: 3px orange solid;
-	border-bottom: 3px orange solid;
+	border-top: 3px rgb(162, 252, 162) solid !important;
+	border-bottom: 3px rgb(162, 252, 162) solid !important;
+	background: #6c757d !important;
+	color: #333;
 }
 .table td, .table th{
 	padding: 6px 0.75rem 3px;

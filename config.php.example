@@ -1,4 +1,7 @@
 <?php
+$web_login 	= "admin";
+$web_pass	= "admin";
+
 $softName 	= "CPU Mining Helper";
 $version 	= "V4";
 
