@@ -1,10 +1,10 @@
 <?php
-
 if(isset($_POST['getSettings']))
 {
     $currentContent = json_decode(file_get_contents("settings.txt"), true);
     echo json_encode($currentContent);
 }
+// ------ //
 if(isset($_POST['saveSettings']))
 {
     $currentContent = json_decode(file_get_contents("settings.txt"), true);
@@ -25,6 +25,7 @@ if(isset($_POST['saveSettings']))
     file_put_contents("settings.txt", json_encode($newContent));
     echo "ok";
 }
+// ------ //
 if(isset($_POST['newMessage']))
 {
     $currentContent = file_get_contents("messages.txt");
@@ -32,6 +33,7 @@ if(isset($_POST['newMessage']))
     $newContent = $newMessage . $currentContent;
     file_put_contents("messages.txt", $newContent);
 }
+// ------ //
 if(isset($_POST['getMessages']))
 {
     $currentContent 	= file_get_contents("messages.txt");
@@ -41,30 +43,42 @@ if(isset($_POST['getMessages']))
 
     echo json_encode($outputContent);
 }
+// ------ //
+if(isset($_POST['removeAllMessages'])) {
+
+        file_put_contents("messages.txt", "");
+
+        echo json_encode(array('status' => 'success', 'message' => 'Messages removed successfully'));
+}
+// ------ //
 if(isset($_POST['removeMessage'])) {
 
-        // Получаем идентификатор сообщения из POST запроса
-        $idToRemove = $_POST['id'];
 
-        // Получаем текущее содержимое файла
+        $idToRemove 	= $_POST['id'];
         $currentContent = file_get_contents("messages.txt");
+        $lines 			= explode("\n", $currentContent);
 
-        // Разбиваем содержимое файла на массив строк
-        $lines = explode("\n", $currentContent);
-
-        // Ищем строку, которая содержит идентификатор для удаления и удаляем ее из массива
         $updatedLines = array_filter($lines, function($line) use ($idToRemove) {
             return strpos($line, 'for="'.$idToRemove.'"') === false;
         });
 
-        // Объединяем строки обратно в одну строку
         $updatedContent = implode("\n", $updatedLines);
-
-        // Сохраняем обновленное содержимое в файл
         file_put_contents("messages.txt", $updatedContent);
-
-        // Отправляем обновленное содержимое в формате JSON
         echo json_encode(array('status' => 'success', 'message' => 'Message removed successfully'));
+}
+// ------ //
+if(isset($_GET['doAlert']))
+{
+	include "config.php";
+
+	$connection = ssh2_connect($alertPC, 22);
+	$output = '';
+	if (ssh2_auth_password($connection, $ssh_user, $ssh_pass))
+	{
+		$stream = ssh2_exec($connection, "aplay beep.wav");
+		stream_set_blocking($stream, true);
+		$output = stream_get_contents($stream);
+	}
 }
 exit;
 ?>

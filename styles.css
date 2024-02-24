@@ -2,11 +2,22 @@ body{
 	background: #333;
 	color: #ddd;
 }
+#blockFoundDiv{
+	display: none;
+	width: 80%;
+	position: absolute;
+	top: 8%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99999999 !important;
+}
 table.dataTable th, table.dataTable td{
 	box-sizing: border-box !important;
 }
 .btn{
 	border-radius: 0;
+}
+td.btn{
 	border: none;
 	border-left: 1px #ccc solid;
 	border-top: 1px #ccc solid;
@@ -19,6 +30,10 @@ button.coin{
 }
 .bg-success, .bg-info, .bg-warning, .bg-secondary, .bg-danger{
 	color: #ddd;
+}
+.bg-success{
+	background: rgb(102, 202, 102) !important;
+	color: #333 !important;
 }
 .text-orange{
 	color: orange !important;
@@ -80,7 +95,6 @@ table.herominers th, table.miner_table th{
 	text-align: left;
 	z-index: 999999;
 	box-shadow: -5px -5px 10px rgba(0, 0, 0, 0.5);
-	overflow: auto;
 }
 
 .popup_container.bougasetun-open .bougasetun {
@@ -97,6 +111,9 @@ table.herominers th, table.miner_table th{
     cursor: pointer;
     background: rgb(51, 51, 51);
     color: rgb(162, 252, 162);
-    
-    
+}
+#allCoins{
+	height: 68%; 
+	overflow-y: scroll;
+	scrollbar-width: thin;
 }

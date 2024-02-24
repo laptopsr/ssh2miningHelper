@@ -81,6 +81,7 @@ include "config.php";
 	?>
 	<div class="popup_container">
 		<div class="bougasetun">
+			<button class="btn btn-danger btn-sm clear_button pull-right">Clear all</button>
 			<button class="btn btn-info btn-sm close_button pull-right">Close</button>
 			<div id="popup_content"></div>
 		</div>
@@ -98,7 +99,8 @@ include "config.php";
 
 	<div class="container-fluid" style="margin-top: 20px;">
 	<center>
-		<div id="header">Please wait...</div><div id="debugResponse"></div>
+		<div id="blockFoundDiv"><h1 class="alert bg-success">* * * BLOCK FOUND * * *</h1></div>
+		<div id="debugResponse"></div>
 
 		<div class="progress">
 			<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
@@ -108,82 +110,43 @@ include "config.php";
 	<br>
 		<div class="row">
 			<div class="col-md-3">
-				<center>
-					<input type="text" class="form-control" id="alertPC" placeholder="Alert PC. ex. 192.168.1.205">
-				</center>
-				<br>
 				<div id="rplnt_api" style="display: none">
-				<h4 class="text-orange">Miner rplant.xyz (<span id="source_count"></span>)</h4>
+				<div class="well bg-secondary text-orange text-center hrs"></div>
+				<br>
+				<h4 class="text-orange">Rplant statistic (<span id="source_count"></span>)</h4>
 				<table class="table table-striped miner_table">
-					<tr class="tr_miner"><td>Network name</td><th><span id="v"></span></th></tr>
-					<tr class="tr_miner"><td>Network hashrate</td><th><span id="hr"></span></th></tr>
-					<tr class="tr_miner"><td>Network diff</td><th><span id="d"></span></th></tr>
-					<tr class="tr_miner"><td>Hashrate solo</td><th><span id="hrs"></span></th></tr>
-					<tr class="tr_miner"><td>Immature</td><th><span id="immature"></span></th></tr>
-					<tr class="tr_miner"><td>Balance</td><th><span id="balance"></span></th></tr>
-					<tr class="tr_miner"><td>Paid</td><th><span id="paid"></span></th></tr>
-					<tr class="tr_miner"><td>Shares</td><th><span id="soloShares"></span></th></tr>
-					<tr class="tr_miner"><td>Workers</td><th><span id="wcs"></span></th></tr>
-					<tr class="tr_miner"><td>Solo blocks found</td><th><span id="block_found"></span></th></tr>
-					<tr class="tr_miner"><td>Offline workers</td><th><span id="wcs_offline"></span></th></tr>
+					<tr class="tr_miner"><td>Network name</td><th><span class="rplant_field" id="v"></span></th></tr>
+					<tr class="tr_miner"><td>Network hashrate</td><th><span class="rplant_field" id="hr"></span></th></tr>
+					<tr class="tr_miner"><td>Network diff</td><th><span class="rplant_field" id="d"></span></th></tr>
+					<tr class="tr_miner"><td>Hashrate solo</td><th><span class="rplant_field" id="hrs"></span></th></tr>
+					<tr class="tr_miner"><td>Immature</td><th><span class="rplant_field" id="immature"></span></th></tr>
+					<tr class="tr_miner"><td>Balance</td><th><span class="rplant_field" id="balance"></span></th></tr>
+					<tr class="tr_miner"><td>Paid</td><th><span class="rplant_field" id="paid"></span></th></tr>
+					<tr class="tr_miner"><td>Shares</td><th><span class="rplant_field" id="soloShares"></span></th></tr>
+					<tr class="tr_miner"><td>Workers</td><th><span class="rplant_field" id="wcs"></span></th></tr>
+					<tr class="tr_miner"><td>Solo blocks found</td><th><span class="rplant_field" id="block_found"></span></th></tr>
+					<tr class="tr_miner"><td>Offline workers</td><th><span class="rplant_field" id="wcs_offline"></span></th></tr>
 				</table>
 				</div>
 				<div id="herominers_data"></div>
 				<div id="my_pending_blocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
-				<hr>
-				<form id="lomake" method="POST">
-					<select name="debug" id="debug" class="form-control">
-						<option value="false">Debug false</option>
-						<option value="true">Debug true</option>
-					</select>
-					<select name="miner" class="form-control">
-						<option value="">Select miner</option>
-						<option value="xmrig">xmrig</option>
-						<option value="cpuminer">cpuminer</option>
-						<option value="srbminer">srbminer</option>
-					</select>
-					<select name="workers[]" id="lomake_workers" class="form-control selectpicker" multiple>
-					<?php
-					foreach($arr as $worker)
-					{
-						echo '<option value="'.$worker['worker'].'" selected>'.$worker['host'].'</option>';
-					}
-					?>
-					</select>
-					<input type="text" class="form-control" name="host" placeholder="Host">
-					<input type="text" class="form-control" name="algo" placeholder="Algo">
-					<input type="text" class="form-control" name="user" placeholder="User">
-					<input type="text" class="form-control" name="pass" placeholder="Pass" value="m=solo">
-					<select name="theads" class="form-control">
-						<option value="auto">Theads auto</option>
-						<option value="manual">Theads from array</option>
-					</select>
-					<br>
-					<input type="text" class="form-control" name="command" id="command" placeholder="Command">
-					<br>
-					<button class="btn btn-info btn-block submit_form" type="submit">OK</button>
-				</form>
 			</div>
 			<div class="col-md-4">
+				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
+				<br>
+				<div id="allCoins"></div>
+				<hr>
 				<select id="bestCoinControl" class="form-control">
 					<option value="auto">AUTO</option>
 					<option value="manual">MANUAL</option>
 				</select>
-				<br>
-				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
-				<br>
-				<div id="allCoins"></div>
 			</div>
 			<div class="col-md-5">
-				<select id="workersControl" class="form-control">
-					<option value="auto">AUTO</option>
-					<option value="manual">MANUAL</option>
-				</select>
-				<br>
 				<div id="all_computers">
-					<div class="well bg-secondary"><center><h4 class="text-orange"><b id="hashrateSum"></b> H/s</h4></center></div>
+					<div class="well bg-secondary text-orange text-center"><h2>Home: <b><span id="hashrateSum"></span> H/s</b></h2></div>
+					<br>
 					<table class="table table-striped">
 					<tr>
 						<td><input class="global_select" type="checkbox" checked></td>
@@ -224,11 +187,52 @@ include "config.php";
 					}
 					?>
 					</table>
-					<hr>
 					<h5>
 						With selected: <button class="btn btn-info btn-sm rebootAll">Reboot</button> <button class="btn btn-info btn-sm clrScreen">Reload miner</button>
 					</h5>
+					<select id="workersControl" class="form-control">
+						<option value="auto">AUTO RELOADER</option>
+						<option value="manual">MANUAL</option>
+					</select>
 				</div>
+				<button class="btn btn-secondary btn-block" type="button" data-toggle="collapse" data-target="#collapseForm" aria-expanded="false" aria-controls="collapseForm">
+					Show form
+				</button>
+				<div class="collapse" id="collapseForm">
+					<form id="lomake" method="POST">
+						<select name="debug" id="debug" class="form-control">
+							<option value="false">Debug false</option>
+							<option value="true">Debug true</option>
+						</select>
+						<select name="miner" class="form-control">
+							<option value="">Select miner</option>
+							<option value="xmrig">xmrig</option>
+							<option value="cpuminer">cpuminer</option>
+							<option value="srbminer">srbminer</option>
+						</select>
+						<select name="workers[]" id="lomake_workers" class="form-control selectpicker" multiple>
+						<?php
+						foreach($arr as $worker)
+						{
+							echo '<option value="'.$worker['worker'].'" selected>'.$worker['host'].'</option>';
+						}
+						?>
+						</select>
+						<input type="text" class="form-control" name="host" placeholder="Host">
+						<input type="text" class="form-control" name="algo" placeholder="Algo">
+						<input type="text" class="form-control" name="user" placeholder="User">
+						<input type="text" class="form-control" name="pass" placeholder="Pass" value="m=solo">
+						<select name="theads" class="form-control">
+							<option value="auto">Theads auto</option>
+							<option value="manual">Theads from array</option>
+						</select>
+						<br>
+						<input type="text" class="form-control" name="command" id="command" placeholder="Command">
+						<br>
+						<button class="btn btn-info btn-block submit_form" type="submit">OK</button>
+					</form>
+				</div>
+
 			</div>
 		</div>
 	</div>
@@ -239,14 +243,12 @@ include "config.php";
 $(document).ready(function(){
 
 	// --- SETTINGS --- //
-	var alertPC			= '';
 	var workersControl	= 'manual';
 	var bestCoinControl = 'manual';
 	var lastClickedCoin = 'coin_VISH'; // coins.php button
 	var lastClickedData = JSON.stringify([{coin_name: "", user: ""}]);
 
 	$("#workersControl").val(workersControl);
-	$("#alertPC").val(alertPC);
 	$("#bestCoinControl").val(bestCoinControl);
 
 
@@ -262,11 +264,6 @@ $(document).ready(function(){
 			{
 				workersControl = data["workersControl"];
 				$("#workersControl").val(workersControl);
-			}
-			if(data["alertPC"])
-			{
-				alertPC = data["alertPC"];
-				$("#alertPC").val(alertPC);
 			}
 			if(data["bestCoinControl"])
 			{
@@ -299,11 +296,6 @@ $(document).ready(function(){
 		saveSettings(set);
 		workersControl = $(this, 'option;selected').val();
 	});
-	$(document).delegate("#alertPC", "blur",function(){
-		var set = [{alertPC : $(this).val()}];
-		saveSettings(set);
-		alertPC = $(this).val();
-	});
 	$(document).delegate("#bestCoinControl", "change",function(){
 		var set = [{bestCoinControl : $(this, 'option;selected').val()}];
 		saveSettings(set);
@@ -311,7 +303,6 @@ $(document).ready(function(){
 	});
 	// --- SETTINGS END --- //
 
-	var origin_header_rpl	= '<h2><?=$softName?> <?=$version?> - <span class="text-success">RPLANT</span></h2>';
 	var totalWorkers 	= parseInt("<?=count($arr)?>");
 	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
 
@@ -456,23 +447,25 @@ $(document).ready(function(){
 			}
 		}
 
-		// --- message --- //
-		newMessage("Coin change to: " + $(this).attr('coin_name'));
+		// --- IF Coin is other than old --- //
 
+		newMessage("Coin change to: " + $(this).attr('coin_name'));
 		lastClickedData = JSON.stringify([{coin_name: $(this).attr('coin_name'), user: $(this).attr('user'), host : $(this).attr('host')}]);
 
 		var set = [{lastClickedData : lastClickedData}];
 		saveSettings(set);
 
+		$(".rplant_field").html("");
+
 		rplantApiStream(lastClickedData);
 	});
 
-	function alertFunc(ip)
+	function alertFunc()
 	{
 		$.ajax({
 			url: 'alert.php',
 			method: 'GET',
-			data: { alertPC : ip },
+			data: { doAlert : true },
 			success: function(data) {
 				console.log(data);
 			},
@@ -591,8 +584,6 @@ $(document).ready(function(){
 		{
 			// --- RPLANT API stream --- //
 
-			$("#header").html(origin_header_rpl);
-
 			$.ajax({
 				url: 'pending_blocks.php',
 				method: 'POST',
@@ -673,8 +664,6 @@ $(document).ready(function(){
 			var address 	= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
 			
 			//console.log(coin_name + " " + address);
-			
-			$("#header").html('<h2><?=$softName?> <?=$version?> - <span class="text-success">Herominers</span></h2>');
 
 			$.ajax({
 				url: 'herominers_api.php',
@@ -1000,10 +989,13 @@ $(document).ready(function(){
 
 						newMessage("OFFLINE: " + workers_offline.join(", "));
 						$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/5");
-						$("#wcs_offline").closest('tr').addClass("bg-danger");
-						
+						$("#wcs_offline").closest('tr').find('td:first').addClass("bg-danger");
+								
 						if(offline_count => 5)
 						{
+							$("#lomake_workers option:selected").removeAttr("selected");
+							$("#lomake_workers").val(workers_offline);
+					
 							$("#allCoins").find('.active').click();
 							offline_count = 0;
 						}
@@ -1049,7 +1041,7 @@ $(document).ready(function(){
 				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
 				if(network_diff !== 0){ 			$("#d").html(network_diff) };
 				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-				if(hrs !== 0){ 						$("#hrs").html("<h4 class=\"text-orange\"><b>" + hrs + " H/s</b></h1>") };
+				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>Pool: <b>" + hrs + " H/s</b></h2>"); };
 				if(wcs !== 0){ 						$("#wcs").html(wcs) };
 				if(immature !== 0){ 				$("#immature").html(immature) };
 				if(balance !== 0){ 					$("#balance").html(balance) };
@@ -1066,8 +1058,8 @@ $(document).ready(function(){
 				if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
 				{
 
-					$("#header").html('<h1 class="alert bg-secondary text-success">* * * BLOCK FOUND * * *</h1>');
-					alertFunc(alertPC);
+					$("#blockFoundDiv").show('slow');
+					alertFunc();
 
 					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
 
@@ -1081,7 +1073,7 @@ $(document).ready(function(){
 					}, 2000);
 
 					setTimeout(function() { 
-						$("#header").html(origin_header_rpl);
+						$("#blockFoundDiv").hide('slow');
 					}, 20000);
 
 					blockFound = block_found_stream;
@@ -1103,6 +1095,20 @@ $(document).ready(function(){
 
 	$(document).delegate("table", "click",function(){
 		$('.popup_container').removeClass('bougasetun-open');
+	});
+	$(document).delegate(".clear_button", "click",function(){
+		$.ajax({
+			url: 'ajax_saver.php',
+			method: 'POST',
+			data: { removeAllMessages: true },
+			success: function(data) {
+			    console.log(data);
+			    getLastMessages(20);
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
 	});
 	$(document).delegate(".remove_row", "click",function(){
 		var thisFor = $(this).attr('for');
@@ -1137,7 +1143,7 @@ $(document).ready(function(){
 
 				setTimeout(function() { 
 					$('.popup_container').removeClass('bougasetun-open');
-				}, 60000);
+				}, 10000);
 
 			},
 			error: function(xhr, status, error) {
