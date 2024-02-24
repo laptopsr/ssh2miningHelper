@@ -23,4 +23,4 @@ https://github.com/rplant8/cpuminer-opt-rplant/releases/
 
 Demo:  https://github.com/laptopsr/ssh2miningHelper/blob/main/screenshot.png
 
-This README provides instructions for setting up and using the SSH2miningHelper project to monitor mining builds on CPU. Ensure that the prerequisites are met and follow the steps accordingly. Feel free to explore the provided demo for reference.
+This README provides instructions for setting up and using the SSH2miningHelper project to monitor mining builds on CPU.
