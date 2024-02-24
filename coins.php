@@ -24,6 +24,23 @@ if(isset($response[0]['asset']))
 	foreach($response as $k => $v){if($v['available'] > 0){$xeggexBalances[$v['asset']] = $v;}}
 }
 
+/*
+    [BBC] => Array
+        (
+            [asset] => BBC
+            [name] => Babacoin
+            [available] => 176376.48018589
+            [pending] => 0.00000000
+            [held] => 0.00000000
+            [assetid] => 634609f3288f134510054724
+        )
+*/
+/*
+echo '<pre>';
+print_r($xeggexBalances);
+echo '</pre>';
+*/
+
 // --- xeggex TICKERS --- //
 
 $url 	= 'https://api.xeggex.com/api/v2/tickers';
@@ -125,7 +142,7 @@ foreach($coins as $coin)
 		<td class="price">'.$last_price.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
-		<td class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
+		<td class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" ticker="'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
 			'.$coin['coin'].'
 		</td>
 	</tr>';

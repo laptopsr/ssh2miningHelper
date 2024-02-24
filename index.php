@@ -314,11 +314,13 @@ $(document).ready(function(){
 	}, false);
 	*/
 
+	$(document).delegate("body", "click",function(){
+		$("#blockFoundDiv").hide('slow');
+	});
 	$(document).delegate(".global_select", "click",function(){
 		var isChecked = $(this).prop('checked');
 		$('.worker_chk').prop('checked', isChecked);
 	});
-
 	$(document).delegate(".rebootAll", "click",function(){
 		WorkerCommand('timeout 1 sudo reboot');
 	});
@@ -449,7 +451,7 @@ $(document).ready(function(){
 		// --- IF Coin is other than old --- //
 
 		newMessage("Coin change to: " + $(this).attr('coin_name'));
-		lastClickedData = JSON.stringify([{coin_name: $(this).attr('coin_name'), user: $(this).attr('user'), host : $(this).attr('host')}]);
+		lastClickedData = JSON.stringify([{ticker: $(this).attr('ticker'), coin_name: $(this).attr('coin_name'), user: $(this).attr('user'), host : $(this).attr('host')}]);
 
 		var set = [{lastClickedData : lastClickedData}];
 		saveSettings(set);
@@ -462,7 +464,7 @@ $(document).ready(function(){
 	function alertFunc()
 	{
 		$.ajax({
-			url: 'alert.php',
+			url: 'ajax_saver.php',
 			method: 'GET',
 			data: { doAlert : true },
 			success: function(data) {
@@ -780,6 +782,7 @@ $(document).ready(function(){
 			var offline_count		= 0;
 			var active_coin_name 	= parseLastData[0]['coin_name'];
 			var active_address 		= parseLastData[0]['user'];
+			var current_ticker		= parseLastData[0]['ticker'];
 			var block_found_stream	= 0;
 			var effort_origin		= 0;
 			var effort_last			= 0;
@@ -796,6 +799,7 @@ $(document).ready(function(){
 			var miner				= [];
 			var net					= [];
 			var miner_address		= '';
+			var offset				= 1; 
 
 			// Закрытие предыдущего соединения, если оно существует
 			if (source) {
@@ -810,6 +814,7 @@ $(document).ready(function(){
 				source_count += 1;
 				$("#source_count").html(source_count);
 
+				//console.log(e.data);
 				var parsed = JSON.parse(e.data);
 
 				if(parsed['net'])
@@ -824,14 +829,28 @@ $(document).ready(function(){
 
 				if(parsed['miner'])
 				{
+					// <-- Offset
+					if(current_ticker == "MNN")
+					{
+						offset = 100000000000;
+					} else if(current_ticker == "TABO")
+					{
+						offset = 1000000000000;
+					}
+					else
+					{
+						offset = 1;
+					}
+					// -->
+
 					miner				= parsed['miner'];
 					miner_address		= miner["miner"];			
 					soloShares			= miner["soloShares"];
 					hrs					= miner["hrs"];
 					wcs					= miner["wcs"];
-					immature			= miner["immature"];
-					balance				= miner["balance"];
-					paid				= miner["paid"];
+					immature			= (miner["immature"] / offset).toFixed(2).replace('.', ',');
+					balance				= (miner["balance"] / offset).toFixed(2).replace('.', ',');
+					paid				= (miner["paid"] / offset).toFixed(2).replace('.', ',');
 					block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
 
 					// --- Check Offline workers --- //
@@ -907,7 +926,7 @@ $(document).ready(function(){
 					$("#cur_effort").attr("aria-valuenow" , effort);
 				}
 
-				if(network_name !== ''){ 			$("#v").html(network_name) };
+				if(network_name !== ''){ 			$("#v").html(network_name + " / " + active_coin_name) };
 				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
 				if(network_diff !== 0){ 			$("#d").html(network_diff) };
 				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
@@ -941,10 +960,6 @@ $(document).ready(function(){
 						$("#cur_effort").html("<h1>0 %</h1>");
 						$("#cur_effort").attr("aria-valuenow" , "0");
 					}, 2000);
-
-					setTimeout(function() { 
-						$("#blockFoundDiv").hide('slow');
-					}, 20000);
 
 					blockFound = block_found_stream;
 				}

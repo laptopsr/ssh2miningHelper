@@ -113,7 +113,7 @@ table.herominers th, table.miner_table th{
     color: rgb(162, 252, 162);
 }
 #allCoins{
-	height: 68%; 
+	height: 65%; 
 	overflow-y: scroll;
 	scrollbar-width: thin;
 }
