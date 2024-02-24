@@ -1,24 +1,26 @@
-#ssh2miningHelper
-    
-Этот проект создан для отслеживания состояния сборок для майнинга на CPU
-    
-Что для этого нужно?
+SSH2miningHelper
+This project is created to monitor the status of mining builds for CPU.
 
-Для запуска программы нужны установленные пакеты: PHP, apache2, SSH2
+Prerequisites
+To run the program, you need to have the following packages installed: PHP, apache2, SSH2
 
-sudo apt-get install libssh2-1-dev libssh2-1\nsudo pecl install ssh2-1.3.1
+bash
+Copy code
+sudo apt-get install libssh2-1-dev libssh2-1
 sudo pecl install ssh2-1.3.1
 pecl install -f ssh2
-------
+All builds should use Linux with the following packages installed:
 
-Все сборки должны использовать Linux с установленными пакетами:
+bash
+Copy code
 sudo apt install openssh-server lm-sensors
+Also, install the latest version of xmrig:
+Download xmrig
 
-Также установите последнюю версию xmrig:
-https://xmrig.com/download
+And Cpuminer Rplant as well:
+Cpuminer Rplant Releases
 
-A так же Cpuminer Rplant
-https://github.com/rplant8/cpuminer-opt-rplant/releases/
-------
-DEMO: https://github.com/laptopsr/ssh2miningHelper/blob/main/screenshot.png
+Demo
+Screenshot
 
+This README provides instructions for setting up and using the SSH2miningHelper project to monitor mining builds on CPU. Ensure that the prerequisites are met and follow the steps accordingly. Feel free to explore the provided demo for reference.
