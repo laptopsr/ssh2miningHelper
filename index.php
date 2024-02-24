@@ -314,7 +314,7 @@ $(document).ready(function(){
 	}, false);
 	*/
 
-	$(document).delegate("body", "click",function(){
+	$(document).delegate("#blockFoundDiv", "click",function(){
 		$("#blockFoundDiv").hide('slow');
 	});
 	$(document).delegate(".global_select", "click",function(){
@@ -848,9 +848,9 @@ $(document).ready(function(){
 					soloShares			= miner["soloShares"];
 					hrs					= miner["hrs"];
 					wcs					= miner["wcs"];
-					immature			= (miner["immature"] / offset).toFixed(2).replace('.', ',');
-					balance				= (miner["balance"] / offset).toFixed(2).replace('.', ',');
-					paid				= (miner["paid"] / offset).toFixed(2).replace('.', ',');
+					immature			= (miner["immature"] / offset).toFixed(2);
+					balance				= (miner["balance"] / offset).toFixed(2);
+					paid				= (miner["paid"] / offset).toFixed(2);
 					block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
 
 					// --- Check Offline workers --- //
@@ -930,7 +930,7 @@ $(document).ready(function(){
 				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
 				if(network_diff !== 0){ 			$("#d").html(network_diff) };
 				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>Pool: <b>" + hrs + " H/s</b></h2>"); };
+				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>Pool: <b class=\"rplant_field\">" + hrs + " H/s</b></h2>"); };
 				if(wcs !== 0){ 						$("#wcs").html(wcs) };
 				if(immature !== 0){ 				$("#immature").html(immature) };
 				if(balance !== 0){ 					$("#balance").html(balance) };
@@ -947,10 +947,18 @@ $(document).ready(function(){
 				if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
 				{
 
+					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).find('.price').text());
+
 					$("#blockFoundDiv").show('slow');
+					$("#blockFoundDiv").find('h1').append("<p>" + getTimeNow() + ", USDT: " + usdtVolume + " $</p>");
 					alertFunc();
 
 					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
+
+					// <--
+					var set = [{date : getTimeNow(), current_ticker : current_ticker, effort : effort_last, immature : immature, usd : usdtVolume}];
+					saveBlock(set);
+					// -->
 
 					setTimeout(function() { 
 						effort_origin 	= 0;
@@ -964,7 +972,7 @@ $(document).ready(function(){
 					blockFound = block_found_stream;
 				}
 				
-				//console.log("offline_count: " + offline_count +"/5");
+				//console.log( parseFloat($("#tr_coins_" + current_ticker).find('.price').text()) );
 
 			}, false);
 			// -->
@@ -1093,6 +1101,21 @@ $(document).ready(function(){
 			url: 'ajax_saver.php',
 			method: 'POST',
 			data: { saveSettings: true, set : set[0] },
+			success: function(data) {
+			    console.log(data);
+			},
+			error: function(xhr, status, error) {
+			    console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
+	}
+
+	function saveBlock(set)
+	{
+		$.ajax({
+			url: 'ajax_saver.php',
+			method: 'POST',
+			data: { saveBlock: true, set : set[0] },
 			success: function(data) {
 			    console.log(data);
 			},

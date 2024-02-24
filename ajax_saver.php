@@ -5,6 +5,27 @@ if(isset($_POST['getSettings']))
     echo json_encode($currentContent);
 }
 // ------ //
+if(isset($_POST['saveBlock']))
+{
+    $currentContent = json_decode(file_get_contents("blocks.txt"), true);
+	$newContent		= [];
+
+	foreach($currentContent as $k => $v)
+	{
+		$newContent[$k] = $v;
+	}
+	if(is_array($_POST['set']))
+	{
+		foreach($_POST['set'] as $k => $v)
+		{
+			$newContent[$k] = $v;
+		}
+	}
+
+    file_put_contents("blocks.txt", json_encode($newContent));
+    echo "ok";
+}
+// ------ //
 if(isset($_POST['saveSettings']))
 {
     $currentContent = json_decode(file_get_contents("settings.txt"), true);
