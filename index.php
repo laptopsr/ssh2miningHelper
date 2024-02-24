@@ -129,7 +129,6 @@ include "config.php";
 				</table>
 				</div>
 				<div id="herominers_data"></div>
-				<div id="my_pending_blocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
 			</div>
@@ -546,23 +545,6 @@ $(document).ready(function(){
 	            	}
 	            }
 
-				// --- Profit today and yesterday RPLANT only --- //
-
-				if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('td.coin').attr('host').includes('rplant'))
-				{
-				
-					var res1 = '';
-					profit("<?=date("Y-m-d", strtotime("-1 day"))?>", function(result) {
-						res1 = result;
-						//console.log(result);
-					});
-
-					profit("<?=date("Y-m-d")?>", function(result) {
-						$("#moneyToday").html( "<table style=\"width:100%\"><tr><td style=\"width:50%; vertical-align: top\">" + res1 + "</td><td style=\"vertical-align: top\">" + result + "</td></tr></table>");
-						//console.log(result);
-					});
-				}
-
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
@@ -572,81 +554,6 @@ $(document).ready(function(){
 	}
 
 	setInterval(allCoins, 120000);
-
-
-	setTimeout(function() { 
-		pendingBlocks();
-	}, 10000);
-
-	function pendingBlocks() {
-
-		if ($("#allCoins").find('.active').length > 0 && $("#allCoins").find('.active').closest('tr').find('td.coin').attr('host').includes('rplant'))
-		{
-			// --- RPLANT API stream --- //
-
-			$.ajax({
-				url: 'pending_blocks.php',
-				method: 'POST',
-				data: { getData : true },
-				success: function(data) {
-				    data = JSON.parse(data);
-				    
-					$("#my_pending_blocks").html(data);
-
-					// Найти все элементы с классом "pvm" и извлечь текст времени
-					var times = $('.pvm').map(function() {
-						return new Date($(this).attr('for')).getTime();
-					}).get();
-
-					// Найти самое свежее время
-					var freshestTime = new Date(Math.max.apply(null, times));
-
-					// ------ //
-					
-					var shares = $('.pvm').map(function() {
-						return $(this).closest('tr').attr('shares');
-					}).get();
-
-					var freshesShare = parseFloat(Math.max.apply(null, shares));
-
-					var ct = new Date();
-					// Разница между текущим временем и freshestTime
-					var df 				= ((ct - freshestTime) / (1000 * 60)) * 60;
-					//var my_hashrate	= parseInt($("#hashrateSum").text()??0) * 1000;
-					
-					// ------ //
-					
-					$('.tr_block').each(function(){
-						// Получаем значение времени из ячейки с классом pvm
-						var timeString = $(this).find('.pvm').attr('for');
-						// Преобразуем строку времени в объект Date
-						var time = new Date(timeString);
-						// Получаем текущее время
-						var currentTime = new Date();
-						// Разница между текущим временем и временем в ячейке pvm в минутах
-						var diffMinutes = (currentTime - time) / (1000 * 60);
-
-						// Если разница меньше 10 минут, добавляем класс highlight
-
-						if (diffMinutes <= 10)
-						{
-						    $(this).addClass('bg-success text-white');
-						}
-					});
-
-				},
-				error: function(xhr, status, error) {
-				    console.error('Ошибка при выполнении запроса:', error);
-				}
-			});
-		}
-		else
-		{
-			$("#my_pending_blocks").html("");
-		}
-	}
-
-	setInterval(pendingBlocks, 30000);
 
 	// ------ //
 
@@ -850,42 +757,6 @@ $(document).ready(function(){
 	// Запуск функции sendAjaxRequest() каждые 10 секунд
 	setInterval(sendAjaxRequest, 30000);
 
-	function profit(d, callback) {
-
-		var usd = 0;
-		var yht = 0;
-		var moneyData = "<table class=\"table table-striped\"><tr><th colspan=\"2\">" + d + "</th>";
-	
-		$.ajax({
-			url: 'money.php',
-			method: 'GET',
-			async: false, // Здесь была опечатка: 'async' вместо 'assync'
-			data: { day: d },
-			success: function(data) {
-			    //console.log("money:" + data);
-			    data = JSON.parse(data);
-			    
-			    $.each(data, function(index, value) {
-			        $.each(value, function(coin, sum) {
-			            if ($("#coin_" + coin).closest('tr').find('.price').length > 0) {
-			                usd = (parseFloat($("#coin_" + coin).closest('tr').find('.price').text()) * sum).toFixed(2);
-			                yht += parseFloat(usd);
-			                moneyData += "<tr><td>" + coin + "</td><td align=\"right\">" + usd + " USD</td></tr>";
-			            }
-			        });
-			    });
-
-			    moneyData += "<tr class=\"bg-secondary\"><th></th><td align=\"right\"><b>" + (yht).toFixed(2) + " USD</b></td></tr></table>";
-
-			    // Вызываем колбэк с полученными данными
-			    callback(moneyData);
-			},
-			error: function(xhr, status, error) {
-			    console.error('Ошибка при выполнении запроса:', error);
-			}
-		});
-	}
-
 	var source;
 
 	function rplantApiStream(data)
@@ -897,7 +768,6 @@ $(document).ready(function(){
 			$(".progress").show();
 			$("#cur_effort").show();
 			$("#rplnt_api").show();
-			$("#my_pending_blocks").show();
 
 			var parseLastData = JSON.parse(data);
 			if(!parseLastData[0]['coin_name'])
@@ -1089,7 +959,6 @@ $(document).ready(function(){
 			$(".progress").hide();
 			$("#cur_effort").hide();
 			$("#rplnt_api").hide();
-			$("#my_pending_blocks").hide();
 		}
 	}
 
