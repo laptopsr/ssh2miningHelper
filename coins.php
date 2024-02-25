@@ -136,7 +136,7 @@ foreach($coins as $coin)
 	$balance		= (isset($xeggexBalances[$coin['coin']]['available'])) ? round(($xeggexBalances[$coin['coin']]['available'] * $last_price), 2) : 0;
 
 	$bd .= '
-	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'">
+	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'" last_price="'.$last_price.'">
 		<td class="balance">'.$balance.'</td>
 		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'%</b></td>
 		<td class="price">'.$last_price.'</td>

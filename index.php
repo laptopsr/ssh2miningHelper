@@ -129,6 +129,7 @@ include "config.php";
 				</table>
 				</div>
 				<div id="herominers_data"></div>
+				<div class="well" id="getBlocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
 			</div>
@@ -241,6 +242,23 @@ include "config.php";
 <script>
 $(document).ready(function(){
 
+	var totalWorkers 	= parseInt("<?=count($arr)?>");
+	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
+
+	var workers4string = [];
+	
+	$.each(JSON.parse('<?=json_encode($coins)?>'), function(index, value) {
+		var firstFour 			= value.user.substring(0, 4);
+		var lastFour 			= value.user.substring(value.user.length - 4);
+		var activeAddr4			= firstFour + "" + lastFour;
+		
+		workers4string.push([{worker : activeAddr4, coin : value.coin}]);
+		
+		$.each(JSON.parse('<?=json_encode($arr)?>'), function(inuser, user) {
+			workers4string.push([{worker : activeAddr4 + "." + user.worker, coin : value.coin}]);
+		});
+	});
+
 	// --- SETTINGS --- //
 	var workersControl	= 'manual';
 	var bestCoinControl = 'manual';
@@ -302,8 +320,6 @@ $(document).ready(function(){
 	});
 	// --- SETTINGS END --- //
 
-	var totalWorkers 	= parseInt("<?=count($arr)?>");
-	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
 
 	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
@@ -456,6 +472,7 @@ $(document).ready(function(){
 		var set = [{lastClickedData : lastClickedData}];
 		saveSettings(set);
 
+		EffortClear();
 		$(".rplant_field").html("");
 
 		rplantApiStream(lastClickedData);
@@ -759,6 +776,79 @@ $(document).ready(function(){
 	// Запуск функции sendAjaxRequest() каждые 10 секунд
 	setInterval(sendAjaxRequest, 30000);
 
+	setTimeout(function() { 
+		getBlocks();
+	}, 10000);
+
+	function getBlocks() {
+
+		var parseLastData = JSON.parse(lastClickedData);
+		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		{
+			var url = 'https://pool.rplant.xyz/api/blocks';
+			$.getJSON(url, function(data) {
+				//console.log(data);
+
+				$.each(workers4string, function(key, wk){
+					//console.log(wk[0].worker);
+					
+					$.each(data, function(index, value){
+						var sp = value.split(":");
+						//console.log(sp[3] + " " + sp[6]);	
+
+						if(sp[3] == wk[0].worker)
+						{
+							//console.log(worker);
+							// <--
+							sp.push({ coin : wk[0].coin});
+							saveBlock(sp);
+							// -->
+						}
+					});
+
+				});
+			});
+
+			$.ajax({
+				url: 'ajax_saver.php',
+				method: 'POST',
+				data: { getBlocks : true },
+				success: function(data) {
+				    data = JSON.parse(data);
+				    //console.log(data);
+
+					$("#getBlocks").html(data);
+
+					var summ 	= 0;
+					var total 	= 0;
+					$('.rewarded').each(function(){
+						summ = parseFloat($("#tr_coins_" + $( this ).attr('coin')).attr('last_price')) * parseFloat($( this ).text());
+						total += summ;
+						$( this ).closest('tr').find('.usdsumm').html( summ.toFixed(2) );
+					});
+
+					$("table.blocks").append("<tr><td colspan=\"5\" align=\"right\"><h4 class=\"well bg-secondary text-orange text-center\">Total: " + total.toFixed(2) + " $</h4></td></tr>");
+				},
+				error: function(xhr, status, error) {
+				    console.error('Ошибка при выполнении запроса:', error);
+				}
+			});
+		}
+		else
+		{
+			$("#getBlocks").html("");
+		}
+	}
+
+	setInterval(getBlocks, 60000);
+
+	function EffortClear()
+	{
+		$("#cur_effort").css({"width" :  "0%"});
+		$("#cur_effort").html("<h1>0 %</h1>");
+		$("#cur_effort").attr("aria-valuenow" , "0");
+	}
+
 	var source;
 
 	function rplantApiStream(data)
@@ -799,12 +889,14 @@ $(document).ready(function(){
 			var miner				= [];
 			var net					= [];
 			var miner_address		= '';
-			var offset				= 1; 
+			var offset				= 1;
 
 			// Закрытие предыдущего соединения, если оно существует
 			if (source) {
 				source.close();
 			}
+
+			var url = 'https://pool.rplant.xyz/api/blocks';
 
 			// <--	
 			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
@@ -814,8 +906,14 @@ $(document).ready(function(){
 				source_count += 1;
 				$("#source_count").html(source_count);
 
-				//console.log(e.data);
 				var parsed = JSON.parse(e.data);
+				//console.log(parsed['blocks']);
+
+				// --- BLOCKS --- //
+				if(parsed['blocks'])
+				{
+
+				}
 
 				if(parsed['net'])
 				{
@@ -892,7 +990,7 @@ $(document).ready(function(){
 					else
 					{
 						$("#wcs_offline").html('');
-						$("#wcs_offline").closest('tr').removeClass("bg-danger");
+						$("#wcs_offline").closest('tr').find('td:first').removeClass("bg-danger");
 					}
 					// -->
 				}
@@ -950,23 +1048,15 @@ $(document).ready(function(){
 					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).find('.price').text());
 
 					$("#blockFoundDiv").show('slow');
-					$("#blockFoundDiv").find('h1').append("<p>" + getTimeNow() + ", USDT: " + usdtVolume + " $</p>");
+					$("#blockFoundDiv").find('h1').append("<p>" + getTimeNow() + "</p>");
 					alertFunc();
 
 					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
 
-					// <--
-					var set = [{date : getTimeNow(), current_ticker : current_ticker, effort : effort_last, immature : immature, usd : usdtVolume}];
-					saveBlock(set);
-					// -->
-
 					setTimeout(function() { 
 						effort_origin 	= 0;
 						effort_last		= 0;
-
-						$("#cur_effort").css({"width" :  "0%"});
-						$("#cur_effort").html("<h1>0 %</h1>");
-						$("#cur_effort").attr("aria-valuenow" , "0");
+						EffortClear();
 					}, 2000);
 
 					blockFound = block_found_stream;
@@ -1102,7 +1192,7 @@ $(document).ready(function(){
 			method: 'POST',
 			data: { saveSettings: true, set : set[0] },
 			success: function(data) {
-			    console.log(data);
+			    //console.log(data);
 			},
 			error: function(xhr, status, error) {
 			    console.error('Ошибка при выполнении запроса:', error);
@@ -1115,9 +1205,9 @@ $(document).ready(function(){
 		$.ajax({
 			url: 'ajax_saver.php',
 			method: 'POST',
-			data: { saveBlock: true, set : set[0] },
+			data: { saveBlock: true, set : set },
 			success: function(data) {
-			    console.log(data);
+			    //console.log("Saved\n" + data);
 			},
 			error: function(xhr, status, error) {
 			    console.error('Ошибка при выполнении запроса:', error);

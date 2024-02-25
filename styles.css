@@ -6,7 +6,7 @@ body{
 	display: none;
 	width: 80%;
 	position: absolute;
-	top: 8%;
+	top: 30%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 99999999 !important;
@@ -74,6 +74,12 @@ table.herominers th, table.miner_table th{
 .pull-right{
 	float: right;
 }
+#getBlocks{
+	height: 35%; 
+	overflow-y: scroll;
+	scrollbar-width: thin;
+}
+
 /* ------ */
 
 .popup_container {
