@@ -6,8 +6,11 @@ Prerequisites
 To run the program, you need to have the following packages installed: PHP, apache2, SSH2
 
 curl -sS https://getcomposer.org/installer | php
+
 php composer.phar update
+
 php composer.phar require phpseclib/phpseclib:~3.0
+
 php composer.phar install
 
 All builds should use Linux with the following packages installed:
