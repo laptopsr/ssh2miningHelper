@@ -1,4 +1,7 @@
 <?php
+include "config.php";
+use phpseclib3\Net\SSH2;
+
 if(isset($_POST['getSettings']))
 {
     $currentContent = json_decode(file_get_contents("settings.txt"), true);
@@ -167,17 +170,19 @@ if(isset($_POST['removeMessage'])) {
 // ------ //
 if(isset($_GET['doAlert']))
 {
-	include "config.php";
-
 	foreach($alertPC as $PC)
 	{
-		$connection = ssh2_connect($PC, 22);
-		$output = '';
-		if (ssh2_auth_password($connection, $ssh_user, $ssh_pass))
-		{
-			$stream = ssh2_exec($connection, "aplay beep.wav");
-			stream_set_blocking($stream, true);
-			$output = stream_get_contents($stream);
+
+		try {
+			// Создаем новый объект SSH2 и подключаемся к серверу
+			$ssh = new SSH2($PC);
+			if (!$ssh->login($ssh_user, $ssh_pass)) {
+				continue;
+			}
+
+			$output = $ssh->exec("aplay beep.wav");
+		} catch (\Exception $e) {
+
 		}
 	}
 }

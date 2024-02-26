@@ -5,11 +5,10 @@ This project is created to monitor the status of mining builds for CPU.
 Prerequisites
 To run the program, you need to have the following packages installed: PHP, apache2, SSH2
 
-sudo apt-get install libssh2-1-dev libssh2-1
-
-sudo pecl install ssh2-1.3.1
-
-pecl install -f ssh2
+curl -sS https://getcomposer.org/installer | php
+php composer.phar update
+php composer.phar require phpseclib/phpseclib:~3.0
+php composer.phar install
 
 All builds should use Linux with the following packages installed:
 

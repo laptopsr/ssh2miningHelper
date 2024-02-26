@@ -359,7 +359,7 @@ $(document).ready(function(){
 		else
 		{
 			$( this ).addClass('bg-success').removeClass('bg-danger').text('Start schedule');
-			clearInterval(timer);
+			clearInterval(timerSchedule);
 		}
 
 		var timerSchedule; // объявляем переменную таймера здесь, чтобы она была доступна внутри и снаружи функции
@@ -393,6 +393,7 @@ $(document).ready(function(){
 					clearInterval(timerSchedule); // Останавливаем таймер после выполнения действия
 					clearInterval(minTimer);
 					console.log("Schedule is END");
+					$( this ).addClass('bg-success text-white').removeClass('bg-danger').text('Start schedule');
 				}
 		    }, 10000); // Проверяем каждую секунду
 		}

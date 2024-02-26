@@ -6,6 +6,7 @@ error_reporting(E_ALL);
 */
 
 include "config.php";
+use phpseclib3\Net\SSH2;
 
 if(isset($_POST['command']))
 {
@@ -45,31 +46,25 @@ if(isset($_POST['command']))
 
 		//echo $prepare;
 		//exit;
-		
-		$originalConnectionTimeout = ini_get('default_socket_timeout');
-		ini_set('default_socket_timeout', 3);
 
-		$connection = ssh2_connect($v['host'], 22);
-
-		ini_set('default_socket_timeout', $originalConnectionTimeout);
-
-		if (ssh2_auth_password($connection, $v['user'], $v['pass']))
-		{
-			$stream = ssh2_exec($connection, $prepare . $_POST['command']);
-			stream_set_blocking($stream, true);
-			$output = stream_get_contents($stream);
-			fclose($stream);
-			$bd  .= "
-			<div class=\"row\">
-				<div class=\"col-md-6\">
-					<h3>Input: ".$v['host'] . "</h3>
-					$prepare
-					<p>------</p>
-					<h4>Output: </h4>" . str_replace("\n", "<br>", $output) . "
-				</div>
-			</div>
-			<hr>";
+		// Создаем новый объект SSH2 и подключаемся к серверу
+		$ssh = new SSH2($v['host']);
+		if (!$ssh->login($v['user'], $v['pass'])) {
+			die('Login Failed');
 		}
+
+		$output = $ssh->exec($prepare . $_POST['command']);
+
+		$bd  .= "
+		<div class=\"row\">
+			<div class=\"col-md-6\">
+				<h3>Input: ".$v['host'] . "</h3>
+				$prepare
+				<p>------</p>
+				<h4>Output: </h4>" . str_replace("\n", "<br>", $output) . "
+			</div>
+		</div>
+		<hr>";
 	}
 	$bd .= "<a href=\"\" class=\"btn btn-warning btn-block\">Home</a></div>";
 
