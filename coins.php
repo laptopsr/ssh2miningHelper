@@ -115,6 +115,7 @@ $bd = '
 <table class="table table-striped coins">
 <thead>
 	<tr>
+		<td><input class="global_select_coin" type="checkbox"></td>
 		<th>Balance</th>
 		<th>Change</th>
 		<th>Price</th>
@@ -137,12 +138,13 @@ foreach($coins as $coin)
 
 	$bd .= '
 	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'" last_price="'.$last_price.'">
+		<td><input class="coin_chk" type="checkbox" for="tr_coins_'.$coin['coin'].'"></td>
 		<td class="balance">'.$balance.'</td>
 		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'%</b></td>
 		<td class="price">'.$last_price.'</td>
 		<td class="diff">'.$diff.'</td>
 		<td class="reward">'.$reward.'</td>
-		<td class="btn btn-sm btn-block btn-info coin" id="coin_'.$coin['coin'].'" ticker="'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
+		<td class="btn btn-block btn-info coin" id="coin_'.$coin['coin'].'" ticker="'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
 			'.$coin['coin'].'
 		</td>
 	</tr>';

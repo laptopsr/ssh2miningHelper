@@ -21,39 +21,40 @@ $ssh_user		= "laptopsr";
 $ssh_pass		= "xxx";
 
 // -- Монеты для быстрого перехода -- //
+$debug = "false";
 $coins = [
 
-	['coin' => 'GPRX', 'coin_name' => 'gainprox', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7031', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'BBC', 'coin_name' => 'babacoin', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7082', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'BTRM', 'coin_name' => 'bitoreum', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7075', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'FSC', 'coin_name' => 'fsociety', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7095', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'MECU', 'coin_name' => 'mecuai', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7094', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'MAXE', 'coin_name' => 'maxeter', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7028', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'NIKI', 'coin_name' => 'nikito', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7099', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'OSN', 'coin_name' => 'osinpay', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7071', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'RTC', 'coin_name' => 'reaction', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7054', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'SKYT', 'coin_name' => 'skytere', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7084', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'SUBI', 'coin_name' => 'subi', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7090', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'VARSE', 'coin_name' => 'varsechain', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7093', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'RTM', 'coin_name' => 'raptoreum', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7056', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'GPRX', 'coin_name' => 'gainprox', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7031', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'BBC', 'coin_name' => 'babacoin', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7082', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'BTRM', 'coin_name' => 'bitoreum', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7075', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'FSC', 'coin_name' => 'fsociety', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7095', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'MECU', 'coin_name' => 'mecuai', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7094', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'MAXE', 'coin_name' => 'maxeter', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7028', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'NIKI', 'coin_name' => 'nikito', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7099', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'OSN', 'coin_name' => 'osinpay', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7071', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'RTC', 'coin_name' => 'reaction', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7054', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'SKYT', 'coin_name' => 'skytere', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7084', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'SUBI', 'coin_name' => 'subi', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7090', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'VARSE', 'coin_name' => 'varsechain', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7093', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'RTM', 'coin_name' => 'raptoreum', 'miner' => 'xmrig', 'host' => 'stratum-eu.rplant.xyz:7056', 'algo' => 'gr', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
 
-	['coin' => 'SMT', 'coin_name' => 'smartiecoin', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7111', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
-	['coin' => 'SUGAR', 'coin_name' => 'sugarchain', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7042', 'algo' => 'yespowersugar', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
-	['coin' => 'VISH', 'coin_name' => 'vishai', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7079', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
-	['coin' => 'YTN', 'coin_name' => 'yenten', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:3382', 'algo' => 'yespowerR16', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	['coin' => 'SMT', 'coin_name' => 'smartiecoin', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7111', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => $debug],
+	['coin' => 'SUGAR', 'coin_name' => 'sugarchain', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7042', 'algo' => 'yespowersugar', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => $debug],
+	['coin' => 'VISH', 'coin_name' => 'vishai', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7079', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => $debug],
+	['coin' => 'YTN', 'coin_name' => 'yenten', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:3382', 'algo' => 'yespowerR16', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => $debug],
 	/*
 	https://dex-trade.com/ru/wallet-spot
-	['coin' => 'WHIVE', 'coin_name' => 'whive', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7070', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => 'false'],
+	['coin' => 'WHIVE', 'coin_name' => 'whive', 'miner' => 'cpuminer', 'host' => 'stratum-eu.rplant.xyz:7070', 'algo' => 'yespower', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'manual', 'debug' => $debug],
 	*/
 	//['coin' => 'BIT', 'coin_name' => 'gainprox', 'miner' => 'srbminer', 'host' => 'stratum-eu.rplant.xyz:7109', 'algo' => 'aurum', 'user' => 'xxx', 'theads' => 'auto', 'debug' => 'true'],
 
 	/*
-	['coin' => 'ZEPH', 'coin_name' => 'zephyr', 'miner' => 'xmrig', 'host' => 'randomx.rplant.xyz:7100', 'algo' => 'randomx', 'user' => 'xxx', 'pass' => 'x', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'ZEPH', 'coin_name' => 'zephyr', 'miner' => 'xmrig', 'host' => 'randomx.rplant.xyz:7100', 'algo' => 'randomx', 'user' => 'xxx', 'pass' => 'x', 'theads' => 'auto', 'debug' => $debug],
 	*/
-	['coin' => 'ZEPH', 'coin_name' => 'zephyr', 'miner' => 'xmrig', 'host' => 'fi.zephyr.herominers.com:1123', 'algo' => 'randomx', 'user' => 'ZEPHsBDtuMFeUqifG1VLfagkgEnnp1ph2Uz6eyUViigkjShoC8WjrcXgzZ5f4J9tgNDcHig95xGjC8UzmSRZz3UB6XcnQ3uPj39', 'pass' => 'x', 'theads' => 'auto', 'debug' => 'false'],
+	['coin' => 'ZEPH', 'coin_name' => 'zephyr', 'miner' => 'xmrig', 'host' => 'fi.zephyr.herominers.com:1123', 'algo' => 'randomx', 'user' => 'ZEPHsBDtuMFeUqifG1VLfagkgEnnp1ph2Uz6eyUViigkjShoC8WjrcXgzZ5f4J9tgNDcHig95xGjC8UzmSRZz3UB6XcnQ3uPj39', 'pass' => 'x', 'theads' => 'auto', 'debug' => $debug],
 	/*
-['coin' => 'TABO', 'coin_name' => 'tabo', 'miner' => 'xmrig', 'host' => 'randomx.rplant.xyz:7107', 'algo' => 'randomx', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => 'false'],
-	['coin' => 'QRL','coin_name' => 'qrl', 'miner' => 'xmrig', 'host' => 'fi.qrl.herominers.com:1166', 'algo' => 'rx/0', 'user' => 'solo:xxx', 'pass' => 'STAN', 'theads' => 'auto', 'debug' => 'false'],
+['coin' => 'TABO', 'coin_name' => 'tabo', 'miner' => 'xmrig', 'host' => 'randomx.rplant.xyz:7107', 'algo' => 'randomx', 'user' => 'xxx', 'pass' => 'm=solo', 'theads' => 'auto', 'debug' => $debug],
+	['coin' => 'QRL','coin_name' => 'qrl', 'miner' => 'xmrig', 'host' => 'fi.qrl.herominers.com:1166', 'algo' => 'rx/0', 'user' => 'solo:xxx', 'pass' => 'STAN', 'theads' => 'auto', 'debug' => $debug],
 	*/
 ];
 

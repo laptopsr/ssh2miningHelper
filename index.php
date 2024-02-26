@@ -99,7 +99,7 @@ include "config.php";
 
 	<div class="container-fluid" style="margin-top: 20px;">
 	<center>
-		<div id="blockFoundDiv"><h1 class="alert bg-success">* * * BLOCK FOUND * * *</h1></div>
+		<div id="blockFoundDiv"></div>
 		<div id="debugResponse"></div>
 
 		<div class="progress">
@@ -134,14 +134,28 @@ include "config.php";
 				<div id="moneyToday"></div>
 			</div>
 			<div class="col-md-4">
+				<div id="countdown" class="well bg-danger"></div>
 				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
 				<br>
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<select id="autoCoinControl" class="form-control">
+							<option value="enabled">Auto change ENABLED</option>
+							<option value="disabled">Auto change DISABLED</option>
+						</select>
+					</div>
+					<select id="autoChangeEvery" class="form-control">
+						<option value="1">Every 1 min.</option>
+						<option value="2">Every 2 min.</option>
+						<option value="5">Every 5 min.</option>
+						<option value="20" selected>Every 20 min.</option>
+						<option value="60">Every 1 hour</option>
+						<option value="120">Every 2 hours</option>
+					</select>
+					<button class="btn btn-secondary" id="selected_coins_button">No coins selected</button>
+				</div>
+				<div id="is_coins_update"></div>
 				<div id="allCoins"></div>
-				<hr>
-				<select id="bestCoinControl" class="form-control">
-					<option value="auto">AUTO</option>
-					<option value="manual">MANUAL</option>
-				</select>
 			</div>
 			<div class="col-md-5">
 				<div id="all_computers">
@@ -242,10 +256,11 @@ include "config.php";
 <script>
 $(document).ready(function(){
 
-	var totalWorkers 	= parseInt("<?=count($arr)?>");
-	var allMyWorkers	= JSON.parse('<?=json_encode($allMyWorkers)?>');
+	var totalWorkers 		= parseInt("<?=count($arr)?>");
+	var allMyWorkers		= JSON.parse('<?=json_encode($allMyWorkers)?>');
 
-	var workers4string = [];
+	var watched_coins 		= [];
+	var workers4string 		= [];
 	
 	$.each(JSON.parse('<?=json_encode($coins)?>'), function(index, value) {
 		var firstFour 			= value.user.substring(0, 4);
@@ -261,12 +276,13 @@ $(document).ready(function(){
 
 	// --- SETTINGS --- //
 	var workersControl	= 'manual';
-	var bestCoinControl = 'manual';
+	var autoCoinControl = 'disabled';
+	var autoChangeEvery = 20;
 	var lastClickedCoin = 'coin_VISH'; // coins.php button
 	var lastClickedData = JSON.stringify([{coin_name: "", user: ""}]);
 
 	$("#workersControl").val(workersControl);
-	$("#bestCoinControl").val(bestCoinControl);
+	$("#autoCoinControl").val(autoCoinControl);
 
 
 	$.ajax({
@@ -282,10 +298,15 @@ $(document).ready(function(){
 				workersControl = data["workersControl"];
 				$("#workersControl").val(workersControl);
 			}
-			if(data["bestCoinControl"])
+			if(data["autoCoinControl"])
 			{
-				bestCoinControl = data["bestCoinControl"];
-				$("#bestCoinControl").val(bestCoinControl);
+				autoCoinControl = data["autoCoinControl"];
+				$("#autoCoinControl").val(autoCoinControl);
+			}
+			if(data["autoChangeEvery"])
+			{
+				autoChangeEvery = data["autoChangeEvery"];
+				$("#autoChangeEvery").val(autoChangeEvery);
 			}
 			if(data["lastClickedCoin"])
 			{
@@ -313,14 +334,129 @@ $(document).ready(function(){
 		saveSettings(set);
 		workersControl = $(this, 'option;selected').val();
 	});
-	$(document).delegate("#bestCoinControl", "change",function(){
-		var set = [{bestCoinControl : $(this, 'option;selected').val()}];
+	$(document).delegate("#autoCoinControl", "change",function(){
+		var set = [{autoCoinControl : $(this, 'option;selected').val()}];
 		saveSettings(set);
-		bestCoinControl = $(this, 'option;selected').val();
+		autoCoinControl = $(this, 'option;selected').val();
+	});
+	$(document).delegate("#autoChangeEvery", "change",function(){
+		var set = [{autoChangeEvery : $(this, 'option;selected').val()}];
+		saveSettings(set);
+		autoChangeEvery = $(this, 'option;selected').val();
 	});
 	// --- SETTINGS END --- //
 
+	$(document).delegate(".coin_chk", "change",function(){
 
+		var selected_count 	= 0;
+		var isChecked 		= false;
+		var checkedCoins 	= [];
+
+		$('.coin_chk').each(function(){
+
+			isChecked = $(this).prop('checked');
+			if(isChecked)
+			{
+				selected_count += 1;
+				checkedCoins.push($(this).closest('tr').attr('id'));
+			}
+		});
+		
+		if(selected_count > 1)
+		{
+			$("#is_coins_update").html("<p class=\"alert bg-danger\">Coins update is now disabled.<br>Click - START WATCH or uncheck coin.</p>");
+			$("#selected_coins_button").removeClass('btn-secondary').addClass('btn-success waitForStart').text('START WATCH');
+		}
+		else
+		{
+			$("#is_coins_update").html('');
+			$("#selected_coins_button").removeClass('btn-success waitForStart').addClass('btn-secondary').text('No coins selected');
+			interval_allCoins = setInterval(allCoins, 120000);
+		}
+	});
+
+	var currentIndex = 0;
+	var intervalId;
+
+	$(document).delegate("#selected_coins_button.waitForStart", "click",function(){
+
+		var autoChangeEvery = $("#autoChangeEvery option:selected").val(); // minutes for change
+		$( this ).removeClass('btn-success waitForStart').addClass('btn-danger isStarted').text('STOP WATCH');
+		$("#is_coins_update").html('');
+
+		$('.coin_chk').each(function(){
+
+			isChecked 				= $(this).prop('checked');
+			var coin_chk_element 	= $(this);
+			
+			if(isChecked)
+			{
+				watched_coins.push(coin_chk_element.attr('for'));
+			}
+		});
+
+		// Устанавливаем интервал вызова функции clickNextCoin с заданным интервалом
+		intervalId = setInterval(clickNextCoin, autoChangeEvery * 60000); // переводим минуты в миллисекунды
+		coundDown(autoChangeEvery);
+
+	});
+	$(document).delegate("#selected_coins_button.isStarted", "click",function(){
+		$( this ).removeClass('btn-danger isStarted').addClass('btn-secondary').text('STOP WATCH').text('No coins selected');
+		watched_coins = [];
+		$('.coin_chk').prop('checked', false);
+		clearInterval(intervalId);
+	});
+
+	// Функция, которая будет вызываться с интервалом
+	function clickNextCoin()
+	{
+		autoChangeEvery = $("#autoChangeEvery option:selected").val();
+		coundDown(autoChangeEvery);
+		//console.log("clickNextCoin function");
+
+		if (currentIndex < watched_coins.length) {
+			// Находим элемент с помощью селектора и симулируем событие click
+			$('#' + watched_coins[currentIndex]).find('.coin').click();
+			currentIndex++;
+		} else {
+			// Если достигнут конец массива, очищаем интервал и перезапускаем его
+			clearInterval(intervalId);
+			currentIndex = 0;
+			intervalId = setInterval(clickNextCoin, autoChangeEvery * 60000); // переводим минуты в миллисекунды и устанавливаем новый интервал
+		}
+	}
+
+	var timer = 0;
+		
+	function coundDown(num)
+	{
+		var countdown = num * 60; // 5 минут в секундах
+		
+		if(timer)
+		{
+			clearInterval(timer);
+		}
+		timer = setInterval(function(){
+		    var minutes = Math.floor(countdown / 60);
+		    var seconds = countdown % 60;
+
+		    // Добавляем ведущий ноль, если количество минут/секунд меньше 10
+		    minutes = minutes < 10 ? '0' + minutes : minutes;
+		    seconds = seconds < 10 ? '0' + seconds : seconds;
+
+		    // Выводим время внутри элемента div
+		    $('#countdown').text(minutes + ':' + seconds).show();
+
+		    if (countdown == 0) {
+		        clearInterval(timer);
+		        // Действия по истечении времени
+		        $('#countdown').text('Время вышло!').hide();
+		    } else {
+		        countdown--;
+		    }
+		}, 1000); // Обновляем каждую секунду
+	}
+	
 	// https://pool.rplant.xyz/api2/walletEx/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 	// https://pool.rplant.xyz/api2/poolminer2x/reaction/RuR6UEmYByq7u4QVWxkWrkSdEC8mxU283M/111111
 	/*
@@ -331,11 +467,15 @@ $(document).ready(function(){
 	*/
 
 	$(document).delegate("#blockFoundDiv", "click",function(){
-		$("#blockFoundDiv").hide('slow');
+		$("#blockFoundDiv").hide('slow').html('');
 	});
 	$(document).delegate(".global_select", "click",function(){
 		var isChecked = $(this).prop('checked');
 		$('.worker_chk').prop('checked', isChecked);
+	});
+	$(document).delegate(".global_select_coin", "click",function(){
+		var isChecked = $(this).prop('checked');
+		$('.coin_chk').prop('checked', isChecked);
 	});
 	$(document).delegate(".rebootAll", "click",function(){
 		WorkerCommand('timeout 1 sudo reboot');
@@ -397,7 +537,7 @@ $(document).ready(function(){
 		$("#lomake input[name='user']").val('');
 		$("#lomake input[name='pass']").val('');
 		$("#lomake select[name='theads']").val('');
-		$("#lomake select[name='debug']").val('');
+		$("#lomake select[name='debug']").val('false');
 		$("#lomake input[name='command']").val('');
 
 		$.ajax({
@@ -497,82 +637,90 @@ $(document).ready(function(){
 
 	function allCoins() {
 
-		$.ajax({
-		    url: 'coins.php',
-		    method: 'POST',
-		    data: { getData : true, hashrateSum : $("#hashrateSum").length > 0 ? parseInt($("#hashrateSum").text()) : 0 },
-		    success: function(data) {
-		        data = JSON.parse(data);
-		        
-		        if(data['html_data'])
-		        {
-					$("#allCoins").html(data['html_data']);
-				}
+		if( !$("#selected_coins_button").hasClass('waitForStart') )
+		{
+			$.ajax({
+				url: 'coins.php',
+				method: 'POST',
+				data: { getData : true, hashrateSum : $("#hashrateSum").length > 0 ? parseInt($("#hashrateSum").text()) : 0 },
+				success: function(data) {
+				    data = JSON.parse(data);
+				    
+				    if(data['html_data'])
+				    {
+						$("#allCoins").html(data['html_data']);
+					}
 
-				if (lastClickedCoin && !$("#" + lastClickedCoin).hasClass('active')) {
-					$("#" + lastClickedCoin).closest('tr').find('td').addClass('active');
-					$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-secondary text-white active');
-				}
+					if(watched_coins.length > 0)
+					{
+						$('.tr_tb').each(function() {
+							var thisTr = $( this ).attr('id');
+							$.each(watched_coins, function(index, value) {
+								if(thisTr == value)
+								{
+									//console.log("Watched: " + value);
+									$("#" + value).find('.coin_chk').prop('checked', true);
+								}
+							});
+						});
+					}
 
-				// --- BEST --- //
+					if (lastClickedCoin && !$("#" + lastClickedCoin).hasClass('active')) {
+						$("#" + lastClickedCoin).closest('tr').find('td').addClass('active');
+						$("#" + lastClickedCoin).removeClass('btn-info').addClass('btn-secondary text-white active');
+					}
 
-				new DataTable('table.coins', {
-					"order": [ [3,'desc'], [2,'asc'] ],
-					paging: false,
-					columnDefs: [
-						{ targets: [0, 1, 3], orderable: false }, // Запретить сортировку для первой и четвертой колонок
-						{
-							targets: [2], // Вторая колонка
-							orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
-							render: function (data, type, row, meta) {
-								return parseFloat(data);
+					// --- BEST --- //
+
+					new DataTable('table.coins', {
+						"order": [ [4,'desc'], [3,'asc'] ],
+						paging: false,
+						columnDefs: [
+							{ targets: [0, 1, 2], orderable: false }, // Запретить сортировку для первой и четвертой колонок
+							{
+								targets: [3], // Price колонка
+								orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
+								render: function (data, type, row, meta) {
+									return parseFloat(data);
+								}
+							},
+							{
+								targets: [4], // Diff колонка
+								orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
+								render: function (data, type, row, meta) {
+									return parseFloat(data);
+								}
 							}
-						},
-						{
-							targets: [3], // Третья колонка
-							orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
-							render: function (data, type, row, meta) {
-								return parseFloat(data);
-							}
-						}
-					]
-				});
+						]
+					});
 
-				// --- BALANCE --- //
+					// --- BALANCE --- //
 
-				// Инициализируем переменную для хранения суммы
-				var totalBalance = 0;
+					// Инициализируем переменную для хранения суммы
+					var totalBalance = 0;
 
-				// Проходим по каждой ячейке с классом "balance" и суммируем их значения
-				$('.balance').each(function() {
-					// Преобразуем текст ячейки в число и добавляем его к общей сумме
-					totalBalance += parseFloat($(this).text());
-				});
+					// Проходим по каждой ячейке с классом "balance" и суммируем их значения
+					$('.balance').each(function() {
+						// Преобразуем текст ячейки в число и добавляем его к общей сумме
+						totalBalance += parseFloat($(this).text());
+					});
 
-				$("#cur_balance").html("<h2>USDT: <b>" + (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + "</b> | Coins: <b>" + totalBalance.toFixed(2) + " $</b></h2>");
+					$("#cur_balance").html("<h2>USDT: <b>" + (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + "</b> | Coins: <b>" + totalBalance.toFixed(2) + " $</b></h2>");
 
-				// ------ //
-				
-	            var firstRow = $('tr.tr_tb').first();
-	            firstRow.addClass('best');
-	            
-	            if(bestCoinControl == "auto")
-	            {
-	            	if(!$("#" + lastClickedCoin).closest('tr').hasClass('best'))
-	            	{
-	            		firstRow.find('td.coin').click();
-	            	}
-	            }
+					// ------ //
+					
+			        var firstRow = $('tr.tr_tb').first();
+			        firstRow.addClass('best');
 
-		    },
-		    error: function(xhr, status, error) {
-		        console.error('Ошибка при выполнении запроса:', error);
-		    }
-		});
-		
+				},
+				error: function(xhr, status, error) {
+				    console.error('Ошибка при выполнении запроса:', error);
+				}
+			});
+		}
 	}
 
-	setInterval(allCoins, 120000);
+	setInterval(allCoins, 20000);
 
 	// ------ //
 
@@ -827,7 +975,7 @@ $(document).ready(function(){
 						$( this ).closest('tr').find('.usdsumm').html( summ.toFixed(2) );
 					});
 
-					$("table.blocks").append("<tr><td colspan=\"5\" align=\"right\"><h4 class=\"well bg-secondary text-orange text-center\">Total: " + total.toFixed(2) + " $</h4></td></tr>");
+					$("table.blocks").find('.date').append(" | Total: " + total.toFixed(2) + " $");
 				},
 				error: function(xhr, status, error) {
 				    console.error('Ошибка при выполнении запроса:', error);
@@ -973,12 +1121,13 @@ $(document).ready(function(){
 					if (workers_offline && workers_offline.length > 0)
 					{
 						offline_count += 1;
+						var max_count = 3;
 
-						newMessage("OFFLINE: " + workers_offline.join(", "));
-						$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/5");
+						//newMessage("OFFLINE: " + workers_offline.join(", "));
+						$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/" + max_count);
 						$("#wcs_offline").closest('tr').find('td:first').addClass("bg-danger");
 								
-						if(offline_count => 5)
+						if(workersControl == "auto" && offline_count >= max_count)
 						{
 							$("#lomake_workers option:selected").removeAttr("selected");
 							$("#lomake_workers").val(workers_offline);
@@ -1048,7 +1197,7 @@ $(document).ready(function(){
 					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).find('.price').text());
 
 					$("#blockFoundDiv").show('slow');
-					$("#blockFoundDiv").find('h1').append("<p>" + getTimeNow() + "</p>");
+					$("#blockFoundDiv").html("<h1 class=\"alert bg-success\">* * * BLOCK FOUND  " + getTimeNow() + " * * *</h1>");
 					alertFunc();
 
 					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");

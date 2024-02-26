@@ -7,6 +7,7 @@ if(isset($_POST['getSettings']))
 // ------ //
 if(isset($_POST['getBlocks']))
 {
+	$day 			= $_POST['day']??date("Ymd");
     $currentContent = file_get_contents("blocks.txt");
     $lines 			= explode("\n", $currentContent);
     $read = [];
@@ -14,10 +15,13 @@ if(isset($_POST['getBlocks']))
     {
     	if(!empty($line))
     	{
-    		$l 		= json_decode($line, true);
+    		$l = json_decode($line, true);
     		if(isset($l[4]))
     		{
-    			$read[date("d.m.Y", $l[4])][$l[3]][] = $l;
+    			if(date("Ymd", $l[4]) == $day)
+    			{
+    				$read[date("d.m.Y", $l[4])][$l[3]][] = $l;
+    			}
     		}
     	}
     }
@@ -25,24 +29,38 @@ if(isset($_POST['getBlocks']))
     $tulos = "<table class=\"table table-striped blocks\"";
 	foreach($read as $k => $v)
 	{
-		$tulos .= "<tr><td colspan=\"5\"><h4 class=\"well bg-secondary text-orange text-center\">$k</h4></td></tr>";
+		$tulos .= "<tr><td colspan=\"6\"><h4 class=\"well bg-secondary text-orange text-center date\">$k</h4></td></tr>";
 		foreach($v as $worker => $v2)
 		{
 			foreach($v2 as $kd => $worker_data)
 			{
 				$coin = '';
 				
-				if(isset($worker_data[12]['coin']))
+				foreach($worker_data as $kk => $vv){if(isset($vv['coin'])){ $coin = $vv['coin']; }}
+
+				// <-- Offset
+				if($coin == "MNN")
 				{
-					$tulos .= "
-					<tr>
-						<th>".$worker."</th>
-						<td class=\"rewarded\" worker=\"$worker\" coin=\"".$worker_data[12]['coin']."\">".round($worker_data[6], 2)."</td>
-						<td class=\"usdsumm\"></td>
-						<td align=\"right\">".$worker_data[8]."%</td>
-						<td align=\"right\">".$worker_data[12]['coin']."</td>
-					</tr>";
+					$offset = 100000000000;
+				} else if($coin == "TABO")
+				{
+					$offset = 1000000000000;
 				}
+				else
+				{
+					$offset = 1;
+				}
+				// -->
+
+				$tulos .= "
+				<tr>
+					<th>".date("H:i", $worker_data[4])."</th>
+					<th>".$worker."</th>
+					<td class=\"rewarded\" worker=\"$worker\" coin=\"".$coin."\">".round(($worker_data[6]/$offset), 2)."</td>
+					<td class=\"usdsumm\"></td>
+					<td align=\"right\">".$worker_data[8]."%</td>
+					<td align=\"right\">".$coin."</td>
+				</tr>";
 			}
 		}
 	}
