@@ -71,6 +71,7 @@ td.active{
  /* table --> */
 .form-control, .progress{
 	background: #ededed;
+	border-radius: 0;
 }
 #datatable_length, #datatable_filter, .dataTables_filter{
 	display:none;

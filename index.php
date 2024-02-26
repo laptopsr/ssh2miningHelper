@@ -137,19 +137,50 @@ include "config.php";
 				<div id="countdown" class="well bg-danger"></div>
 				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
 				<br>
-				<div class="input-group mb-3">
-					<div class="input-group-prepend">
-					<select id="autoChangeEvery" class="form-control">
-						<option value="1" selected>Autochange every 1 min.</option>
-						<option value="2">Autochange every 2 min.</option>
-						<option value="5">Autochange every 5 min.</option>
-						<option value="20">Autochange every 20 min.</option>
-						<option value="60">Autochange every 1 hour</option>
-						<option value="120">Autochange every 2 hours</option>
-						<option value="300">Autochange every 5 hours</option>
-					</select>
+				<!-- autoChangeEvery -->
+				<div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<select id="autoChangeEvery" class="form-control">
+								<option value="1" selected>Autochange every 1 min.</option>
+								<option value="2">Autochange every 2 min.</option>
+								<option value="5">Autochange every 5 min.</option>
+								<option value="20">Autochange every 20 min.</option>
+								<option value="60">Autochange every 1 hour</option>
+								<option value="120">Autochange every 2 hours</option>
+								<option value="300">Autochange every 5 hours</option>
+							</select>
+						</div>
+						<button class="btn btn-secondary" id="selected_coins_button">No coins selected</button>
 					</div>
-					<button class="btn btn-secondary" id="selected_coins_button">No coins selected</button>
+				</div>
+				<!-- autoStartAndStop -->
+				<div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<input type="text" id="autoStartAndStop_start_time" size="8" placeholder="12:00">
+						</div>
+						<select id="autoStartAndStop_start_coin" class="form-control">
+						<?php
+						foreach($coins as $coin)
+						{
+							echo '<option value="'.$coin['coin'].'">'.$coin['coin'].'</option>';
+						}
+						?>
+						</select>
+						<div class="input-group-prepend">
+							<input type="text" id="autoStartAndStop_stop_time" size="8" placeholder="14:00">
+						</div>
+						<select id="autoStartAndStop_stop_coin" class="form-control">
+						<?php
+						foreach($coins as $coin)
+						{
+							echo '<option value="'.$coin['coin'].'">'.$coin['coin'].'</option>';
+						}
+						?>
+						</select>
+						<button class="btn btn-success" id="start_schedule_button">Start schedule</button>
+					</div>
 				</div>
 				<div id="is_coins_update"></div>
 				<div id="allCoins"></div>
@@ -319,26 +350,111 @@ $(document).ready(function(){
 	});
 	// --- SETTINGS END --- //
 
+    // --- SCHEDULE --- //
+    $(document).delegate("#start_schedule_button", "click",function(){
+    	if(!$(this).hasClass('bg-danger'))
+    	{
+			$( this ).addClass('bg-danger').removeClass('bg-success').text('Stop schedule');
+		}
+		else
+		{
+			$( this ).addClass('bg-success').removeClass('bg-danger').text('Start schedule');
+			clearInterval(timer);
+		}
+
+		var timerSchedule; // объявляем переменную таймера здесь, чтобы она была доступна внутри и снаружи функции
+		var minTimer;
+		var lastMinute = null; // последняя запомненная минута
+
+		function startTimer() {
+		    timerSchedule = setInterval(function() {
+				var now = new Date(); // Получаем текущее время
+				var hours = now.getHours();
+				var minutes = now.getMinutes();
+
+				// Добавляем ведущий ноль, если количество минут/секунд меньше 10
+				hours = hours < 10 ? '0' + hours : hours;
+				minutes = minutes < 10 ? '0' + minutes : minutes;
+
+				var currentTime = hours + ':' + minutes;
+
+				var startTime = $('#autoStartAndStop_start_time').val();
+				var stopTime = $('#autoStartAndStop_stop_time').val();
+
+				var startCoin = $('#autoStartAndStop_start_coin').val();
+				var stopCoin = $('#autoStartAndStop_stop_coin').val();
+
+				console.log("currentTime: " + currentTime + ", startTime: " + startTime + " - coin: " + startCoin + ", stopTime: " + stopTime + " - coin: " + stopCoin);
+				if (startTime === currentTime) {
+					$("#tr_coins_" + startCoin).find('.coin').click();
+					clearInterval(timerSchedule); // Останавливаем таймер после выполнения действия
+				} else if (stopTime === currentTime) {
+					$("#tr_coins_" + stopCoin).find('.coin').click();
+					clearInterval(timerSchedule); // Останавливаем таймер после выполнения действия
+					clearInterval(minTimer);
+					console.log("Schedule is END");
+				}
+		    }, 10000); // Проверяем каждую секунду
+		}
+
+		// Запуск таймера при клике на кнопку
+		startTimer();
+
+		// Проверяем изменение времени каждую секунду
+		minTimer = setInterval(function() {
+		    var now = new Date();
+		    var minutes = now.getMinutes();
+
+		    // Если минута изменилась, перезапускаем таймер
+		    if (minutes !== lastMinute) {
+		        clearInterval(timerSchedule); // очищаем предыдущий таймер
+		        startTimer(); // запускаем новый таймер
+		        lastMinute = minutes; // запоминаем новую минуту
+		    }
+		}, 10000);
+	});
+
+	// ------ //
+
 	$(document).delegate(".coin_chk", "change",function(){
 
 		var selected_count 	= 0;
 		var isChecked 		= false;
-		var checkedCoins 	= [];
 
 		$('.coin_chk').each(function(){
 
 			isChecked = $(this).prop('checked');
+			var coin_chk_element 	= $(this);
+
 			if(isChecked)
 			{
 				selected_count += 1;
-				checkedCoins.push($(this).closest('tr').attr('id'));
+
+				var valueToAdd = coin_chk_element.attr('for');
+
+				// Проверяем, существует ли элемент уже в массиве
+				if (watched_coins.indexOf(valueToAdd) === -1) {
+					// Если элемент не найден, добавляем его в массив
+					watched_coins.push(valueToAdd);
+				}
+			}
+			else
+			{
+				var index = watched_coins.indexOf(coin_chk_element.attr('for'));
+				if (index > -1) {
+					// Если элемент найден, удалить его из массива
+					watched_coins.splice(index, 1);
+				}
 			}
 		});
-		
+
 		if(selected_count > 1)
 		{
-			$("#is_coins_update").html("<p class=\"alert bg-danger\">Coins update is now disabled.<br>Click - START WATCH or uncheck coin.</p>");
-			$("#selected_coins_button").removeClass('btn-secondary').addClass('btn-success waitForStart').text('START WATCH');
+			if(!$("#selected_coins_button").hasClass('isStarted'))
+			{
+				$("#is_coins_update").html("<p class=\"alert bg-danger\">Coins update is now disabled.<br>Click - START WATCH or uncheck coin.</p>");
+				$("#selected_coins_button").removeClass('btn-secondary').addClass('btn-success waitForStart').text('START WATCH');
+			}
 		}
 		else
 		{
@@ -357,21 +473,10 @@ $(document).ready(function(){
 		$( this ).removeClass('btn-success waitForStart').addClass('btn-danger isStarted').text('STOP WATCH');
 		$("#is_coins_update").html('');
 
-		$('.coin_chk').each(function(){
-
-			isChecked 				= $(this).prop('checked');
-			var coin_chk_element 	= $(this);
-			
-			if(isChecked)
-			{
-				watched_coins.push(coin_chk_element.attr('for'));
-			}
-		});
-
 		// Устанавливаем интервал вызова функции clickNextCoin с заданным интервалом
 		intervalId = setInterval(clickNextCoin, autoChangeEvery * 60000); // переводим минуты в миллисекунды
 		coundDown(autoChangeEvery);
-
+		console.log(watched_coins);
 	});
 	$(document).delegate("#selected_coins_button.isStarted", "click",function(){
 		$( this ).removeClass('btn-danger isStarted').addClass('btn-secondary').text('STOP WATCH').text('No coins selected');
@@ -382,14 +487,15 @@ $(document).ready(function(){
 		{
 			clearInterval(timer);
 		}
+		$('#countdown').text('');
 	});
 
 	// Функция, которая будет вызываться с интервалом
 	function clickNextCoin()
 	{
+		console.log(watched_coins);
 		autoChangeEvery = $("#autoChangeEvery option:selected").val();
 		coundDown(autoChangeEvery);
-		//console.log("clickNextCoin function");
 
 		if (currentIndex < watched_coins.length) {
 			// Находим элемент с помощью селектора и симулируем событие click
