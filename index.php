@@ -139,19 +139,16 @@ include "config.php";
 				<br>
 				<div class="input-group mb-3">
 					<div class="input-group-prepend">
-						<select id="autoCoinControl" class="form-control">
-							<option value="enabled">Auto change ENABLED</option>
-							<option value="disabled">Auto change DISABLED</option>
-						</select>
-					</div>
 					<select id="autoChangeEvery" class="form-control">
-						<option value="1">Every 1 min.</option>
-						<option value="2">Every 2 min.</option>
-						<option value="5">Every 5 min.</option>
-						<option value="20" selected>Every 20 min.</option>
-						<option value="60">Every 1 hour</option>
-						<option value="120">Every 2 hours</option>
+						<option value="1" selected>Autochange every 1 min.</option>
+						<option value="2">Autochange every 2 min.</option>
+						<option value="5">Autochange every 5 min.</option>
+						<option value="20">Autochange every 20 min.</option>
+						<option value="60">Autochange every 1 hour</option>
+						<option value="120">Autochange every 2 hours</option>
+						<option value="300">Autochange every 5 hours</option>
 					</select>
+					</div>
 					<button class="btn btn-secondary" id="selected_coins_button">No coins selected</button>
 				</div>
 				<div id="is_coins_update"></div>
@@ -276,14 +273,10 @@ $(document).ready(function(){
 
 	// --- SETTINGS --- //
 	var workersControl	= 'manual';
-	var autoCoinControl = 'disabled';
-	var autoChangeEvery = 20;
 	var lastClickedCoin = 'coin_VISH'; // coins.php button
 	var lastClickedData = JSON.stringify([{coin_name: "", user: ""}]);
 
 	$("#workersControl").val(workersControl);
-	$("#autoCoinControl").val(autoCoinControl);
-
 
 	$.ajax({
 		url: 'ajax_saver.php',
@@ -297,16 +290,6 @@ $(document).ready(function(){
 			{
 				workersControl = data["workersControl"];
 				$("#workersControl").val(workersControl);
-			}
-			if(data["autoCoinControl"])
-			{
-				autoCoinControl = data["autoCoinControl"];
-				$("#autoCoinControl").val(autoCoinControl);
-			}
-			if(data["autoChangeEvery"])
-			{
-				autoChangeEvery = data["autoChangeEvery"];
-				$("#autoChangeEvery").val(autoChangeEvery);
 			}
 			if(data["lastClickedCoin"])
 			{
@@ -333,16 +316,6 @@ $(document).ready(function(){
 		var set = [{workersControl : $(this, 'option;selected').val()}];
 		saveSettings(set);
 		workersControl = $(this, 'option;selected').val();
-	});
-	$(document).delegate("#autoCoinControl", "change",function(){
-		var set = [{autoCoinControl : $(this, 'option;selected').val()}];
-		saveSettings(set);
-		autoCoinControl = $(this, 'option;selected').val();
-	});
-	$(document).delegate("#autoChangeEvery", "change",function(){
-		var set = [{autoChangeEvery : $(this, 'option;selected').val()}];
-		saveSettings(set);
-		autoChangeEvery = $(this, 'option;selected').val();
 	});
 	// --- SETTINGS END --- //
 
@@ -405,6 +378,10 @@ $(document).ready(function(){
 		watched_coins = [];
 		$('.coin_chk').prop('checked', false);
 		clearInterval(intervalId);
+		if(timer)
+		{
+			clearInterval(timer);
+		}
 	});
 
 	// Функция, которая будет вызываться с интервалом
