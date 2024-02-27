@@ -12,7 +12,6 @@ $return = [];
 
 foreach($arr as $v)
 {
-
 	$ping_result = shell_exec("ping -c 1 " . $v['host']);
 
 	if (!strpos($ping_result, "1 packets transmitted, 1 received") !== false) {
@@ -27,10 +26,15 @@ foreach($arr as $v)
 		continue;
 	}
 
-	// Создаем новый объект SSH2 и подключаемся к серверу
-	$ssh = new SSH2($v['host']);
-	if (!$ssh->login($v['user'], $v['pass'])) {
-		die('Login Failed');
+	try {
+		// Создаем новый объект SSH2 и подключаемся к серверу
+		$ssh = new SSH2($v['host']);
+		if (!$ssh->login($v['user'], $v['pass'])) {
+			continue;
+		}
+
+	} catch (\Exception $e) {
+
 	}
 
 	$output = '';

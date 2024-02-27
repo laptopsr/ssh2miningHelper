@@ -47,10 +47,15 @@ if(isset($_POST['command']))
 		//echo $prepare;
 		//exit;
 
-		// Создаем новый объект SSH2 и подключаемся к серверу
-		$ssh = new SSH2($v['host']);
-		if (!$ssh->login($v['user'], $v['pass'])) {
-			die('Login Failed');
+		try {
+			// Создаем новый объект SSH2 и подключаемся к серверу
+			$ssh = new SSH2($v['host']);
+			if (!$ssh->login($v['user'], $v['pass'])) {
+				continue;
+			}
+
+		} catch (\Exception $e) {
+
 		}
 
 		$output = $ssh->exec($prepare . $_POST['command']);
