@@ -7,6 +7,10 @@ To run the program, you need to have the following packages installed: PHP, apac
 
 curl -sS https://getcomposer.org/installer | php
 
+Try: composer update
+
+or
+
 php composer.phar update
 
 php composer.phar require phpseclib/phpseclib:~3.0
