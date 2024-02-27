@@ -26,17 +26,6 @@ foreach($arr as $v)
 		continue;
 	}
 
-	try {
-		// Создаем новый объект SSH2 и подключаемся к серверу
-		$ssh = new SSH2($v['host']);
-		if (!$ssh->login($v['user'], $v['pass'])) {
-			continue;
-		}
-
-	} catch (\Exception $e) {
-
-	}
-
 	$output = '';
 
 	// speed real: $6, avg: $14 
@@ -52,7 +41,19 @@ foreach($arr as $v)
 	echo $( timeout 1 sudo screen -ls | grep -q xmrig && echo \"xmrig\" || echo \"false\" )
 	";
 
-	$output = $ssh->exec($command);
+	try {
+		// Создаем новый объект SSH2 и подключаемся к серверу
+		$ssh = new SSH2($v['host']);
+		if (!$ssh->login($v['user'], $v['pass'])) {
+			continue;
+		}
+
+		$output = $ssh->exec($command);
+
+	} catch (\Exception $e) {
+		continue;
+	}
+
 	$expl 	= explode("|", $output);
 	$time 	= explode(".", $expl[1]??'');
 
@@ -80,7 +81,12 @@ foreach($arr as $v)
 		echo $( timeout 1 screen -ls | grep -q cpuminer && echo \"cpuminer\" || echo \"false\" )
 		";
 
-		$output 	= $ssh->exec($command);
+		try {
+			$output = $ssh->exec($command);
+		} catch (\Exception $e) {
+			continue;
+		}
+
 		$expl 		= explode("|", $output);
 		$session 	= trim($expl[4]??'');
 		$time 		= trim($expl[1]??'');

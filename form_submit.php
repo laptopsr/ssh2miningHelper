@@ -47,18 +47,20 @@ if(isset($_POST['command']))
 		//echo $prepare;
 		//exit;
 
+		$output = '';
 		try {
+
 			// Создаем новый объект SSH2 и подключаемся к серверу
 			$ssh = new SSH2($v['host']);
 			if (!$ssh->login($v['user'], $v['pass'])) {
 				continue;
 			}
 
+			$output = $ssh->exec($prepare . $_POST['command']);
+
 		} catch (\Exception $e) {
-
+			continue;
 		}
-
-		$output = $ssh->exec($prepare . $_POST['command']);
 
 		$bd  .= "
 		<div class=\"row\">
