@@ -903,7 +903,7 @@ $(document).ready(function(){
 					//console.log(index + ": " + value);
 					if(value['temperature'] && value['temperature'] != '')
 					{
-						$("#worker_" + value['id']).find('.temperature').html(value['temperature']);
+						$("#worker_" + value['id']).find('.temperature').html(value['temperature'].join('<br>'));
 					}
 					if(value['hashrate'] && value['hashrate'] != '')
 					{
