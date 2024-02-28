@@ -903,7 +903,12 @@ $(document).ready(function(){
 					//console.log(index + ": " + value);
 					if(value['temperature'] && value['temperature'] != '')
 					{
-						$("#worker_" + value['id']).find('.temperature').html(value['temperature'].join('<br>'));
+						if (Array.isArray(value['temperature']))
+						{
+							$("#worker_" + value['id']).find('.temperature').html(value['temperature'].join('<br>'));
+						} else {
+							$("#worker_" + value['id']).find('.temperature').html(value['temperature']);
+						}
 					}
 					if(value['hashrate'] && value['hashrate'] != '')
 					{
