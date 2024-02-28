@@ -1203,7 +1203,7 @@ $(document).ready(function(){
 
 						var workers_offline = [];
 						$.each(allMyWorkers, function(index, value) {
-							if(workers_online.indexOf(index) === -1)
+							if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() == "OFF")
 							{
 								workers_offline.push(index);
 							}
