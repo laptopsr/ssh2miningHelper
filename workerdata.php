@@ -100,9 +100,10 @@ foreach($arr as $v)
 		
 		$expl 	= explode("|", $output);
 		$time 	= explode(".", $expl[0]);
-		$arWorker['time'] = $time[0] ? date("H:i:s", strtotime($time[0])) : '';
-		$arWorker['hashrate'] =  round(((float)$expl[1] ?? 0));
-		$arWorker['pool'] = trim($expl[2]??'');
+		
+		$arWorker['time'] 		= $time[0] ? date("H:i:s", strtotime($time[0])) : '';
+		$arWorker['hashrate'] 	= round(((float)$expl[1] ?? 0));
+		$arWorker['pool'] 		= trim($expl[2]??'');
 		goto finishWorker;
 	}
 
@@ -162,6 +163,9 @@ foreach($arr as $v)
 		$arWorker['pool'] 		= trim($expl[2]??'');
 		goto finishWorker;
 	}
+
+	// <-- IF no xmrig and no cpuminer then PC is online but this must to be reload. See index.php trbl_worker
+	$arWorker['session'] = "OFF";
 	
 	// FINISH WORKER
 	finishWorker: $return[$v['host']] = $arWorker;

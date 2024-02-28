@@ -939,7 +939,7 @@ $(document).ready(function(){
 						$("#worker_" + value['id']).find('.session').removeClass('bg-danger');
 					}
 
-					if(value['time'] && value['time'] == 'OFF')
+					if(value['session'] && value['session'] == 'OFF')
 					{
 						trbl_worker.push(value['id']);
 						$("#worker_" + value['id']).addClass('bg-danger');
