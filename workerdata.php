@@ -65,8 +65,8 @@ foreach($arr as $v)
 	} catch (\Exception $e) {
 		goto finishWorker;
 	}
-	$expl 	= explode("|", $output);
-	$session = trim($expl[1]??'');
+	$expl 		= explode("|", $output);
+	$session 	= trim($expl[1]??'');
 
 	if ($session == "xmrig")
 	{
@@ -92,24 +92,25 @@ foreach($arr as $v)
 		goto finishWorker;
 	}
 
-
-	$command = "echo $( timeout 1 echo '{$v['pass']}' | sudo -S screen -ls | grep -q cpuminer && echo \"cpuminer\" || echo \"false\" )";
+	$command = "echo $( timeout 1 echo '{$v['pass']}' | screen -ls | grep -q cpuminer && echo \"|cpuminer\" || echo \"|false\" )";
+	
 	try {
 		$output = $ssh->exec($command);
 	} catch (\Exception $e) {
 		goto finishWorker;
 	}
-	$expl 	= explode("|", $output);
-	$session = trim($expl[1]??'');
+	$expl 		= explode("|", $output);
+	$session 	= trim($expl[1]??'');
 
 	if($session == "cpuminer")
 	{
+		$arWorker['session'] = $session;
 		$command = "
-		echo $( timeout 1 tail -f {$v['log_xmrig']} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 
+		echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 
 		echo \"|\"; 
-		echo $( timeout 1 tail -f {$v['log_xmrig']} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $11}' ); 
+		echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $11}' ); 
 		echo \"|\"; 
-		echo $( timeout 1 tail -f {$v['log_xmrig']} | grep -m 1 \"network\" | awk '/network/ {print $6}' )
+		echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"network\" | awk '/network/ {print $6}' )
 		";
 
 		try {
@@ -132,50 +133,9 @@ foreach($arr as $v)
 		$arWorker['pool'] = trim($expl[2]??'');
 		goto finishWorker;
 	}
-
-	/*
-	if($return[$v['host']]['session'] == "false")
-	{
-
-		$command = "
-		echo $( timeout 1 sensors | awk '/Tctl/ {print $2}' ); 
-		echo \"|\"; 
-		echo $( timeout 1 tail -f $path_srbminerlog | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 
-		echo \"|\"; 
-		echo $( timeout 1 tail -f $path_srbminerlog | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $11}' ); 
-		echo \"|\"; 
-		echo $( timeout 1 tail -f $path_srbminerlog | grep -m 1 \"network\" | awk '/network/ {print $6}' )
-		echo \"|\"; 
-		echo $( timeout 1 screen -ls | grep -q srbminer && echo \"srbminer\" || echo \"false\" )
-		";
-
-		$stream 	= ssh2_exec($connection, $command);
-		stream_set_blocking($stream, true);
-		$output 	= stream_get_contents($stream);
-		$expl 		= explode("|", $output);
-		$session 	= trim($expl[4]??'');
-		$time 		= trim($expl[1]??'');
-
-		if (str_contains($time, 'T'))
-		{
-			$timestamp = strtotime($time);
-			$time = date("H:i:s", $timestamp);
-		}
-
-		$return[$v['host']] = [
-			'id' 			=> $v['worker'], 
-			'temperature' 	=> trim($expl[0]??''), 
-			'time' 			=> $session != "false" ? $time : "OFF",
-			'hashrate' 		=> $session != "false" ? round(trim($expl[2]??'')) : "OFF",
-			'pool' 			=> $session != "false" ? trim($expl[3]??'') : "OFF",
-			'session' 		=> $session,
-		];
-	}
-	*/
 	
 	// FINISH WORKER
-	finishWorker:
-	$return[$v['host']] = $arWorker;
+	finishWorker: $return[$v['host']] = $arWorker;
 }
 
 echo json_encode($return);
