@@ -799,6 +799,7 @@ $(document).ready(function(){
 				},
 				error: function(xhr, status, error) {
 				    console.error('Ошибка при выполнении запроса:', error);
+				    newMessage("coins.php error: \n" + error);
 				}
 			});
 		}
@@ -1006,6 +1007,7 @@ $(document).ready(function(){
 		    },
 		    error: function(xhr, status, error) {
 		        console.error('Ошибка при выполнении запроса:', error);
+		        newMessage("workerdata.php error: \n" + error);
 		    }
 		});
 	}
@@ -1068,6 +1070,7 @@ $(document).ready(function(){
 				},
 				error: function(xhr, status, error) {
 				    console.error('Ошибка при выполнении запроса:', error);
+				    newMessage("ajax_saver error: \n" + error);
 				}
 			});
 		}
