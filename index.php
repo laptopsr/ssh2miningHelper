@@ -317,16 +317,16 @@ $(document).ready(function(){
 			//console.log(data);
 			data = JSON.parse(data);
 
-			if(data["workersControl"])
+			if(data && data.hasOwnProperty("workersControl"))
 			{
 				workersControl = data["workersControl"];
 				$("#workersControl").val(workersControl);
 			}
-			if(data["lastClickedCoin"])
+			if(data && data.hasOwnProperty("lastClickedCoin"))
 			{
 				lastClickedCoin = data["lastClickedCoin"];
 			}
-			if(data["lastClickedData"])
+			if(data && data.hasOwnProperty("lastClickedData"))
 			{
 				lastClickedData = data["lastClickedData"];
 				
