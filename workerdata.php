@@ -25,6 +25,7 @@ foreach($arr as $v)
 	];
 	$ping_result = false;
 
+	// --- PING --- //
 	if (strcasecmp(substr(PHP_OS, 0, 3), 'WIN') == 0) { // for OS Windows
 		$ping_result = shell_exec("ping -n 1 " . $v['host']);
 		$ping_result = stripos($ping_result, "Packets: Sent = 1, Received = 1") !== false;
@@ -34,30 +35,42 @@ foreach($arr as $v)
 	}
 
 	if (!$ping_result)
+	{
 		goto finishWorker;
+	}
 
-	$output = '';
-
-	/*
-	temperature:
-	"tctl" for AMD
-	"Package id" for INTEL XEON
-	*/
-	$command = "echo $(timeout 1 sensors 2>/dev/null | awk '/(Tctl|Package id [0-9]):/ {print $0}')";
-	$temperMatches = [];
-
-	// Создаем новый объект SSH2 и подключаемся к серверу
+	// --- Создаем новый объект SSH2 и подключаемся к серверу --- //
 	$ssh = new SSH2($v['host']);
 	if (!$ssh->login($v['user'], $v['pass'])) {
 		goto finishWorker;
 	}
 
+	// --- AMD or INTEL --- //
+	$command 	= "echo $( timeout 1 echo '' | lscpu | grep Vendor | awk '/Vendor ID:/ {print $3}')";
+	$this_CPU	= "---";
+	try {
+
+		$output = trim($ssh->exec($command));
+		if($output == 'AuthenticAMD'){
+			$this_CPU = "AMD";
+		} else if($output == 'GenuineIntel'){
+			$this_CPU = "INTEL";
+		} else {
+			$this_CPU = $output;
+		}
+
+	} catch (\Exception $e) {
+		goto finishWorker;
+	}
+
+	// --- TEMPERATURES --- //
+	$command = "echo $(timeout 1 sensors 2>/dev/null | awk '/(Tctl|Package id [0-9]):/ {print $0}')";
+	$temperMatches = [];
+
 	$output = $ssh->exec($command);
 	preg_match_all('/\S:\s+(\S+)/iu', $output, $temperMatches);
 	if ($temperMatches[1])
 		$arWorker['temperature'] = $temperMatches[1];
-
-
 
 	$command = "echo $( timeout 1 echo '{$v['pass']}' | sudo -S screen -ls | grep -q xmrig && echo \"|xmrig\" || echo \"|false\" )";
 	try {
@@ -70,7 +83,8 @@ foreach($arr as $v)
 
 	if ($session == "xmrig")
 	{
-		$arWorker['session'] = $session;
+		$arWorker['session'] = $session; // $session.' '.$this_CPU;
+
 		$command = "
 		echo $( timeout 1 tail -f {$v['log_xmrig']} | grep -m 1 \"accepted\" | awk '/accepted/ {print $2}' ); 
 		echo \"|\"; 
@@ -104,14 +118,29 @@ foreach($arr as $v)
 
 	if($session == "cpuminer")
 	{
-		$arWorker['session'] = $session;
-		$command = "
-		echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 
-		echo \"|\"; 
-		echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $11}' ); 
-		echo \"|\"; 
-		echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"network\" | awk '/network/ {print $6}' )
-		";
+		$arWorker['session'] = $session; // $session.' '.$this_CPU;
+
+		if($this_CPU == "INTEL")
+		{
+			$command = "
+			echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $1}' ); 
+			echo \"|\"; 
+			echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $9}' ); 
+			echo \"|\"; 
+			echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"network\" | awk '/network/ {print $4}' )
+			";
+		}
+		
+		if($this_CPU == "AMD")
+		{
+			$command = "
+			echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 
+			echo \"|\"; 
+			echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $11}' ); 
+			echo \"|\"; 
+			echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"network\" | awk '/network/ {print $6}' )
+			";
+		}
 
 		try {
 			$output = $ssh->exec($command);
@@ -128,9 +157,9 @@ foreach($arr as $v)
 			$time = date("H:i:s", $timestamp);
 		}
 
-		$arWorker['time'] = $time;
-		$arWorker['hashrate'] =  round(((float)$expl[1] ?? 0));
-		$arWorker['pool'] = trim($expl[2]??'');
+		$arWorker['time'] 		= $time;
+		$arWorker['hashrate'] 	= round(((float)$expl[1] ?? 0));;
+		$arWorker['pool'] 		= trim($expl[2]??'');
 		goto finishWorker;
 	}
 	
