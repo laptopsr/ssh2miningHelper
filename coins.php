@@ -134,12 +134,13 @@ foreach($coins as $coin)
 	$diff 			= round(($rplantData[$coin['coin']]['difficulty']??'0'), 5);
 	$reward 		= round(($last_price * ($rplantData[$coin['coin']]['reward']??'0')), 4);
 	$network_hashrate = $rplantData[$coin['coin']]['network_hashrate']??'0';
-	$balance		= (isset($xeggexBalances[$coin['coin']]['available'])) ? round(($xeggexBalances[$coin['coin']]['available'] * $last_price), 2) : 0;
+	$avaible		= round(($xeggexBalances[$coin['coin']]['available'] ?? 0), 2);
+	$balance		= $avaible > 0 ? round(($avaible * $last_price), 2) : 0;
 
 	$bd .= '
 	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'" last_price="'.$last_price.'">
 		<td><input class="coin_chk" type="checkbox" for="tr_coins_'.$coin['coin'].'"></td>
-		<td class="balance">'.$balance.'</td>
+		<td class="balance" title="'.$avaible.'">'.$balance.'</td>
 		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'%</b></td>
 		<td class="price">'.$last_price.'</td>
 		<td class="diff">'.$diff.'</td>

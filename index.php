@@ -1203,7 +1203,7 @@ $(document).ready(function(){
 
 						var workers_offline = [];
 						$.each(allMyWorkers, function(index, value) {
-							if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() == "OFF")
+							if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() != "offline")
 							{
 								workers_offline.push(index);
 							}
@@ -1437,6 +1437,7 @@ $(document).ready(function(){
 			},
 			error: function(xhr, status, error) {
 			    console.error('Ошибка при выполнении запроса:', error);
+			    newMessage("ajax_saver error: \n" + error);
 			}
 		});
 	}
@@ -1448,10 +1449,11 @@ $(document).ready(function(){
 			method: 'POST',
 			data: { saveBlock: true, set : set },
 			success: function(data) {
-			    //console.log("Saved\n" + data);
+			    //console.log(data);
 			},
 			error: function(xhr, status, error) {
 			    console.error('Ошибка при выполнении запроса:', error);
+				newMessage("ajax_saver error: \n" + error);
 			}
 		});
 	}
