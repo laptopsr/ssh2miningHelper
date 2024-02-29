@@ -1058,6 +1058,19 @@ $(document).ready(function(){
 
 					$("#getBlocks").html(data);
 
+					// --- SORTING --- //
+					// Получаем все элементы tr_blocks и сортируем их по значению атрибута 'for'
+					var $blocks = $('.tr_blocks').sort(function(a, b) {
+						return $(a).attr('for') > $(b).attr('for') ? 1 : -1;
+					});
+
+					// Переворачиваем массив элементов
+					$blocks = $blocks.get().reverse();
+
+					// Вставляем отсортированные элементы обратно в DOM
+					$('table.blocks').append($blocks);
+
+					// --- USD prices --- //
 					var summ 	= 0;
 					var total 	= 0;
 					$('.rewarded').each(function(){

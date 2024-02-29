@@ -35,22 +35,13 @@ if(isset($_POST['getBlocks']))
 			}
 		}
 
-		$tulos = "<table class=\"table table-striped blocks\"";
+		$tulos = "<table class=\"table table-striped blocks\">";
 		foreach($read as $k => $v)
 		{
 			$tulos .= "<tr><td colspan=\"6\"><h4 class=\"well bg-secondary text-orange text-center date\">$k</h4></td></tr>";
 			foreach($v as $worker => $v2)
 			{
-
-				$sorted = [];
-				foreach($v2 as $ks => $vs)
-				{
-					$sorted[$vs[4]] = $vs;
-				}
-
-				krsort($sorted);
-
-				foreach($sorted as $kd => $worker_data)
+				foreach($v2 as $kd => $worker_data)
 				{
 					$coin = '';
 
@@ -71,7 +62,7 @@ if(isset($_POST['getBlocks']))
 					// -->
 
 					$tulos .= "
-					<tr>
+					<tr class=\"tr_blocks\" for=\"$worker_data[4]\">
 						<th>".date("H:i", $worker_data[4])."</th>
 						<th>".$worker."</th>
 						<td class=\"rewarded\" worker=\"$worker\" coin=\"".$coin."\">".round(($worker_data[6]/$offset), 2)."</td>
