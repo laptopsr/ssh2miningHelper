@@ -4,11 +4,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 */
-/*
+
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
-*/
+
 
 include "config.php";
 use phpseclib3\Net\SSH2;
@@ -41,9 +41,15 @@ foreach($arr as $v)
 		goto finishWorker;
 	}
 
-	// --- Создаем новый объект SSH2 и подключаемся к серверу --- //
-	$ssh = new SSH2($v['host']);
-	if (!$ssh->login($v['user'], $v['pass'])) {
+	try {
+
+		// --- Создаем новый объект SSH2 и подключаемся к серверу --- //
+		$ssh = new SSH2($v['host']);
+		if (!$ssh->login($v['user'], $v['pass'])) {
+			goto finishWorker;
+		}
+
+	} catch (\Exception $e) {
 		goto finishWorker;
 	}
 
