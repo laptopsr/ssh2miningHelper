@@ -101,7 +101,7 @@ if(isset($_POST['saveBlock']))
 
 	$currentContent = file_get_contents("blocks.txt");
 
-	if ($currentContent !== false)
+	if (is_array($_POST['set']) and count($_POST['set']) > 0 and $currentContent !== false)
 	{
 		$newMessage 	= json_encode($_POST['set']) . "\n";
 		$newContent 	= $newMessage . $currentContent;
@@ -130,8 +130,11 @@ if(isset($_POST['saveBlock']))
 			$save_line .= $line."\n";
 		}
 
-		file_put_contents("blocks.txt", $save_line);
-		echo $save_line;
+		if (strlen($save_line) > strlen($currentContent))
+		{
+			file_put_contents("blocks.txt", $save_line);
+			echo $save_line;
+		}
 	}
 }
 // ------ //

@@ -4,9 +4,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 */
+/*
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
+*/
 
 include "config.php";
 use phpseclib3\Net\SSH2;
@@ -65,12 +67,18 @@ foreach($arr as $v)
 
 	// --- TEMPERATURES --- //
 	$command = "echo $(timeout 1 sensors 2>/dev/null | awk '/(Tctl|Package id [0-9]):/ {print $0}')";
-	$temperMatches = [];
 
-	$output = $ssh->exec($command);
-	preg_match_all('/\S:\s+(\S+)/iu', $output, $temperMatches);
-	if ($temperMatches[1])
-		$arWorker['temperature'] = $temperMatches[1];
+	try {
+		$output = $ssh->exec($command);
+
+		$temperMatches = [];
+		preg_match_all('/\S:\s+(\S+)/iu', $output, $temperMatches);
+		if ($temperMatches[1])
+			$arWorker['temperature'] = $temperMatches[1];
+
+	} catch (\Exception $e) {
+		goto finishWorker;
+	}
 
 	$command = "echo $( timeout 1 echo '{$v['pass']}' | sudo -S screen -ls | grep -q xmrig && echo \"|xmrig\" || echo \"|false\" )";
 	try {
