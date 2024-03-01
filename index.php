@@ -868,6 +868,7 @@ $(document).ready(function(){
 						*/
 
 			    	var htmlData = "<table class=\"table table-striped herominers\">";
+					htmlData += "<tr><td colspan=\"2\"><div class=\"well bg-secondary text-orange text-center\"><h2>Herominers</h2></div></td></tr>";
 			    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data.stats.hashrate) / 1000).toFixed() + " KH/s</th></tr>";
 			    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data.stats.hashrate_1h) / 1000).toFixed() + " KH/s</th></tr>";
 			    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data.stats.hashrate_6h) / 1000).toFixed() + " KH/s</th></tr>";
@@ -900,6 +901,25 @@ $(document).ready(function(){
 					htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data.stats.payments_24h / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
 					htmlData += "<tr><td>Last Week Paid</td><th>" + (data.stats.paid / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
 					htmlData += "</table>";
+
+					// --- Check workers --- //
+			    	htmlData += "<table class=\"table table-striped herominers\">";
+					htmlData += "<tr><td colspan=\"4\"><div class=\"well bg-secondary text-orange text-center\"><h2>Workers</h2></div></td></tr>";
+					htmlData += "<tr><th>Wrk.</th><td>Hashrate</td><td>Last</td><td>Rejct</td></tr>";
+
+					// Получаем текущее время в секундах (UNIX-формат)
+					var currentTime 		= Math.floor(Date.now() / 1000);
+
+					$.each(data.workers, function(index, value) {
+						console.log(value);
+
+						// Вычисляем разницу в секундах
+						var differenceInSeconds = currentTime - value.lastShare;
+
+						htmlData += "<tr><th clign=\"left\">" + value.name + "</th><td>" + value.hashrate + "</td><td>" + differenceInSeconds + " sec.</td><td>" + value.shares_invalid + "</td></tr>";
+					});
+
+					htmlData += "</table>";
 					
 					$("#herominers_data").html(htmlData);
 
@@ -912,6 +932,8 @@ $(document).ready(function(){
 					$("#cur_effort").css({"width" :  effort_herominers + "%"});
 					$("#cur_effort").html("<h1>" + effort_for + "effort " + effort_herominers + " %</h1>");
 					$("#cur_effort").attr("aria-valuenow" , effort_herominers);
+
+
 				}
 			});
 		}
