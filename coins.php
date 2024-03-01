@@ -12,6 +12,8 @@ $encodedString 	= base64_encode($base64String);
 
 $url 	= 'https://api.xeggex.com/api/v2/balances'; // https://api.xeggex.com/api/v2/getdeposits?limit=100&skip=1
 $ch 	= curl_init($url);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['accept: application/json', 'Authorization: Basic ' . $encodedString]);
@@ -45,6 +47,8 @@ echo '</pre>';
 
 $url 	= 'https://api.xeggex.com/api/v2/tickers';
 $ch 	= curl_init($url);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['accept: application/json', 'Authorization: Basic ' . $encodedString]);
@@ -90,6 +94,8 @@ $url = 'https://pool.rplant.xyz/api/currencies';
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);

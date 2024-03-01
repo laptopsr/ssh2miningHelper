@@ -11,6 +11,8 @@ $address 	= $_GET['address']; // "ZEPHsBDtuMFeUqifG1VLfagkgEnnp1ph2Uz6eyUViigkjS
 $url = "https://$coin_name.herominers.com/api/stats_address?address=$address";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
