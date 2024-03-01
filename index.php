@@ -867,8 +867,8 @@ $(document).ready(function(){
 						)
 						*/
 
-			    	var htmlData = "<table class=\"table table-striped herominers\">";
-					htmlData += "<tr><td colspan=\"2\"><div class=\"well bg-secondary text-orange text-center\"><h2>Herominers</h2></div></td></tr>";
+			    	var htmlData = "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers</h2></div>";
+			    	htmlData += "<table class=\"table table-striped herominers\">";
 			    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data.stats.hashrate) / 1000).toFixed() + " KH/s</th></tr>";
 			    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data.stats.hashrate_1h) / 1000).toFixed() + " KH/s</th></tr>";
 			    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data.stats.hashrate_6h) / 1000).toFixed() + " KH/s</th></tr>";
@@ -903,8 +903,8 @@ $(document).ready(function(){
 					htmlData += "</table>";
 
 					// --- Check workers --- //
+					htmlData += "<div class=\"well bg-secondary text-orange text-center\"><h2>Workers</h2></div>";
 			    	htmlData += "<table class=\"table table-striped herominers\">";
-					htmlData += "<tr><td colspan=\"4\"><div class=\"well bg-secondary text-orange text-center\"><h2>Workers</h2></div></td></tr>";
 					htmlData += "<tr><th>Wrk.</th><td>Hashrate</td><td>Last</td><td>Rejct</td></tr>";
 
 					// Получаем текущее время в секундах (UNIX-формат)
