@@ -822,6 +822,7 @@ $(document).ready(function(){
 			var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
 			var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
 			var network_hashrate 	= $("#allCoins").find('.active').closest('tr').attr('network_hashrate');
+			var network_diff 		= $("#allCoins").find('.active').closest('tr').attr('network_diff');
 			
 			//console.log(coin_name + " " + address);
 
@@ -903,7 +904,7 @@ $(document).ready(function(){
 					$("#herominers_data").html(htmlData);
 
 					// --- EFFORT progress for Herominers --- //
-					var effort_herominers 	= (data.stats.poolRoundHashes / network_hashrate).toFixed();
+					var effort_herominers 	= ((data.stats.poolRoundHashes / network_hashrate) / 2).toFixed(); // Еще есть network_diff, но как все вместе использовать?
 					var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
 
 					$(".progress").show();
