@@ -102,7 +102,7 @@ if(isset($_POST['saveBlock']))
 		foreach($lines as $line)
 		{
 			$l 	= json_decode($line, true);
-			if(isset($l[0]))
+			if(isset($l[0]) and $l[5] != "NEW")
 			{
 				$arr_line[$l[0]] = $line;
 			}

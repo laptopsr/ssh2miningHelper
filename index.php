@@ -128,7 +128,7 @@ include "config.php";
 					<tr class="tr_miner"><td>Offline workers</td><th><span class="rplant_field" id="wcs_offline"></span></th></tr>
 				</table>
 				</div>
-				<div id="herominers_data"></div>
+				<div id="herominers_data">Please wait..</div>
 				<div class="well" id="getBlocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
@@ -818,60 +818,99 @@ $(document).ready(function(){
 		var parseLastData = JSON.parse(lastClickedData);
 		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('herominers'))
 		{
-			var coin_name 	= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
-			var coin_asset 	= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
-			var address 	= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
+			var coin_name 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
+			var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
+			var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
+			var network_hashrate 	= $("#allCoins").find('.active').closest('tr').attr('network_hashrate');
 			
 			//console.log(coin_name + " " + address);
 
-			$.ajax({
-				url: 'herominers_api.php',
-				method: 'GET',
-				data: { coin_name : coin_name, address : address },
-				success: function(data) {
-				    data = JSON.parse(data);
-					//console.log(data);
+			var url = "https://" + coin_name + ".herominers.com/api/stats_address?address=" + address;
+			$.getJSON(url, function(data) {
+				if(data.stats)
+				{
+					/*
+					[stats] => Array
+						(
+							[donation_level] => 0
+							[shares_good] => 20215
+							[hashes] => 7421149685
+							[lastShare] => 1708242227
+							[balance] => 94520736656
+							[shares_stale] => 13
+							[paid] => 218900000000
+							[shares_invalid] => 41
+							[hashrate] => 216606
+							[roundScore] => 35165271
+							[roundHashes] => 35165271
+							[poolRoundScore] => 109843219665
+							[poolRoundHashes] => 109968359318
+							[networkHeight] => 188834
+							[hashrate_1h] => 199863
+							[hashrate_6h] => 80918.933333333
+							[hashrate_24h] => 40130.97752809
+							[solo_shares_good] => 0
+							[solo_shares_invalid] => 0
+							[solo_shares_stale] => 0
+							[soloRoundHashes] => 0
+							[payments_24h] => 0
+							[payments_7d] => 218900000000
+						)
 
-				    if(data['stats'])
-				    {
-				    	var htmlData = "<table class=\"table table-striped herominers\">";
-				    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data['stats']['hashrate']) / 1000).toFixed() + " KH/s</th></tr>";
-				    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data['stats']['hashrate_1h']) / 1000).toFixed() + " KH/s</th></tr>";
-				    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data['stats']['hashrate_6h']) / 1000).toFixed() + " KH/s</th></tr>";
-				    	htmlData += "<tr><td>Hashrate 24h</td><th>" + (parseFloat(data['stats']['hashrate_24h']) / 1000).toFixed() + " KH/s</th></tr>";
+					[payments] => Array
+						(
+							[0] => 1445fda0d83f2ec8fca5181906f3196b9b5d7b695b79a832c23a62c860581d75:107700000000:239328000
+							[1] => 1707667483
+							[2] => d0ab62e1c4c2e9a6183db9e156018845eb2260e90ccf172be4e25f7a2bb5d095:111200000000:217408000
+							[3] => 1707653795
+						)
+						*/
 
-						var unconfirmed = 0;
-						$.each(data['unconfirmed'], function(index, value) {
-							//console.log(value['reward']);
-							unconfirmed += parseFloat(value['reward']);
-						});
-						htmlData += "<tr><td>Unconfirmed</td><th>" + (unconfirmed / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-						
-						// ------ //
-/*
-						var unlocked = 0;
-						$.each(data['unlocked'], function(index, value) {
-							var sp = value.split(":");
-							if(!sp[1])
-							{
-								console.log(sp[0]);
-								unlocked += parseFloat(sp[0]);
-							}
-						});
-						htmlData += "<tr><td>Pending</td><th>" + (unlocked / 1000000000000).toFixed(5) + " " + coin_asset + "</th></tr>";
-*/
+			    	var htmlData = "<table class=\"table table-striped herominers\">";
+			    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data.stats.hashrate) / 1000).toFixed() + " KH/s</th></tr>";
+			    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data.stats.hashrate_1h) / 1000).toFixed() + " KH/s</th></tr>";
+			    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data.stats.hashrate_6h) / 1000).toFixed() + " KH/s</th></tr>";
+			    	htmlData += "<tr><td>Hashrate 24h</td><th>" + (parseFloat(data.stats.hashrate_24h) / 1000).toFixed() + " KH/s</th></tr>";
 
-						htmlData += "<tr><td>Pending</td><th>" + (data['stats']['balance'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-						htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data['stats']['payments_24h'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-						htmlData += "<tr><td>Last Week Paid</td><th>" + (data['stats']['paid'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-						//htmlData += "<tr><td>Current Payout Estimate</td><th>" + (data['stats']['roundScore'] / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-						htmlData += "</table>";
-						
-						$("#herominers_data").html(htmlData);
-					}
-				},
-				error: function(xhr, status, error) {
-				    console.error('Ошибка при выполнении запроса:', error);
+					var unconfirmed = 0;
+					$.each(data['unconfirmed'], function(index, value) {
+						//console.log(value['reward']);
+						unconfirmed += parseFloat(value['reward']);
+					});
+					htmlData += "<tr><td>Unconfirmed</td><th>" + (unconfirmed / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+					htmlData += "<tr><td>Round Contribution</td><th>" + ((data.stats.roundScore / data.stats.poolRoundScore) * 100).toFixed(3) + " %</th></tr>";
+					htmlData += "<tr><td height=\"40\"></td><th></th></tr>";
+
+					// ------ //
+
+					//var unlocked = 0;
+					//$.each(data['unlocked'], function(index, value) {
+					//	var sp = value.split(":");
+					//	if(!sp[1])
+					//	{
+					//		console.log(sp[0]);
+					//		unlocked += parseFloat(sp[0]);
+					//	}
+					//});
+					//htmlData += "<tr><td>Pending</td><th>" + (unlocked / 1000000000000).toFixed(5) + " " + coin_asset + "</th></tr>";
+
+
+					htmlData += "<tr><td>Pending</td><th>" + (data.stats.balance / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+					htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data.stats.payments_24h / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+					htmlData += "<tr><td>Last Week Paid</td><th>" + (data.stats.paid / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+					htmlData += "</table>";
+					
+					$("#herominers_data").html(htmlData);
+
+					// --- EFFORT progress for Herominers --- //
+					var effort_herominers 	= (data.stats.poolRoundHashes / network_hashrate).toFixed();
+					var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
+
+					$(".progress").show();
+					$("#cur_effort").show();
+					$("#cur_effort").css({"width" :  effort_herominers + "%"});
+					$("#cur_effort").html("<h1>" + effort_for + "effort " + effort_herominers + " %</h1>");
+					$("#cur_effort").attr("aria-valuenow" , effort_herominers);
 				}
 			});
 		}
@@ -881,7 +920,7 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(herominersApi, 60000);
+	setInterval(herominersApi, 20000);
 
 	// ------ //
 
@@ -1056,7 +1095,7 @@ $(document).ready(function(){
 				    data = JSON.parse(data);
 				    //console.log(data);
 
-					$("#getBlocks").html(data);
+					$("#getBlocks").html(data).show();
 
 					// --- SORTING --- //
 					// Получаем все элементы tr_blocks и сортируем их по значению атрибута 'for'
@@ -1089,7 +1128,7 @@ $(document).ready(function(){
 		}
 		else
 		{
-			$("#getBlocks").html("");
+			$("#getBlocks").html("").hide();
 		}
 	}
 
