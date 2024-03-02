@@ -21,11 +21,11 @@ if(isset($_POST['command']))
 		$prepare = '';
 		if($_POST['miner'] != '')
 		{
-			$prepare = 'timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log; ';
+			$prepare = 'timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf '.$path_xmriglog.'; ';
 
 			if($_POST['miner'] == 'xmrig')
 			{
-				$start = 'timeout 1 sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file=/home/laptopsr/xmrig.log --randomx-1gb-pages ';
+				$start = 'timeout 1 sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file='.$path_xmriglog.' --randomx-1gb-pages ';
 				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
 
@@ -34,13 +34,13 @@ if(isset($_POST['command']))
 				$start = 'timeout 1 screen -dmS cpuminer '.$v['path_cpuminer'].' --syslog';
 				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
 			}
-
+			/*
 			if($_POST['miner'] == 'srbminer')
 			{
 				$start = 'timeout 1 screen -dmS srbminer '.$path_srbminer.' --log-file=/home/laptopsr/srbminer.log';
 				$prepare .= $start.' --algorithm '.$_POST['algo'].' --pool '.$_POST['host'].' --wallet '.$_POST['user'].'.'.$v['worker'].' --password '.$_POST['pass'].' --keepalive true;';
 			}
-
+			*/
 		}
 		// ------ //
 
