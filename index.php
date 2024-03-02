@@ -230,7 +230,10 @@ include "config.php";
 					?>
 					</table>
 					<h5>
-						With selected: <button class="btn btn-info btn-sm rebootAll">Reboot</button> <button class="btn btn-info btn-sm clrScreen">Reload miner</button>
+						With selected: 
+							<button class="btn btn-info btn-sm rebootAll">Reboot</button> 
+							<button class="btn btn-info btn-sm clrScreen">Reload miner</button>
+							<button class="btn btn-info btn-sm updateSystem">Update system</button>
 					</h5>
 					<select id="workersControl" class="form-control">
 						<option value="auto">AUTO RELOADER</option>
@@ -567,6 +570,9 @@ $(document).ready(function(){
 	$(document).delegate(".clrScreen", "click",function(){
 		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log;');
 	});
+	$(document).delegate(".updateSystem", "click",function(){
+		WorkerCommand('timeout 1 sudo apt update & sudo apt upgrade -y & sudo apt autoremove -y');
+	});
 
 	function WorkerCommand(cmd)
 	{
@@ -584,7 +590,7 @@ $(document).ready(function(){
 				$("#lomake input[name='user']").val('');
 				$("#lomake input[name='pass']").val('');
 				$("#lomake select[name='theads']").val('');
-				$("#lomake select[name='debug']").val('false');
+				$("#lomake select[name='debug']").val('true');
 				$("#lomake input[name='command']").val(cmd);
 				
 				wrk.push($(this).closest('tr').attr('worker'));
