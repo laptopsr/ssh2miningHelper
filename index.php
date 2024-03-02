@@ -778,18 +778,10 @@ $(document).ready(function(){
 						]
 					});
 
-					// --- BALANCE --- //
-
-					// Инициализируем переменную для хранения суммы
-					var totalBalance = 0;
-
-					// Проходим по каждой ячейке с классом "balance" и суммируем их значения
-					$('.balance').each(function() {
-						// Преобразуем текст ячейки в число и добавляем его к общей сумме
-						totalBalance += parseFloat($(this).text());
-					});
-
-					$("#cur_balance").html("<h2>USDT: <b>" + (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + "</b> | Coins: <b>" + totalBalance.toFixed(2) + " $</b></h2>");
+					$("#cur_balance").html("<h2>USDT: <b>"
+						+ (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + " $</b> | Coins: <b>"
+						+ (parseFloat(data['USD_coins_xeggex'])??0).toFixed(2) + " $</b></h2>"
+					);
 
 					// ------ //
 					
