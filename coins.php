@@ -167,7 +167,7 @@ foreach($coins as $coin)
 	$bd .= '
 	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'" last_price="'.$last_price.'">
 		<td><input class="coin_chk" type="checkbox" for="tr_coins_'.$coin['coin'].'"></td>
-		<td class="balance" title="'.$balance.'">'.$balance.'</td>
+		<td class="balance" title="'.round($held + $available).'">'.$balance.'</td>
 		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'%</b></td>
 		<td class="price">'.$last_price.'</td>
 		<td class="diff">'.$diff.'</td>
