@@ -2,6 +2,8 @@
 
 This project is created to monitor the status of mining builds for CPU.
 
+## Install on OS Linux
+
 Prerequisites
 To run the program, you need to have the following packages installed: PHP, apache2, SSH2
 
@@ -15,7 +17,7 @@ or
 
 All builds should use Linux with the following packages installed:
 
-sudo apt install openssh-server lm-sensors
+`sudo apt install openssh-server lm-sensors`
 
 Also, install the latest version of xmrig:
 https://xmrig.com/download
@@ -23,12 +25,68 @@ https://xmrig.com/download
 And Cpuminer Rplant as well:
 https://github.com/rplant8/cpuminer-opt-rplant/releases/
 
-Demo:  https://github.com/laptopsr/ssh2miningHelper/blob/main/screenshot.png
+Demo: ![ScreenShot](/screenshot.png)
 
 This README provides instructions for setting up and using the SSH2miningHelper project to monitor mining builds on CPU.
 
+## Update SSH2miningHelper
 
-## Software installation on Windows for monitoring
+The application is currently under development. To quickly update SSH2miningHelper you better use a special program Git (distributed version control).
+
+Open the SSH2miningHelper directory in your terminal. Example:
+
+`cd C:\Users\Home\Projects\ssh2miningHelper`
+
+update using git: `git pull`
+
+## Install on OS Windows
+
+Install a web server and php. For example we will take [XAMPP](https://www.apachefriends.org/)
+
+### Install XAMPP
+
+Download XAMPP https://www.apachefriends.org/ru/index.html for Windows. When installing, select components:
+
+- Apache
+- PHP
+
+After installation you need to launch the application *XAMPP Control Panel*. Then in the application panel you will find the Apache service and start it.
+
+### Install GIT
+
+To quickly install and update SSH2miningHelper you better use a special program Git (distributed version control).
+You can download it from here https://git-scm.com/download/win version *"64-bit Git for Windows Setup"*;
+
+During installation, you can leave all parameters unchanged. You can uncheck the *"Open Git Bash"* and *"Open Git GUI"* components  so that they are not integrated into Windows Explorer.
+
+### Install SSH2miningHelper
+
+The default directory for all web contents in XAMMP is `C:\xampp\htdocs`. 
+In the XAMPP application panel find **Shell** and run it. It is special terminal with PHP support.
+
+Open the web application directory in this terminal:
+
+`cd C:\xampp\htdocs`
+
+delete all files and folders using command:
+
+`RMDIR /S /Q .`
+
+then Git repository to clone into current directory:
+
+`git clone https://github.com/laptopsr/ssh2miningHelper.git .`
+
+The **ssh2miningHelper** project should appear in the *C:\xampp\htdocs* folder.
+
+run the dependency installation command:
+
+`composer update`
+
+**copy the file "config.php.example" and rename it to "config.php". You will then have to customize the configuration for yourself**
+
+You can check in browser (login "admin", password "admin"): http://localhost/
+
+### Software installation on Windows for monitoring
 
 **For now, data processing from the xmrig miner is supporte**
 
@@ -36,7 +94,7 @@ In the configuration file for the worker you need to add parameters:
 
 `'os' => 'win', 'openhardware_port' => 8085,`
 
-### 1. Install [Open Hardware Monitor](https://openhardwaremonitor.org/) for monitoring temperature, then select:
+#### 1. Install [Open Hardware Monitor](https://openhardwaremonitor.org/) for monitoring temperature, then select:
 
 - Options - Run On Windows Startup 
 - Options - Remote Web Server - Run
@@ -62,7 +120,7 @@ You can check it in your browser using your local IP:
 
 http://192.168.100.103:8085/
 
-### 2. Install server OpenSSH (instraction in russian https://winitpro.ru/index.php/2019/10/17/windows-openssh-server/)
+#### 2. Install server OpenSSH (instraction in russian https://winitpro.ru/index.php/2019/10/17/windows-openssh-server/)
 
 run PowerShell as administrator and execute the command:
 
