@@ -288,7 +288,7 @@ include "config.php";
 $(document).ready(function(){
 
 	var totalWorkers 		= parseInt("<?=count($arr)?>");
-	var allMyWorkers		= JSON.parse('<?=json_encode($allMyWorkers)?>');
+	var allMyWorkers		= JSON.parse('<?=str_replace('\\', '\\\\', json_encode($allMyWorkers))?>');
 
 	var watched_coins 		= [];
 	var workers4string 		= [];
@@ -300,7 +300,7 @@ $(document).ready(function(){
 		
 		workers4string.push([{worker : activeAddr4, coin : value.coin}]);
 		
-		$.each(JSON.parse('<?=json_encode($arr)?>'), function(inuser, user) {
+		$.each(JSON.parse('<?=str_replace('\\', '\\\\', json_encode($arr))?>'), function(inuser, user) {
 			workers4string.push([{worker : activeAddr4 + "." + user.worker, coin : value.coin}]);
 		});
 	});
