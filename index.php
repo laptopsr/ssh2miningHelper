@@ -590,7 +590,7 @@ $(document).ready(function(){
 				$("#lomake input[name='user']").val('');
 				$("#lomake input[name='pass']").val('');
 				$("#lomake select[name='theads']").val('');
-				$("#lomake select[name='debug']").val('true');
+				$("#lomake select[name='debug']").val('false');
 				$("#lomake input[name='command']").val(cmd);
 				
 				wrk.push($(this).closest('tr').attr('worker'));
