@@ -25,6 +25,9 @@ table.dataTable th, table.dataTable td{
 .btn{
 	border-radius: 0;
 }
+table.coins td, table.blocks{
+	font-size: 85%;
+}
 td.btn{
 	border: none;
 	border-left: 1px #ccc solid;

@@ -183,7 +183,6 @@ include "config.php";
 					</div>
 				</div>
 				<div id="is_coins_update"></div>
-				<div id="bestCoin" class="well bg-secondary text-orange text-center"></div>
 				<div id="allCoins"></div>
 			</div>
 			<div class="col-md-5">
@@ -235,6 +234,7 @@ include "config.php";
 							<button class="btn btn-info btn-sm rebootAll">Reboot</button> 
 							<button class="btn btn-info btn-sm clrScreen">Reload miner</button>
 							<button class="btn btn-info btn-sm updateSystem">Update system</button>
+							<button class="btn btn-danger btn-sm shutDown">Shutdown now</button>
 					</h5>
 					<select id="workersControl" class="form-control">
 						<option value="auto">AUTO RELOADER</option>
@@ -574,6 +574,9 @@ $(document).ready(function(){
 	$(document).delegate(".updateSystem", "click",function(){
 		WorkerCommand('timeout 1 sudo apt update & sudo apt upgrade -y & sudo apt autoremove -y');
 	});
+	$(document).delegate(".shutDown", "click",function(){
+		WorkerCommand('timeout 1 sudo shutdown now');
+	});
 
 	function WorkerCommand(cmd)
 	{
@@ -764,8 +767,10 @@ $(document).ready(function(){
 					// --- BEST --- //
 
 					new DataTable('table.coins', {
-						"order": [ [4,'desc'], [3,'asc'] ],
+						//"order": [ [4,'desc'], [3,'asc'] ],
+						"order": [ [6,'desc'] ],
 						paging: false,
+						/*
 						columnDefs: [
 							{ targets: [0, 1, 2], orderable: false }, // Запретить сортировку для первой и четвертой колонок
 							{
@@ -783,37 +788,13 @@ $(document).ready(function(){
 								}
 							}
 						]
+						*/
 					});
 
 					$("#cur_balance").html("<h2>USDT: <b>"
 						+ (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + " $</b> | Coins: <b>"
 						+ (parseFloat(data['USD_coins_xeggex'])??0).toFixed(2) + " $</b></h2>"
 					);
-
-					// --- BEST COIN --- //
-
-					var bestCoin = '';
-					var bestEfficiency = 0;
-
-					$('table.coins tbody tr').each(function() {
-						var $row = $(this);
-
-						var reward = parseFloat($row.find('.reward').text());
-						var diff = parseFloat($row.find('.diff').text());
-
-						// Проверяем, чтобы избежать деления на ноль
-						if (diff > 0) {
-							var efficiency = reward / diff;
-
-							if (efficiency > bestEfficiency) {
-								bestEfficiency = efficiency;
-								bestCoin = $row.attr('coin');
-							}
-						}
-					});
-
-					$("#bestCoin").html('<h2>Best coin: ' + bestCoin + ' with efficiency: ' + bestEfficiency.toFixed(2) + '</h2>');
-
 
 				},
 				error: function(xhr, status, error) {
@@ -1380,7 +1361,7 @@ $(document).ready(function(){
 				if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
 				{
 
-					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).find('.price').text());
+					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).attr('last_price'));
 
 					$("#blockFoundDiv").show('slow');
 					$("#blockFoundDiv").html("<h1 class=\"alert bg-success\">* * * BLOCK FOUND  " + getTimeNow() + " * * *</h1>");
