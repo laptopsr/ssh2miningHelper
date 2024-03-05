@@ -183,6 +183,7 @@ include "config.php";
 					</div>
 				</div>
 				<div id="is_coins_update"></div>
+				<div id="bestCoin" class="well bg-secondary text-orange text-center"></div>
 				<div id="allCoins"></div>
 			</div>
 			<div class="col-md-5">
@@ -789,10 +790,30 @@ $(document).ready(function(){
 						+ (parseFloat(data['USD_coins_xeggex'])??0).toFixed(2) + " $</b></h2>"
 					);
 
-					// ------ //
-					
-			        var firstRow = $('tr.tr_tb').first();
-			        firstRow.addClass('best');
+					// --- BEST COIN --- //
+
+					var bestCoin = '';
+					var bestEfficiency = 0;
+
+					$('table.coins tbody tr').each(function() {
+						var $row = $(this);
+
+						var reward = parseFloat($row.find('.reward').text());
+						var diff = parseFloat($row.find('.diff').text());
+
+						// Проверяем, чтобы избежать деления на ноль
+						if (diff > 0) {
+							var efficiency = reward / diff;
+
+							if (efficiency > bestEfficiency) {
+								bestEfficiency = efficiency;
+								bestCoin = $row.attr('coin');
+							}
+						}
+					});
+
+					$("#bestCoin").html('<h2>Best coin: ' + bestCoin + ' with efficiency: ' + bestEfficiency.toFixed(2) + '</h2>');
+
 
 				},
 				error: function(xhr, status, error) {
