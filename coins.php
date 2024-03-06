@@ -142,13 +142,13 @@ $bd = '
 <thead>
 	<tr>
 		<td><input class="global_select_coin" type="checkbox"></td>
+		<th>Coin</th>
 		<th>Bln</th>
-		<th>Chng</th>
+		<th>Ch(%)</th>
 		<th>Price</th>
 		<th>Diff</th>
 		<th>Rew.</th>
-		<th>Effic</th>
-		<th>Coin</th>
+		<th>Efc</th>
 	</tr>
 </thead>
 <tbody>';
@@ -164,20 +164,20 @@ foreach($coins as $coin)
 	$available			= $xeggexBalances[$coin['coin']]['available'] ?? 0;
 	$held				= $xeggexBalances[$coin['coin']]['held'] ?? 0;
 	$balance			= round(($held + $available) * $last_price, 2);
-	$efficiency 		= $reward > 0 ? round(($reward/$diff), 2) : 0;
+	$efficiency 		= $reward > 0 ? round(($reward/($coin['algo'] == 'randomx' ? $diff/10000000000 : $diff)), 2) : 0;
 
 	$bd .= '
 	<tr class="tr_tb" id="tr_coins_'.$coin['coin'].'" coin="'.$coin['coin'].'" network_diff="'.($rplantData[$coin['coin']]['difficulty']??'0').'" network_hashrate="'.$network_hashrate.'" last_price="'.$last_price.'">
 		<td><input class="coin_chk" type="checkbox" for="tr_coins_'.$coin['coin'].'"></td>
-		<td class="balance" title="'.($held + $available).'">'.$balance.'</td>
-		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'%</b></td>
-		<td class="price">'.$last_price.'</td>
-		<td class="diff">'.$diff.'</td>
-		<td class="reward">'.round($reward, 2).'</td>
-		<td class="efficiency">'.$efficiency.'</td>
-		<td class="btn btn-block btn-info coin" id="coin_'.$coin['coin'].'" ticker="'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
+		<td class="btn btn-xs btn-block btn-info coin" id="coin_'.$coin['coin'].'" ticker="'.$coin['coin'].'" coin_name="'.$coin['coin_name'].'" miner="'.$coin['miner'].'" host="'.$coin['host'].'" algo="'.$coin['algo'].'" user="'.$coin['user'].'" pass="'.$coin['pass'].'" theads="'.$coin['theads'].'" debug="'.$coin['debug'].'">
 			'.$coin['coin'].'
 		</td>
+		<td class="balance" title="'.($held + $available).'">'.$balance.'</td>
+		<td class="change_percent '.($change_percent>0? 'text-success' : 'text-danger').'"><b>'.$change_percent.'</b></td>
+		<td class="price" title="'.$last_price.'">'.($last_price = strlen($last_price) > 7 ? substr($last_price, 0, 7) . '..' : $last_price).'</td>
+		<td class="diff"title="'.$diff.'">'.($diff = strlen($diff) > 7 ? substr($diff, 0, 7) . '..' : $diff).'</td>
+		<td class="reward">'.round($reward, 3).'</td>
+		<td class="efficiency">'.$efficiency.'</td>
 	</tr>';
 }
 $bd .= '</tbody></table>';

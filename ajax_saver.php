@@ -64,7 +64,7 @@ if(isset($_POST['getBlocks']))
 					$tulos .= "
 					<tr class=\"tr_blocks\" for=\"$worker_data[4]\">
 						<th>".date("H:i", $worker_data[4])."</th>
-						<th>".$worker."</th>
+						<th title=\"$worker\">".($worker = strlen($worker) > 7 ? substr($worker, 0, 7) . '..' : $worker)."</th>
 						<td class=\"rewarded\" worker=\"$worker\" coin=\"".$coin."\">".round(($worker_data[6]/$offset), 2)."</td>
 						<td class=\"usdsumm\"></td>
 						<td align=\"right\">".$worker_data[8]."%</td>

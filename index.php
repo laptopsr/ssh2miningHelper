@@ -234,7 +234,7 @@ include "config.php";
 							<button class="btn btn-info btn-sm rebootAll">Reboot</button> 
 							<button class="btn btn-info btn-sm clrScreen">Reload miner</button>
 							<button class="btn btn-info btn-sm updateSystem">Update system</button>
-							<button class="btn btn-danger btn-sm shutDown">Shutdown now</button>
+							<button class="btn btn-info btn-sm shutDown">Shutdown now</button>
 					</h5>
 					<select id="workersControl" class="form-control">
 						<option value="auto">AUTO RELOADER</option>
@@ -420,6 +420,11 @@ $(document).ready(function(){
 	});
 
 	// ------ //
+	var autoHideBlock = false;
+
+	$(document).delegate("#autoHideBlock", "click",function(){
+		autoHideBlock = true;
+	});
 
 	$(document).delegate(".coin_chk", "change",function(){
 
@@ -768,7 +773,7 @@ $(document).ready(function(){
 
 					new DataTable('table.coins', {
 						//"order": [ [4,'desc'], [3,'asc'] ],
-						"order": [ [6,'desc'] ],
+						"order": [ [7,'desc'] ],
 						paging: false,
 						/*
 						columnDefs: [
@@ -1364,7 +1369,7 @@ $(document).ready(function(){
 					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).attr('last_price'));
 
 					$("#blockFoundDiv").show('slow');
-					$("#blockFoundDiv").html("<h1 class=\"alert bg-success\">* * * BLOCK FOUND  " + getTimeNow() + " * * *</h1>");
+					$("#blockFoundDiv").html("<h1 class=\"alert bg-success\">* * * BLOCK FOUND  " + getTimeNow() + " * * * <button class=\"btn btn-primary\" id=\"autoHideBlock\">Autohide</button></h1>");
 					alertFunc();
 
 					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
@@ -1373,6 +1378,10 @@ $(document).ready(function(){
 						effort_origin 	= 0;
 						effort_last		= 0;
 						EffortClear();
+						
+						if(autoHideBlock){
+							$("#blockFoundDiv").hide();
+						}
 					}, 2000);
 
 					blockFound = block_found_stream;

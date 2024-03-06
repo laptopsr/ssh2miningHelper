@@ -24,13 +24,18 @@ table.dataTable th, table.dataTable td{
 }
 .btn{
 	border-radius: 0;
+	cursor: pointer;
+}
+table.dataTable tbody th, table.dataTable tbody td{
+	padding-top: 1px;
+	padding-bottom: 1px;
 }
 table.coins td, table.blocks{
-	font-size: 85%;
+	/*font-size: 85%;*/
 }
 td.btn{
 	border: none;
-	border-left: 1px #ccc solid;
+	border-right: 1px #ccc solid;
 	border-top: 1px #ccc solid;
 	border-bottom: 1px #ccc solid;
 	box-shadow: none;
@@ -44,6 +49,10 @@ button.coin{
 }
 .bg-success{
 	background: rgb(102, 202, 102) !important;
+	color: #333 !important;
+}
+.btn-warning{
+	background: orange !important;
 	color: #333 !important;
 }
 .text-orange{
@@ -76,7 +85,7 @@ td.active{
 	background: #ededed;
 	border-radius: 0;
 }
-#datatable_length, #datatable_filter, .dataTables_filter{
+#datatable_length, #datatable_filter, .dataTables_filter, .dataTables_info{
 	display:none;
 }
 table.herominers th, table.miner_table th{
@@ -140,8 +149,8 @@ table.herominers th, table.miner_table th{
     color: rgb(162, 252, 162);
 }
 #allCoins{
-	height: 65%; 
+	/*height: 650px; 
 	overflow-y: scroll;
-	overflow-x: hidden;
-	scrollbar-width: thin;
+	overflow-x: scroll;
+	scrollbar-width: thin;*/
 }
