@@ -78,5 +78,5 @@ Your estimated income per day: " . number_format($myHashrate * $incomerPerOneITS
 Estimated income per 1 sol: " . number_format($curSolPrice, 2) . "$<br>
 Your estimated sols per day: " . number_format(24 * $myHashrate * $netSolsPerHour / $netHashrate, 1) . "<br><br>";
 
-echo json_encode(['body' => $bd, 'full' => $networkStat, 'token' => $token]);
+echo json_encode(['body' => $bd, 'full' => $networkStat, 'token' => $token, 'epoch_progress' => round(100 * $curEpochProgress, 1)]);
 ?>

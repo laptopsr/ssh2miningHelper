@@ -334,6 +334,14 @@ $(document).ready(function(){
 					//console.log(data['token']);
 					$("#qubic_stat").html(data['body']);
 					qubic_token = data['token'];
+
+					$(".progress").show();
+					$("#cur_effort").show();
+					$("#cur_effort").css({"width" :  data['epoch_progress'] + "%"});
+					$("#cur_effort").attr("aria-valuemax" , 100);
+					$("#cur_effort").attr("aria-valuenow" , data['epoch_progress']);
+					$("#cur_effort").html("<h1>Epoch: " + data['epoch_progress'] + " %</h1>");
+
 				}
 			},
 			error: function(xhr, status, error) {
@@ -1072,15 +1080,8 @@ $(document).ready(function(){
 
 				if(QUBIC)
 				{
-					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC style</h2>");
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC SOL: <b>" + solutions + "</b></h2>");
 					$("#getBlocks").html('').hide();
-
-					$(".progress").show();
-					$("#cur_effort").show();
-					$("#cur_effort").css({"width" :  solutions + "%"});
-					$("#cur_effort").attr("aria-valuemax" , 100);
-					$("#cur_effort").attr("aria-valuenow" , solutions);
-					$("#cur_effort").html("<h1>Solutions " + solutions + "</h1>");
 
 					if(last_solutions == 0 && solutions > 0)
 					{
