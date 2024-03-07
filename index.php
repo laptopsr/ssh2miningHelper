@@ -1105,7 +1105,7 @@ $(document).ready(function(){
 	function getBlocks() {
 
 		var parseLastData = JSON.parse(lastClickedData);
-		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		if(!QUBIC && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
 		{
 			var url = 'https://pool.rplant.xyz/api/blocks';
 			$.getJSON(url, function(data) {
