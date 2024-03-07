@@ -673,6 +673,11 @@ $(document).ready(function(){
 
 	$(document).delegate(".coin", "click",function(){
 
+		if(QUBIC)
+		{
+			return false;
+		}
+
 		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-secondary text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-secondary text-white active');
@@ -972,6 +977,7 @@ $(document).ready(function(){
 		        data = JSON.parse(data);
 
 				var trbl_worker = [];
+				var solutions 	= 0;
 
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
@@ -1022,12 +1028,13 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
 						QUBIC = true;
+						solutions += parseInt(value['solutions']);
 					}
 				});
 
 				if(QUBIC)
 				{
-					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC STYLE</h2>");
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC Solutions: " + solutions + "</h2>");
 					$("#getBlocks").html('').hide();
 				}
 
