@@ -292,6 +292,7 @@ use phpseclib3\Net\SSH2;
 $(document).ready(function(){
 
 	var QUBIC 				= false;
+	var last_solutions		= 0;
 	var totalWorkers 		= parseInt("<?=count($arr)?>");
 	var allMyWorkers		= JSON.parse('<?=str_replace('\\', '\\\\', json_encode($allMyWorkers))?>');
 
@@ -1028,7 +1029,10 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
 						QUBIC = true;
-						solutions += parseInt(value['solutions']);
+						if(parseInt(value['solutions']) > 0)
+						{
+							solutions += parseInt(value['solutions']);
+						}
 					}
 				});
 
@@ -1036,6 +1040,16 @@ $(document).ready(function(){
 				{
 					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC Solutions: " + solutions + "</h2>");
 					$("#getBlocks").html('').hide();
+					
+					if(last_solutions == 0 && solutions > 0)
+					{
+						last_solutions = solutions;
+					}
+					if(solutions != last_solutions && last_solutions < solutions)
+					{
+						last_solutions = solutions;
+						alertFunc(alertPC);
+					}
 				}
 
 				if(!QUBIC && workersControl == "auto" && trbl_worker.length > 0)
