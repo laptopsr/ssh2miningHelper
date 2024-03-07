@@ -1038,9 +1038,16 @@ $(document).ready(function(){
 
 				if(QUBIC)
 				{
-					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC Solutions: " + solutions + "</h2>");
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC style</h2>");
 					$("#getBlocks").html('').hide();
-					
+
+					$(".progress").show();
+					$("#cur_effort").show();
+					$("#cur_effort").css({"width" :  solutions + "%"});
+					$("#cur_effort").attr("aria-valuemax" , 100);
+					$("#cur_effort").attr("aria-valuenow" , solutions);
+					$("#cur_effort").html("<h1>Solutions " + solutions + "</h1>");
+
 					if(last_solutions == 0 && solutions > 0)
 					{
 						last_solutions = solutions;
@@ -1263,8 +1270,6 @@ $(document).ready(function(){
 				if(!QUBIC && source)
 				{
 					source.close();
-					$(".progress").hide();
-					$("#cur_effort").hide();
 					$("#rplnt_api").hide();
 					$("#getBlocks").hide();
 					return false;
@@ -1441,8 +1446,11 @@ $(document).ready(function(){
 		}
 		else
 		{
-			$(".progress").hide();
-			$("#cur_effort").hide();
+			if(!QUBIC)
+			{
+				$(".progress").hide();
+				$("#cur_effort").hide();
+			}
 			$("#rplnt_api").hide();
 		}
 	}

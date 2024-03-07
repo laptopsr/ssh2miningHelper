@@ -92,7 +92,6 @@ table.herominers th, table.miner_table th{
 	text-align: right;
 }
 .progress{
-	display: none;
 	height: 50px;
 }
 #cur_effort h1{
