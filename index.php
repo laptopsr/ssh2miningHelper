@@ -293,7 +293,7 @@ use phpseclib3\Net\SSH2;
 $(document).ready(function(){
 
 	var QUBIC 				= false;
-	var is_sended_q			= false;
+	var qubic_token 		= "";
 	var last_solutions		= 0;
 	var totalWorkers 		= parseInt("<?=count($arr)?>");
 	var allMyWorkers		= JSON.parse('<?=str_replace('\\', '\\\\', json_encode($allMyWorkers))?>');
@@ -324,15 +324,16 @@ $(document).ready(function(){
 		$.ajax({
 			url: 'qubic_statistic.php',
 			method: 'POST',
-			data: { myHashrate: myHashrate },
+			data: { myHashrate: myHashrate, qubic_token : qubic_token },
 			success: function(data) {
 				//console.log(data);
 				data = JSON.parse(data);
 
 				if(data['body'])
 				{
+					//console.log(data['token']);
 					$("#qubic_stat").html(data['body']);
-					is_sended_q = true;
+					qubic_token = data['token'];
 				}
 			},
 			error: function(xhr, status, error) {
@@ -1118,7 +1119,7 @@ $(document).ready(function(){
 				});
 				$("#hashrateSum").html(sum);
 
-				if(QUBIC && !is_sended_q)
+				if(QUBIC)
 				{
 					getQubicStat(sum);
 				}

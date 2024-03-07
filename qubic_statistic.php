@@ -9,19 +9,26 @@ use Codenixsv\CoinGeckoApi\CoinGeckoClient;
 $myHashrate = $_POST['myHashrate']??950;
 
 // Получение текущего эпохального номера и информации о сети
-$url = 'https://api.qubic.li/Auth/Login';
-$data = array('userName' => $qubic_user, 'password' => $qubic_pass, 'twoFactorCode' => '');
-$options = array(
-    'http' => array(
-        'header'  => "Content-Type: application/json\r\n",
-        'method'  => 'POST',
-        'content' => json_encode($data)
-    )
-);
-$context  = stream_context_create($options);
-$response = file_get_contents($url, false, $context);
-$result = json_decode($response, true);
-$token = $result['token'];
+if(isset($_POST['qubic_token']) and empty($_POST['qubic_token']))
+{
+	$url = 'https://api.qubic.li/Auth/Login';
+	$data = array('userName' => $qubic_user, 'password' => $qubic_pass, 'twoFactorCode' => '');
+	$options = array(
+		'http' => array(
+		    'header'  => "Content-Type: application/json\r\n",
+		    'method'  => 'POST',
+		    'content' => json_encode($data)
+		)
+	);
+	$context  = stream_context_create($options);
+	$response = file_get_contents($url, false, $context);
+	$result = json_decode($response, true);
+	$token = $result['token'];
+}
+else if(isset($_POST['qubic_token']) and !empty($_POST['qubic_token']))
+{
+	$token = $_POST['qubic_token'];
+}
 
 $url = 'https://api.qubic.li/Score/Get';
 $options = array(
@@ -71,5 +78,5 @@ Your estimated income per day: " . number_format($myHashrate * $incomerPerOneITS
 Estimated income per 1 sol: " . number_format($curSolPrice, 2) . "$<br>
 Your estimated sols per day: " . number_format(24 * $myHashrate * $netSolsPerHour / $netHashrate, 1) . "<br><br>";
 
-echo json_encode(['body' => $bd, 'full' => $networkStat]);
+echo json_encode(['body' => $bd, 'full' => $networkStat, 'token' => $token]);
 ?>
