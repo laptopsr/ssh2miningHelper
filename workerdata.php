@@ -142,10 +142,9 @@ foreach($arr as $v)
 		}
 
 		// --- TEMPERATURES --- //
-		$command = "echo $(timeout 1 sensors 2>/dev/null | awk '/(Tctl|Package id [0-9]):/ {print $0}')";
-
 		try {
-			$output = $ssh->exec($command);
+			$command 	= "echo $(timeout 1 sensors 2>/dev/null | awk '/(Tctl|Package id [0-9]):/ {print $0}')";
+			$output 	= $ssh->exec($command);
 
 			$temperMatches = [];
 			preg_match_all('/\S:\s+(\S+)/iu', $output, $temperMatches);
@@ -156,12 +155,30 @@ foreach($arr as $v)
 			goto finishWorker;
 		}
 
-		$command = "echo $( timeout 1 echo '{$v['pass']}' | sudo -S screen -ls | grep -q xmrig && echo \"|xmrig\" || echo \"|false\" )";
+		// --- QUBIC --- //
 		try {
-			$output = $ssh->exec($command);
+			$command 	= "echo $( timeout 0.5 tail -f $path_qubic_log | grep -m 1 \"INFO\" | awk '/INFO/ {print $1\" \"$2\"|\"$12\"|\"$4\",\"$6 $7}' )";
+			$output 	= $ssh->exec($command);
+			$expl 		= explode("|", $output);
+
+			$arWorker['session']	= "QUBIC";
+			$arWorker['time'] 		= $expl[0] ? date("H:i:s", strtotime($expl[0])) : '';
+			$arWorker['hashrate'] 	= $expl[1] ?? 0; //round(((float)$expl[1] ?? 0));
+			$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL')) ? ($expl[2] ?? '') : '';
+			goto finishWorker;
+
 		} catch (\Exception $e) {
 			goto finishWorker;
 		}
+		//-->
+
+		try {
+			$command 	= "echo $( timeout 1 echo '{$v['pass']}' | sudo -S screen -ls | grep -q xmrig && echo \"|xmrig\" || echo \"|false\" )";
+			$output 	= $ssh->exec($command);
+		} catch (\Exception $e) {
+			goto finishWorker;
+		}
+
 		$expl 		= explode("|", $output);
 		$session 	= trim($expl[1]??'');
 

@@ -18,8 +18,33 @@ if(isset($_POST['command']))
 			continue;
 		}
 
+		// --- CHECK QUBIC --- //
+		$v['qubick_online'] = "false";
+		try {
+
+			// Создаем новый объект SSH2 и подключаемся к серверу
+			$ssh = new SSH2($v['host']);
+			if (!$ssh->login($v['user'], $v['pass'])) {
+				continue;
+			}
+
+			$command 	= "echo $( timeout 0.5 tail -f $path_qubic_log | grep -m 1 \"INFO\" | awk '/INFO/ {print $1\" \"$2}' )";
+			$output 	= $ssh->exec($command);
+			$date 		= strtotime($output);
+			$t_diff		= (time() - $date);
+
+			if ($date !== false and $t_diff <= 60)
+			{
+				$v['qubick_online'] = $t_diff;
+			}
+
+		} catch (\Exception $e) {
+			continue;
+		}
+		// -->
+
 		$prepare = '';
-		if($_POST['miner'] != '')
+		if($v['qubick_online'] == "false" and $_POST['miner'] != '')
 		{
 			$prepare = 'timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf '.$path_xmriglog.'; ';
 
@@ -51,10 +76,13 @@ if(isset($_POST['command']))
 		try {
 
 			// Создаем новый объект SSH2 и подключаемся к серверу
+			/*
 			$ssh = new SSH2($v['host']);
 			if (!$ssh->login($v['user'], $v['pass'])) {
 				continue;
 			}
+			Уже есть выше
+			*/
 
 			$output = $ssh->exec($prepare . $_POST['command']);
 

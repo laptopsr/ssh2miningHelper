@@ -27,8 +27,8 @@ table.dataTable th, table.dataTable td{
 	cursor: pointer;
 }
 table.dataTable tbody th, table.dataTable tbody td{
-	padding-top: 1px;
-	padding-bottom: 1px;
+	padding-top: 4px;
+	padding-bottom: 0px;
 }
 table.coins td, table.blocks{
 	/*font-size: 85%;*/
@@ -85,13 +85,14 @@ td.active{
 	background: #ededed;
 	border-radius: 0;
 }
-#datatable_length, #datatable_filter, .dataTables_filter, .dataTables_info{
+#datatable_length, #datatable_filter, .dataTables_filter, .dataTables_info, #getBlocks{
 	display:none;
 }
 table.herominers th, table.miner_table th{
 	text-align: right;
 }
 .progress{
+	display: none;
 	height: 50px;
 }
 #cur_effort h1{

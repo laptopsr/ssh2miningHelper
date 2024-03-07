@@ -19,6 +19,7 @@ $path_cpuminer	= "/home/laptopsr/MINERS/cpuminer-rplant/cpuminer-sse2";
 $path_srbminer  = "/home/laptopsr/MINERS/SRBMiner-Multi/SRBMiner-MULTI ";
 $path_syslog	= "/var/log/syslog";
 $path_xmriglog 	= "/home/laptopsr/xmrig.log";
+$path_qubic_log	= "/var/log/qli.log";
 $path_srbminerlog 	= "/home/laptopsr/srbminer.log";
 $ssh_user		= "laptopsr";
 $ssh_pass		= "xxx";

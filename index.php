@@ -5,6 +5,8 @@ error_reporting(E_ALL);
 session_start();
 
 include "config.php";
+use phpseclib3\Net\SSH2;
+
 ?>
 <html>
 <head>
@@ -58,7 +60,7 @@ include "config.php";
 			  <label for="inputPassword" class="sr-only">Password</label>
 			  <input type="password" name="salasana" id="inputPassword" class="form-control" placeholder="Password" required>
 			  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-			  <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>
+			  <p class="mt-5 mb-3 text-muted">&copy; 2024</p>
 			</form>
 			</center>
 		   </div>
@@ -129,6 +131,7 @@ include "config.php";
 				</table>
 				</div>
 				<div id="herominers_data">Please wait..</div>
+				<div id="qubic_data"></div>
 				<div class="well" id="getBlocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
@@ -288,6 +291,7 @@ include "config.php";
 <script>
 $(document).ready(function(){
 
+	var QUBIC 				= false;
 	var totalWorkers 		= parseInt("<?=count($arr)?>");
 	var allMyWorkers		= JSON.parse('<?=str_replace('\\', '\\\\', json_encode($allMyWorkers))?>');
 
@@ -337,7 +341,9 @@ $(document).ready(function(){
 				var parseLastData = JSON.parse(lastClickedData);
 				if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] != "")
 				{
-					rplantApiStream(lastClickedData);
+					setTimeout(function() { 
+						rplantApiStream(lastClickedData);
+					}, 15000);
 				}
 			}
 		},
@@ -1013,9 +1019,19 @@ $(document).ready(function(){
 						$("#worker_" + value['id']).addClass('bg-danger');
 					}
 
+					if(value['session'] && value['session'] == 'QUBIC')
+					{
+						QUBIC = true;
+					}
 				});
 
-				if(workersControl == "auto" && trbl_worker.length > 0)
+				if(QUBIC)
+				{
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC STYLE</h2>");
+					$("#getBlocks").html('').hide();
+				}
+
+				if(!QUBIC && workersControl == "auto" && trbl_worker.length > 0)
 				{
 					$("#lomake_workers option:selected").removeAttr("selected");
 					$("#lomake_workers").val(trbl_worker);
@@ -1174,7 +1190,7 @@ $(document).ready(function(){
 	function rplantApiStream(data)
 	{
 		var parseLastData = JSON.parse(lastClickedData);
-		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		if(!QUBIC && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
 		{
 
 			$(".progress").show();
@@ -1222,6 +1238,16 @@ $(document).ready(function(){
 			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
 			source = new EventSource(url);
 			source.addEventListener('message', function(e) {
+
+				if(!QUBIC && source)
+				{
+					source.close();
+					$(".progress").hide();
+					$("#cur_effort").hide();
+					$("#rplnt_api").hide();
+					$("#getBlocks").hide();
+					return false;
+				}
 
 				source_count += 1;
 				$("#source_count").html(source_count);
