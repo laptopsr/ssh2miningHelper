@@ -1060,9 +1060,11 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
 						QUBIC = true;
-						if(parseInt(value['solutions']) > 0)
+						if(!isNaN(parseInt(value['solutions'])))
 						{
-							solutions += parseInt(value['solutions']);
+							if(parseInt(value['solutions']) > 0){
+								solutions += parseInt(value['solutions']);
+							}
 						}
 					}
 				});
