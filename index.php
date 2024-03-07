@@ -329,9 +329,9 @@ $(document).ready(function(){
 				//console.log(data);
 				data = JSON.parse(data);
 
-				if(data)
+				if(data['body'])
 				{
-					$("#qubic_stat").html(data);
+					$("#qubic_stat").html(data['body']);
 					is_sended_q = true;
 				}
 			},

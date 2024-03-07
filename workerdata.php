@@ -161,13 +161,13 @@ foreach($arr as $v)
 			$command 	= "echo $( timeout 0.5 tail -f $path_qubic_log | grep -m 1 \"INFO\" | awk '/INFO/ {print $1\" \"$2\"|\"$12\"|\"$4\",\"$6\"|\"$7}' )";
 			$output 	= $ssh->exec($command);
 			$expl 		= explode("|", $output);
-			$SOL		= explode("/", $expl[3] ?? '');
+			$SOL		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? explode("/", $expl[3] ?? '') : 0;
 
 			$arWorker['session']	= "QUBIC";
 			$arWorker['time'] 		= $expl[0] ? date("H:i:s", strtotime($expl[0])) : '';
 			$arWorker['hashrate'] 	= $expl[1] ?? 0; //round(((float)$expl[1] ?? 0));
-			$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL')) ? ($expl[2] ?? '').($expl[3] ?? '') : '';
-			$arWorker['solutions']	= $SOL[0] ?? 0;
+			$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? ($expl[2] ?? '').($expl[3] ?? '') : '';
+			$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[0] : 0;
 
 			goto finishWorker;
 

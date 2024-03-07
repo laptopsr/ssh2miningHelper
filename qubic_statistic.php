@@ -10,7 +10,7 @@ $myHashrate = $_POST['myHashrate']??950;
 
 // Получение текущего эпохального номера и информации о сети
 $url = 'https://api.qubic.li/Auth/Login';
-$data = array('userName' => 'guest@qubic.li', 'password' => 'guest13@Qubic.li', 'twoFactorCode' => '');
+$data = array('userName' => $qubic_user, 'password' => $qubic_pass, 'twoFactorCode' => '');
 $options = array(
     'http' => array(
         'header'  => "Content-Type: application/json\r\n",
@@ -30,9 +30,9 @@ $options = array(
         'method'  => 'GET'
     )
 );
-$context  = stream_context_create($options);
-$response = file_get_contents($url, false, $context);
-$networkStat = json_decode($response, true);
+$context  		= stream_context_create($options);
+$response 		= file_get_contents($url, false, $context);
+$networkStat 	= json_decode($response, true);
 
 $epochNumber = $networkStat['scoreStatistics'][0]['epoch'];
 $epoch97Begin = strtotime('2024-02-21 12:00:00');
@@ -71,5 +71,5 @@ Your estimated income per day: " . number_format($myHashrate * $incomerPerOneITS
 Estimated income per 1 sol: " . number_format($curSolPrice, 2) . "$<br>
 Your estimated sols per day: " . number_format(24 * $myHashrate * $netSolsPerHour / $netHashrate, 1) . "<br><br>";
 
-echo json_encode($bd);
+echo json_encode(['body' => $bd, 'full' => $networkStat]);
 ?>

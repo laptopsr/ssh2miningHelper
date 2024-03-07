@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
+$qubic_user = "guest@qubic.li";
+$qubic_pass	= "guest13@Qubic.li";
 
 $web_login 	= "admin";
 $web_pass	= "admin";
