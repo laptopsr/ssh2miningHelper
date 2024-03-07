@@ -6,7 +6,6 @@ session_start();
 
 include "config.php";
 use phpseclib3\Net\SSH2;
-
 ?>
 <html>
 <head>
@@ -132,6 +131,8 @@ use phpseclib3\Net\SSH2;
 				</div>
 				<div id="herominers_data">Please wait..</div>
 				<div id="qubic_data"></div>
+				<div id="qubic_stat"></div>
+
 				<div class="well" id="getBlocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
@@ -292,6 +293,7 @@ use phpseclib3\Net\SSH2;
 $(document).ready(function(){
 
 	var QUBIC 				= false;
+	var is_sended_q			= false;
 	var last_solutions		= 0;
 	var totalWorkers 		= parseInt("<?=count($arr)?>");
 	var allMyWorkers		= JSON.parse('<?=str_replace('\\', '\\\\', json_encode($allMyWorkers))?>');
@@ -310,6 +312,35 @@ $(document).ready(function(){
 			workers4string.push([{worker : activeAddr4 + "." + user.worker, coin : value.coin}]);
 		});
 	});
+
+	// --- QUBIC --- //
+    // Функция для форматирования чисел с разделителями разрядов
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+	function getQubicStat(myHashrate)
+	{
+		$.ajax({
+			url: 'qubic_statistic.php',
+			method: 'POST',
+			data: { myHashrate: myHashrate },
+			success: function(data) {
+				//console.log(data);
+				data = JSON.parse(data);
+
+				if(data)
+				{
+					$("#qubic_stat").html(data);
+					is_sended_q = true;
+				}
+			},
+			error: function(xhr, status, error) {
+				console.error('Ошибка при выполнении запроса:', error);
+			}
+		});
+    }
+    // -->
 
 	// --- SETTINGS --- //
 	var workersControl	= 'manual';
@@ -1055,7 +1086,7 @@ $(document).ready(function(){
 					if(solutions != last_solutions && last_solutions < solutions)
 					{
 						last_solutions = solutions;
-						alertFunc(alertPC);
+						alertFunc();
 					}
 				}
 
@@ -1073,7 +1104,7 @@ $(document).ready(function(){
 					}, 2000);
 				}
 
-				// ------ //
+				// --- My hashrate --- //
 
 				var sum = 0;
 				$('.hashrate').each(function(index, element) {
@@ -1085,6 +1116,10 @@ $(document).ready(function(){
 				});
 				$("#hashrateSum").html(sum);
 
+				if(QUBIC && !is_sended_q)
+				{
+					getQubicStat(sum);
+				}
 				// ------ //
 
 				$('.time').each(function(index, element) {
