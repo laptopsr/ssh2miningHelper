@@ -99,7 +99,7 @@ foreach($GetMiner['miners'] as $miner)
 	<tr>
 		<td>$miner[alias]</td>
 		<td>".($miner['solutionsFound']>0? $miner['solutionsFound'] : '')."</td>
-		<td>$miner[isActive]</td>
+		<td>".(empty($miner['isActive'])? '':'On')."</td>
 		<td>".date("H:i", strtotime($miner['lastActive'])+7200)."</td>
 		<td>$miner[currentIts]</td>
 	</tr>";
@@ -123,6 +123,7 @@ $activePoolName = $pool['activePool']['pool']['name']??'';
 // ------ //
 if(!isset($_POST['qubic_token']))
 {
+	/*
 	$url = 'https://api.qubic.li/My/Pool'; // My/Get, My/MinerControl, My/GetMiner, My/Pool, My/Pool/Payouts, My/Profile, Revenue/Get
 	$options = array(
 		'http' => array(
@@ -134,9 +135,10 @@ if(!isset($_POST['qubic_token']))
 	$context  		= stream_context_create($options);
 	$response 		= file_get_contents($url, false, $context);
 	$r				= json_decode($response, true);
+	*/
 
 	echo '<pre>';
-	print_r($r);
+	print_r($GetMiner['miners']);
 	echo '</pre>';
 	exit;
 }
@@ -181,9 +183,7 @@ $incomerPerOneITS = $poolReward * $qubicPrice * 1000000000000 / $netHashrate / 7
 $curSolPrice = 1479289940 * $poolReward * $curEpochProgress * $qubicPrice / ($netAvgScores * 1.06);
 
 $bd = "
-<br>
-Active: <b>$activeMiners</b>, Inactive: <b>$inactiveMiners</b><br>
-<b>$activePoolName</b><br>
+<b>$activePoolName</b><br><br>
 Epoch start / end: <b>" . date('d.m.Y H:i', $curEpochBegin+7200) . " / " . date('d.m.Y H:i', $curEpochEnd+7200) . "</b><br>
 Estimated network hashrate: <b>" . number_format($netHashrate, 0, '', ' ') . " it/s</b><br>
 Average score: <b>" . number_format($netAvgScores, 1) . "</b>. Per hour: <b>" . number_format($netSolsPerHour, 1) . "</b><br>
