@@ -139,6 +139,7 @@ use phpseclib3\Net\SSH2;
 			</div>
 			<div class="col-md-4">
 				<div id="countdown" class="well bg-danger"></div>
+				<div class="well bg-secondary text-orange text-center"><h2>XEGGEX</h2></div>
 				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
 				<br>
 				<!-- autoChangeEvery -->
