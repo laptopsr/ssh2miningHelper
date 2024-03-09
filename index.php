@@ -241,7 +241,7 @@ use phpseclib3\Net\SSH2;
 							<button class="btn btn-info btn-sm updateSystem">Update system</button>
 							<button class="btn btn-info btn-sm shutDown">Shutdown now</button>
 							<button class="btn btn-info btn-sm stopQUBIC">Stop QUBIC</button>
-							<button class="btn btn-info btn-sm startQUBIC">Start/Restart QUBIC</button>
+							<button class="btn btn-info btn-sm startQUBIC">Start QUBIC</button>
 					</h5>
 					<select id="workersControl" class="form-control">
 						<option value="auto">AUTO RELOADER</option>
@@ -651,7 +651,7 @@ $(document).ready(function(){
 		WorkerCommand('timeout 1 sudo systemctl stop qli --no-block && sudo pkill -f qli');
 	});
 	$(document).delegate(".startQUBIC", "click",function(){
-		WorkerCommand('timeout 1 sudo systemctl stop qli --no-block && sudo pkill -f qli && sudo systemctl start qli');
+		WorkerCommand('timeout 1 sudo systemctl start qli');
 	});
 
 	function WorkerCommand(cmd)
@@ -1149,7 +1149,7 @@ $(document).ready(function(){
 					specifiedTime.setSeconds(seconds);
 
 					// Добавляем 10 минут к устаревшему времени
-					var outdatedTime = new Date(specifiedTime.getTime() + 7 * 60000); // 60000 миллисекунд в минуте
+					var outdatedTime = new Date(specifiedTime.getTime() + 1 * 60000); // 60000 миллисекунд в минуте
 
 					// Сравниваем текущее время с устаревшим временем
 					if (currentTime > outdatedTime) {
@@ -1157,7 +1157,7 @@ $(document).ready(function(){
 					} else {
 						$( this ).closest('tr').removeClass('bg-danger');
 					}
-
+					//console.log(outdatedTime);
 				});
 
 		    },

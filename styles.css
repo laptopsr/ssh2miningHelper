@@ -76,11 +76,11 @@ td.active{
 .table th{
 	color: rgb(162, 252, 162);
 }
-.table-striped>tbody>tr:nth-child(odd)>td, 
-.table-striped>tbody>tr:nth-child(odd)>th {
+.table-striped>tbody>tr:not(.bg-danger):nth-child(odd)>td, 
+.table-striped>tbody>tr:not(.bg-danger):nth-child(odd)>th {
    background-color: #444;
- }
- /* table --> */
+}
+/* table --> */
 .form-control, .progress{
 	background: #ededed;
 	border-radius: 0;
