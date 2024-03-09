@@ -154,3 +154,6 @@ table.herominers th, table.miner_table th{
 	overflow-x: scroll;
 	scrollbar-width: thin;*/
 }
+#qubic_stat b{
+	color: rgb(162, 252, 162) !important;
+}

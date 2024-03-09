@@ -131,8 +131,8 @@ use phpseclib3\Net\SSH2;
 				</div>
 				<div id="herominers_data">Please wait..</div>
 				<div id="qubic_data"></div>
+				<div id="tb_miners"></div>
 				<div id="qubic_stat"></div>
-
 				<div class="well" id="getBlocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
@@ -142,7 +142,7 @@ use phpseclib3\Net\SSH2;
 				<div id="cur_balance" class="well bg-secondary text-orange text-center"></div>
 				<br>
 				<!-- autoChangeEvery -->
-				<div>
+				<div class="forRplant">
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">
 							<select id="autoChangeEvery" class="form-control">
@@ -159,7 +159,7 @@ use phpseclib3\Net\SSH2;
 					</div>
 				</div>
 				<!-- autoStartAndStop -->
-				<div>
+				<div class="forRplant">
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">
 							<input type="text" id="autoStartAndStop_start_time" size="8" placeholder="12:00">
@@ -319,7 +319,7 @@ $(document).ready(function(){
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-	function getQubicStat(myHashrate)
+	function getQubicStat(myHashrate, current_solutions)
 	{
 		$.ajax({
 			url: 'qubic_statistic.php',
@@ -333,14 +333,29 @@ $(document).ready(function(){
 				{
 					//console.log(data['token']);
 					$("#qubic_stat").html(data['body']);
+					$("#tb_miners").html(data['tb_miners']);
 					qubic_token = data['token'];
+
+
+					if(last_solutions == 0 && data['totalSolutions'] > 0)
+					{
+						last_solutions = data['totalSolutions'];
+					}
+					if(data['totalSolutions'] != last_solutions && last_solutions < data['totalSolutions'])
+					{
+						last_solutions = data['totalSolutions'];
+						newMessage("New QUBIC solution: " + data['totalSolutions']);
+						alertFunc();
+					}
+
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>Solutions: <b>" + data['totalSolutions'] + "</b> | It/s: <b>" + data['totalIts'] + "</b></h2>");
 
 					$(".progress").show();
 					$("#cur_effort").show();
 					$("#cur_effort").css({"width" :  data['epoch_progress'] + "%"});
 					$("#cur_effort").attr("aria-valuemax" , 100);
 					$("#cur_effort").attr("aria-valuenow" , data['epoch_progress']);
-					$("#cur_effort").html("<h1>Epoch: " + data['epoch_progress'] + " %</h1>");
+					$("#cur_effort").html("<h1>Epoch " + data['epochNumber'] + ": " + data['epoch_progress'] + " %</h1>");
 
 				}
 			},
@@ -1018,7 +1033,6 @@ $(document).ready(function(){
 		        data = JSON.parse(data);
 
 				var trbl_worker = [];
-				var solutions 	= 0;
 
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
@@ -1069,29 +1083,12 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
 						QUBIC = true;
-						if(!isNaN(parseInt(value['solutions'])))
-						{
-							if(parseInt(value['solutions']) > 0){
-								solutions += parseInt(value['solutions']);
-							}
-						}
 					}
 				});
 
 				if(QUBIC)
 				{
-					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC SOL: <b>" + solutions + "</b></h2>");
-					$("#getBlocks").html('').hide();
-
-					if(last_solutions == 0 && solutions > 0)
-					{
-						last_solutions = solutions;
-					}
-					if(solutions != last_solutions && last_solutions < solutions)
-					{
-						last_solutions = solutions;
-						alertFunc();
-					}
+					$("#getBlocks, .forRplant").html('').hide();
 				}
 
 				if(!QUBIC && workersControl == "auto" && trbl_worker.length > 0)
