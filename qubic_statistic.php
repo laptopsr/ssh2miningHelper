@@ -35,7 +35,7 @@ else if(isset($_POST['qubic_token']) and !empty($_POST['qubic_token']))
 	$token = $_POST['qubic_token'];
 }
 
-$url = 'https://api.qubic.li/My/GetMiner'; // https://api.qubic.li/My/Get, https://api.qubic.li/My/MinerControl, https://api.qubic.li/My/GetMiner
+$url = 'https://api.qubic.li/My/MinerControl';
 $options = array(
     'http' => array(
         'header'  => "Authorization: Bearer $token\r\n",
@@ -76,6 +76,11 @@ $GetMiner 		= json_decode($response, true);
         )
 */
 
+$totalSolutions = $GetMiner['totalSolutions']??0;
+$totalIts		= $GetMiner['currentIts']??0;
+$activeMiners	= $GetMiner['activeMiners']??0;
+$inactiveMiners	= $GetMiner['inactiveMiners']??0;
+
 $tb_miners = "<table class=\"table table-striped\">";
 $tb_miners .= "
 <tr>
@@ -85,14 +90,10 @@ $tb_miners .= "
 	<th>Last</th>
 	<th>Its</th>
 </tr>";
-
-$totalSolutions = 0;
-$totalIts		= 0;
-
-foreach($GetMiner as $miner)
+foreach($GetMiner['miners'] as $miner)
 {
-	$totalSolutions += $miner['solutionsFound'];
-	$totalIts 		+= $miner['currentIts'];
+	//$totalSolutions += $miner['solutionsFound'];
+	//$totalIts 		+= $miner['currentIts'];
 
 	$tb_miners .= "
 	<tr>
@@ -105,10 +106,37 @@ foreach($GetMiner as $miner)
 }
 $tb_miners .= "</table>";
 
+// ------ //
+$url = 'https://api.qubic.li/My/Pool';
+$options = array(
+	'http' => array(
+		'header'  => "Authorization: Bearer $token\r\n",
+		'method'  => 'GET',
+		'timeout' => 3
+	)
+);
+$context  		= stream_context_create($options);
+$response 		= file_get_contents($url, false, $context);
+$pool			= json_decode($response, true);
+$activePoolName = $pool['activePool']['pool']['name']??'';
+
+// ------ //
 if(!isset($_POST['qubic_token']))
 {
+	$url = 'https://api.qubic.li/My/Pool'; // My/Get, My/MinerControl, My/GetMiner, My/Pool, My/Pool/Payouts, My/Profile, Revenue/Get
+	$options = array(
+		'http' => array(
+		    'header'  => "Authorization: Bearer $token\r\n",
+		    'method'  => 'GET',
+		    'timeout' => 3
+		)
+	);
+	$context  		= stream_context_create($options);
+	$response 		= file_get_contents($url, false, $context);
+	$r				= json_decode($response, true);
+
 	echo '<pre>';
-	print_r($GetMiner);
+	print_r($r);
 	echo '</pre>';
 	exit;
 }
@@ -154,12 +182,13 @@ $curSolPrice = 1479289940 * $poolReward * $curEpochProgress * $qubicPrice / ($ne
 
 $bd = "
 <br>
-Using pool with fixed 85% reward<br><br>
+Active: <b>$activeMiners</b>, Inactive: <b>$inactiveMiners</b><br>
+<b>$activePoolName</b><br>
 Epoch start / end: <b>" . date('d.m.Y H:i', $curEpochBegin+7200) . " / " . date('d.m.Y H:i', $curEpochEnd+7200) . "</b><br>
 Estimated network hashrate: <b>" . number_format($netHashrate, 0, '', ' ') . " it/s</b><br>
-Average score: <b>" . number_format($netAvgScores, 1) . "</b>. Per hour: <b>" . number_format($netSolsPerHour, 1) . "</b><br><br>
+Average score: <b>" . number_format($netAvgScores, 1) . "</b>. Per hour: <b>" . number_format($netSolsPerHour, 1) . "</b><br>
 Qubic price: <b>" . number_format($qubicPrice, 8) . "$</b><br>
-Estimated income per 1 it/s per day: <b>" . number_format($incomerPerOneITS, 4) . "$</b><br><br>
+Estimated income per 1 it/s per day: <b>" . number_format($incomerPerOneITS, 4) . "$</b><br>
 Your estimated income per day: <b>" . number_format($myHashrate * $incomerPerOneITS, 2) . "$</b><br>
 Estimated income per 1 sol: <b>" . number_format($curSolPrice, 2) . "$</b><br>
 Your estimated sols per day: <b>" . number_format(24 * $myHashrate * $netSolsPerHour / $netHashrate, 1) . "</b><br>
@@ -177,6 +206,6 @@ echo json_encode([
 	'tb_miners' => $tb_miners, 
 	'totalSolutions' => $totalSolutions, 
 	'totalIts' => $totalIts,
-	'epochNumber' => $epochNumber
+	'epochNumber' => $epochNumber,
 ]);
 ?>
