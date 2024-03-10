@@ -92,10 +92,11 @@ table.herominers th, table.miner_table th{
 	text-align: right;
 }
 .progress{
-	height: 50px;
+	height: 30px;
+	margin-bottom: 2px;
 }
-#cur_effort h1{
-	margin-top: 7px;
+#cur_effort h3, #cur_epoch h3{
+	margin-top: 9px;
 	color: orange;
 	font-weight: bold;
 }
@@ -104,7 +105,7 @@ table.herominers th, table.miner_table th{
 }
 #getBlocks{
 	display: none;
-	height: 35%; 
+	max-height: 35%; 
 	overflow-y: scroll;
 	overflow-x: hidden;
 	scrollbar-width: thin;

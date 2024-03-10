@@ -103,10 +103,12 @@ use phpseclib3\Net\SSH2;
 		<div id="blockFoundDiv"></div>
 		<div id="debugResponse"></div>
 
-		<div class="progress">
+		<div class="progress effort">
 			<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
 		</div>
-
+		<div class="progress epoch">
+			<div id="cur_epoch" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+		</div>
 	</center>
 	<br>
 		<div class="row">
@@ -114,7 +116,6 @@ use phpseclib3\Net\SSH2;
 				<div id="rplnt_api" style="display: none">
 				<div class="well bg-secondary text-orange text-center hrs"></div>
 				<br>
-				<h4 class="text-orange">Rplant statistic (<span id="source_count"></span>)</h4>
 				<table class="table table-striped miner_table">
 					<tr class="tr_miner"><td>Network name</td><th><span class="rplant_field" id="v"></span></th></tr>
 					<tr class="tr_miner"><td>Network hashrate</td><th><span class="rplant_field" id="hr"></span></th></tr>
@@ -129,11 +130,11 @@ use phpseclib3\Net\SSH2;
 					<tr class="tr_miner"><td>Offline workers</td><th><span class="rplant_field" id="wcs_offline"></span></th></tr>
 				</table>
 				</div>
+				<div class="well" id="getBlocks"></div>
 				<div id="herominers_data">Please wait..</div>
 				<div id="qubic_data"></div>
 				<div id="tb_miners"></div>
 				<div id="qubic_stat"></div>
-				<div class="well" id="getBlocks"></div>
 				<hr>
 				<div id="moneyToday"></div>
 			</div>
@@ -192,7 +193,7 @@ use phpseclib3\Net\SSH2;
 			</div>
 			<div class="col-md-5">
 				<div id="all_computers">
-					<div class="well bg-secondary text-orange text-center"><h2>Home: <b><span id="hashrateSum"></span> H/s</b></h2></div>
+					<div class="well bg-secondary text-orange text-center"><h2>Home: <b><span id="hashrateSum"></span> H/s</b><span id="mySolutions"></span></h2></div>
 					<br>
 					<table class="table table-striped">
 					<tr>
@@ -295,6 +296,10 @@ use phpseclib3\Net\SSH2;
 <script>
 $(document).ready(function(){
 
+	$(".progress.effort").hide();
+	$(".progress.epoch").hide();
+
+	var RPLANT				= false;
 	var QUBIC 				= false;
 	var qubic_token 		= "";
 	var last_solutions		= 0;
@@ -322,12 +327,12 @@ $(document).ready(function(){
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-	function getQubicStat(myHashrate, current_solutions)
+	function getQubicStat()
 	{
 		$.ajax({
 			url: 'qubic_statistic.php',
 			method: 'POST',
-			data: { myHashrate: myHashrate, qubic_token : qubic_token },
+			data: { qubic_token : qubic_token },
 			success: function(data) {
 				//console.log(data);
 				data = JSON.parse(data);
@@ -339,6 +344,11 @@ $(document).ready(function(){
 					$("#tb_miners").html(data['tb_miners']);
 					qubic_token = data['token'];
 
+					new DataTable('table.qubicStat', {
+						//"order": [ [4,'desc'], [3,'asc'] ],
+						"order": [ [4,'desc'] ],
+						paging: false,
+					});
 
 					if(last_solutions == 0 && data['totalSolutions'] > 0)
 					{
@@ -351,14 +361,14 @@ $(document).ready(function(){
 						alertFunc();
 					}
 
-					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>Solutions: <b>" + data['totalSolutions'] + "</b> | It/s: <b>" + data['totalIts'] + "</b></h2>");
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>It/s: <b>" + data['totalIts'] + "</b> | SOL: <b>" + data['totalSolutions'] + "</b></h2>");
 
-					$(".progress").show();
-					$("#cur_effort").show();
-					$("#cur_effort").css({"width" :  data['epoch_progress'] + "%"});
-					$("#cur_effort").attr("aria-valuemax" , 100);
-					$("#cur_effort").attr("aria-valuenow" , data['epoch_progress']);
-					$("#cur_effort").html("<h1>Epoch " + data['epochNumber'] + ": " + data['epoch_progress'] + " %</h1>");
+					$(".progress.epoch").show();
+					$("#cur_epoch").show();
+					$("#cur_epoch").css({"width" :  data['epoch_progress'] + "%"});
+					//$("#cur_epoch").attr("aria-valuemax" , 100);
+					$("#cur_epoch").attr("aria-valuenow" , data['epoch_progress']);
+					$("#cur_epoch").html("<h3>Epoch " + data['epochNumber'] + ": " + data['epoch_progress'] + " %</h3>");
 
 				}
 			},
@@ -738,11 +748,6 @@ $(document).ready(function(){
 
 	$(document).delegate(".coin", "click",function(){
 
-		if(QUBIC)
-		{
-			return false;
-		}
-
 		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-secondary text-white active').addClass('btn-info');
 		$( this ).removeClass('btn-info').addClass('btn-secondary text-white active');
@@ -1008,10 +1013,10 @@ $(document).ready(function(){
 					var effort_herominers 	= ((data.stats.poolRoundHashes / network_hashrate) / 2).toFixed(); // Еще есть network_diff, но как все вместе использовать?
 					var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
 
-					$(".progress").show();
+					$(".progress.effort").show();
 					$("#cur_effort").show();
 					$("#cur_effort").css({"width" :  effort_herominers + "%"});
-					$("#cur_effort").html("<h1>" + effort_for + "effort " + effort_herominers + " %</h1>");
+					$("#cur_effort").html("<h3>" + effort_for + "effort " + effort_herominers + " %</h3>");
 					$("#cur_effort").attr("aria-valuenow" , effort_herominers);
 
 
@@ -1041,7 +1046,10 @@ $(document).ready(function(){
 		        //console.log("Sended:");
 		        data = JSON.parse(data);
 
-				var trbl_worker = [];
+				var trbl_worker 	= [];
+				var my_solutions 	= 0;
+				QUBIC 				= false;
+				RPLANT 				= false;
 
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
@@ -1092,25 +1100,32 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
 						QUBIC = true;
+						my_solutions += parseInt(value['solutions']);
+					}
+					if(value['session'] && (value['session'] == 'cpuminer' || value['session'] == 'xmrig'))
+					{
+						RPLANT = true;
 					}
 				});
 
-				if(QUBIC)
-				{
-					$("#getBlocks, .forRplant").html('').hide();
-				}
-
-				if(!QUBIC && workersControl == "auto" && trbl_worker.length > 0)
+				if(workersControl == "auto" && trbl_worker.length > 0)
 				{
 					$("#lomake_workers option:selected").removeAttr("selected");
 					$("#lomake_workers").val(trbl_worker);
 
 					setTimeout(function() {
 
-						// --- message --- //
-						newMessage("Miner reload: " + trbl_worker);
+						if($("#allCoins").find('.active').length)
+						{
+							$("#allCoins").find('.active').click();
+						}
+						else
+						{
+							// No coin selected
+						}
 						
-						$("#allCoins").find('.active').click();
+						newMessage("Miner reload: " + trbl_worker);
+
 					}, 2000);
 				}
 
@@ -1128,7 +1143,9 @@ $(document).ready(function(){
 
 				if(QUBIC)
 				{
-					getQubicStat(sum);
+					$(".forRplant").html('').hide();
+					$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
+					getQubicStat();
 				}
 				// ------ //
 
@@ -1149,7 +1166,7 @@ $(document).ready(function(){
 					specifiedTime.setSeconds(seconds);
 
 					// Добавляем 10 минут к устаревшему времени
-					var outdatedTime = new Date(specifiedTime.getTime() + 1 * 60000); // 60000 миллисекунд в минуте
+					var outdatedTime = new Date(specifiedTime.getTime() + 3 * 60000); // 60000 миллисекунд в минуте
 
 					// Сравниваем текущее время с устаревшим временем
 					if (currentTime > outdatedTime) {
@@ -1178,7 +1195,7 @@ $(document).ready(function(){
 	function getBlocks() {
 
 		var parseLastData = JSON.parse(lastClickedData);
-		if(!QUBIC && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		if(RPLANT && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
 		{
 			var url = 'https://pool.rplant.xyz/api/blocks';
 			$.getJSON(url, function(data) {
@@ -1254,7 +1271,7 @@ $(document).ready(function(){
 	function EffortClear()
 	{
 		$("#cur_effort").css({"width" :  "0%"});
-		$("#cur_effort").html("<h1>0 %</h1>");
+		$("#cur_effort").html("<h3>0 %</h3>");
 		$("#cur_effort").attr("aria-valuenow" , "0");
 	}
 
@@ -1263,12 +1280,13 @@ $(document).ready(function(){
 	function rplantApiStream(data)
 	{
 		var parseLastData = JSON.parse(lastClickedData);
-		if(!QUBIC && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		if(RPLANT && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
 		{
 
-			$(".progress").show();
+			$(".progress.effort").show();
 			$("#cur_effort").show();
 			$("#rplnt_api").show();
+			$("#getBlocks").show();
 
 			var parseLastData = JSON.parse(data);
 			if(!parseLastData[0]['coin_name'])
@@ -1312,7 +1330,7 @@ $(document).ready(function(){
 			source = new EventSource(url);
 			source.addEventListener('message', function(e) {
 
-				if(!QUBIC && source)
+				if(!RPLANT && source)
 				{
 					source.close();
 					$("#rplnt_api").hide();
@@ -1321,7 +1339,6 @@ $(document).ready(function(){
 				}
 
 				source_count += 1;
-				$("#source_count").html(source_count);
 
 				var parsed = JSON.parse(e.data);
 				//console.log(parsed['blocks']);
@@ -1380,7 +1397,7 @@ $(document).ready(function(){
 
 						var workers_offline = [];
 						$.each(allMyWorkers, function(index, value) {
-							if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() != "offline")
+							if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() != "offline"  && $("#worker_" + index).find('.session').text() != "QUBIC")
 							{
 								workers_offline.push(index);
 							}
@@ -1438,7 +1455,7 @@ $(document).ready(function(){
 					}
 
 					$("#cur_effort").css({"width" :  effort + "%"});
-					$("#cur_effort").html("<h1>" + effort_origin + " %</h1>");
+					$("#cur_effort").html("<h3>Rplant effort: " + effort_origin + " %</h3>");
 					$("#cur_effort").attr("aria-valuenow" , effort);
 				}
 
@@ -1446,7 +1463,7 @@ $(document).ready(function(){
 				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
 				if(network_diff !== 0){ 			$("#d").html(network_diff) };
 				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>Pool: <b class=\"rplant_field\">" + hrs + " H/s</b></h2>"); };
+				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>Pool: <b class=\"rplant_field\">" + hrs + " H/s</b> (" + source_count + ")</h2>"); };
 				if(wcs !== 0){ 						$("#wcs").html(wcs) };
 				if(immature !== 0){ 				$("#immature").html(immature) };
 				if(balance !== 0){ 					$("#balance").html(balance) };
@@ -1491,11 +1508,9 @@ $(document).ready(function(){
 		}
 		else
 		{
-			if(!QUBIC)
-			{
-				$(".progress").hide();
-				$("#cur_effort").hide();
-			}
+
+			$(".progress.effort").hide();
+			$("#cur_effort").hide();
 			$("#rplnt_api").hide();
 		}
 	}

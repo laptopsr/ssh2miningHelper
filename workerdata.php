@@ -163,13 +163,16 @@ foreach($arr as $v)
 			$expl 		= explode("|", $output);
 			$SOL		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? explode("/", $expl[3] ?? '') : 0;
 
-			$arWorker['session']	= "QUBIC";
-			$arWorker['time'] 		= $expl[0] ? date("H:i:s", strtotime($expl[0])) : '';
-			$arWorker['hashrate'] 	= $expl[1] ?? 0; //round(((float)$expl[1] ?? 0));
-			$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? ($expl[2] ?? '').($expl[3] ?? '') : '';
-			$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[0] : 0;
+			if(strtotime($expl[0]) !== false and (time()-strtotime($expl[0])) < 60)
+			{
+				$arWorker['session']	= "QUBIC";
+				$arWorker['time'] 		= $expl[0] ? date("H:i:s", strtotime($expl[0])) : '';
+				$arWorker['hashrate'] 	= $expl[1] ?? 0; //round(((float)$expl[1] ?? 0));
+				$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? ($expl[2] ?? '').($expl[3] ?? '') : '';
+				$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[0] : 0;
 
-			goto finishWorker;
+				goto finishWorker;
+			}
 
 		} catch (\Exception $e) {
 			goto finishWorker;
