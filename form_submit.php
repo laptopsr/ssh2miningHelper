@@ -105,11 +105,11 @@ if(isset($_POST['command']))
 
 	if($_POST['debug'] == "true")
 	{
-		echo json_encode(['debug' => $bd]);
+		echo json_encode(['debug' => $bd, 'return' => "OK", 'post_workers' => $_POST['workers']]);
 	}
 	else
 	{
-		echo json_encode("OK");
+		echo json_encode(['return' => "OK", 'post_workers' => $_POST['workers']]);
 	}
 }
 ?>

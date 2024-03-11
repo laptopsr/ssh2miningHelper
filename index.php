@@ -727,8 +727,8 @@ $(document).ready(function(){
 		    method: 'POST',
 		    data: formData,
 		    success: function(data) {
+		        console.log("Form send: " + data);
 		    	data = JSON.parse(data);
-		        //console.log("Form send: " + data);
 		        $("#lomake_workers option").prop("selected", true);
         
 		        if(data['debug'])
