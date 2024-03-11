@@ -8,7 +8,11 @@ use phpseclib3\Net\SSH2;
 
 if(isset($_POST['getSettings']))
 {
-    $currentContent = json_decode(file_get_contents("settings.txt"), true);
+	$currentContent = "";
+	if(file_exists("settings.txt"))
+	{
+    	$currentContent = json_decode(file_get_contents("settings.txt"), true);
+    }
     echo json_encode($currentContent);
 }
 // ------ //
