@@ -160,12 +160,17 @@ if(isset($_POST['newMessage']))
 // ------ //
 if(isset($_POST['getMessages']))
 {
-    $currentContent 	= file_get_contents("messages.txt");
-    $contentArray 		= explode("\n", $currentContent);
-    $firstTwentyLines 	= array_slice($contentArray, 0, $_POST['count']);
-    $outputContent 		= implode("\n", $firstTwentyLines);
+	$outputContent = "";
 
-    echo json_encode($outputContent);
+	if(file_exists("messages.txt"))
+	{
+		$currentContent 	= file_get_contents("messages.txt");
+		$contentArray 		= explode("\n", $currentContent);
+		$firstTwentyLines 	= array_slice($contentArray, 0, $_POST['count']);
+		$outputContent 		= implode("\n", $firstTwentyLines);
+	}
+	
+	echo json_encode($outputContent);
 }
 // ------ //
 if(isset($_POST['removeAllMessages'])) {
