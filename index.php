@@ -905,6 +905,7 @@ $(document).ready(function(){
 		var parseLastData = JSON.parse(lastClickedData);
 		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('herominers'))
 		{
+			$(".forRplant").hide();
 			var coin_name 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
 			var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
 			var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
