@@ -299,6 +299,7 @@ $(document).ready(function(){
 	$(".progress.effort").hide();
 	$(".progress.epoch").hide();
 
+	var HEROMINERS 			= false;
 	var RPLANT				= false;
 	var QUBIC 				= false;
 	var qubic_token 		= "";
@@ -905,6 +906,7 @@ $(document).ready(function(){
 		var parseLastData = JSON.parse(lastClickedData);
 		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('herominers'))
 		{
+			HEROMINERS = true;
 			$(".forRplant").hide();
 			var coin_name 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
 			var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
@@ -1151,7 +1153,7 @@ $(document).ready(function(){
 				}
 				
 				// --- When RPLANT is proccessed --- //
-				if(RPLANT)
+				if(RPLANT && !HEROMINERS)
 				{
 					$(".forRplant").show();
 				}
