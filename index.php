@@ -1001,7 +1001,7 @@ $(document).ready(function(){
 					var currentTime 		= Math.floor(Date.now() / 1000);
 
 					$.each(data.workers, function(index, value) {
-						console.log(value);
+						//console.log(value);
 
 						// Вычисляем разницу в секундах
 						var differenceInSeconds = currentTime - value.lastShare;
@@ -1179,7 +1179,7 @@ $(document).ready(function(){
 					specifiedTime.setSeconds(seconds);
 
 					// Добавляем 10 минут к устаревшему времени
-					var outdatedTime = new Date(specifiedTime.getTime() + 3 * 60000); // 60000 миллисекунд в минуте
+					var outdatedTime = new Date(specifiedTime.getTime() + 5 * 60000); // 60000 миллисекунд в минуте
 
 					// Сравниваем текущее время с устаревшим временем
 					if (currentTime > outdatedTime) {
@@ -1208,7 +1208,7 @@ $(document).ready(function(){
 	function getBlocks() {
 
 		//var parseLastData = JSON.parse(lastClickedData);
-		if(RPLANT) //  && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant')
+		if(RPLANT && !QUBIC && !HEROMINERS) //  && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant')
 		{
 			var url = 'https://pool.rplant.xyz/api/blocks';
 			$.getJSON(url, function(data) {
