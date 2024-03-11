@@ -229,7 +229,7 @@ foreach($arr as $v)
 		{
 			$arWorker['session'] = $session; // $session.' '.$this_CPU;
 
-			if($this_CPU == "INTEL")
+			if($v['date_format'] == 2)
 			{
 				$command = "
 				echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $1}' ); 
@@ -240,7 +240,7 @@ foreach($arr as $v)
 				";
 			}
 			
-			if($this_CPU == "AMD")
+			if($v['date_format'] == 1)
 			{
 				$command = "
 				echo $( timeout 1 tail -f {$path_syslog} | grep -m 1 \"Accepted\" | awk '/Accepted/ {print $3}' ); 

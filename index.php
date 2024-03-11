@@ -113,24 +113,24 @@ use phpseclib3\Net\SSH2;
 	<br>
 		<div class="row">
 			<div class="col-md-3">
-				<div id="rplnt_api" style="display: none">
-				<div class="well bg-secondary text-orange text-center hrs"></div>
-				<br>
-				<table class="table table-striped miner_table">
-					<tr class="tr_miner"><td>Network name</td><th><span class="rplant_field" id="v"></span></th></tr>
-					<tr class="tr_miner"><td>Network hashrate</td><th><span class="rplant_field" id="hr"></span></th></tr>
-					<tr class="tr_miner"><td>Network diff</td><th><span class="rplant_field" id="d"></span></th></tr>
-					<tr class="tr_miner"><td>Hashrate solo</td><th><span class="rplant_field" id="hrs"></span></th></tr>
-					<tr class="tr_miner"><td>Immature</td><th><span class="rplant_field" id="immature"></span></th></tr>
-					<tr class="tr_miner"><td>Balance</td><th><span class="rplant_field" id="balance"></span></th></tr>
-					<tr class="tr_miner"><td>Paid</td><th><span class="rplant_field" id="paid"></span></th></tr>
-					<tr class="tr_miner"><td>Shares</td><th><span class="rplant_field" id="soloShares"></span></th></tr>
-					<tr class="tr_miner"><td>Workers</td><th><span class="rplant_field" id="wcs"></span></th></tr>
-					<tr class="tr_miner"><td>Solo blocks found</td><th><span class="rplant_field" id="block_found"></span></th></tr>
-					<tr class="tr_miner"><td>Offline workers</td><th><span class="rplant_field" id="wcs_offline"></span></th></tr>
-				</table>
+				<div class="forRplant">
+					<div class="well bg-secondary text-orange text-center hrs"></div>
+					<br>
+					<table class="table table-striped miner_table">
+						<tr><td>Network name</td><th><span class="rplant_field" id="v"></span></th></tr>
+						<tr><td>Network hashrate</td><th><span class="rplant_field" id="hr"></span></th></tr>
+						<tr><td>Network diff</td><th><span class="rplant_field" id="d"></span></th></tr>
+						<tr><td>Hashrate solo</td><th><span class="rplant_field" id="hrs"></span></th></tr>
+						<tr><td>Immature</td><th><span class="rplant_field" id="immature"></span></th></tr>
+						<tr><td>Balance</td><th><span class="rplant_field" id="balance"></span></th></tr>
+						<tr><td>Paid</td><th><span class="rplant_field" id="paid"></span></th></tr>
+						<tr><td>Shares</td><th><span class="rplant_field" id="soloShares"></span></th></tr>
+						<tr><td>Workers</td><th><span class="rplant_field" id="wcs"></span></th></tr>
+						<tr><td>Solo blocks found</td><th><span class="rplant_field" id="block_found"></span></th></tr>
+						<tr><td>Offline workers</td><th><span class="rplant_field" id="wcs_offline"></span></th></tr>
+					</table>
 				</div>
-				<div class="well" id="getBlocks"></div>
+				<div class="well forRplant" id="getBlocks"></div>
 				<div id="herominers_data">Please wait..</div>
 				<div id="qubic_data"></div>
 				<div id="tb_miners"></div>
@@ -361,7 +361,7 @@ $(document).ready(function(){
 						alertFunc();
 					}
 
-					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>It/s: <b>" + data['totalIts'] + "</b> | SOL: <b>" + data['totalSolutions'] + "</b></h2>");
+					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC It/s: <b>" + data['totalIts'] + "</b> | SOL: <b>" + data['totalSolutions'] + "</b></h2>");
 
 					$(".progress.epoch").show();
 					$("#cur_epoch").show();
@@ -410,9 +410,10 @@ $(document).ready(function(){
 				var parseLastData = JSON.parse(lastClickedData);
 				if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] != "")
 				{
-					setTimeout(function() { 
+					setTimeout(function() {
+						console.log("Start rplantApiStream");
 						rplantApiStream(lastClickedData);
-					}, 15000);
+					}, 20000);
 				}
 			}
 		},
@@ -1141,13 +1142,22 @@ $(document).ready(function(){
 				});
 				$("#hashrateSum").html(sum);
 
+				// --- When QUBIC is proccessed --- //
 				if(QUBIC)
 				{
-					$(".forRplant").html('').hide();
 					$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
 					getQubicStat();
 				}
-				// ------ //
+				
+				// --- When RPLANT is proccessed --- //
+				if(RPLANT)
+				{
+					$(".forRplant").show();
+				}
+				else
+				{
+					$(".forRplant").hide();
+				}
 
 				$('.time').each(function(index, element) {
 					// Получаем текущее время
@@ -1194,8 +1204,8 @@ $(document).ready(function(){
 
 	function getBlocks() {
 
-		var parseLastData = JSON.parse(lastClickedData);
-		if(RPLANT && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		//var parseLastData = JSON.parse(lastClickedData);
+		if(RPLANT) //  && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant')
 		{
 			var url = 'https://pool.rplant.xyz/api/blocks';
 			$.getJSON(url, function(data) {
@@ -1282,17 +1292,17 @@ $(document).ready(function(){
 		var parseLastData = JSON.parse(lastClickedData);
 		if(RPLANT && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
 		{
-
-			$(".progress.effort").show();
-			$("#cur_effort").show();
-			$("#rplnt_api").show();
-			$("#getBlocks").show();
-
 			var parseLastData = JSON.parse(data);
 			if(!parseLastData[0]['coin_name'])
 			{
 				return false;
 			}
+
+			$(".progress.effort").show();
+			$("#cur_effort").show();
+			$(".forRplant").show();
+
+			console.log("rplantApiStream is Started");
 
 			var source_count		= 0;
 			var blockFound 			= 0;
@@ -1330,11 +1340,13 @@ $(document).ready(function(){
 			source = new EventSource(url);
 			source.addEventListener('message', function(e) {
 
+				//console.log("Rplant data is online");
+
 				if(!RPLANT && source)
 				{
+					console.log("Rplant go to closed");
 					source.close();
-					$("#rplnt_api").hide();
-					$("#getBlocks").hide();
+					$(".forRplant").hide();
 					return false;
 				}
 
@@ -1463,7 +1475,7 @@ $(document).ready(function(){
 				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
 				if(network_diff !== 0){ 			$("#d").html(network_diff) };
 				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>Pool: <b class=\"rplant_field\">" + hrs + " H/s</b> (" + source_count + ")</h2>"); };
+				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>RPLANT: <b class=\"rplant_field\">" + hrs + " H/s</b> (" + source_count + ")</h2>"); };
 				if(wcs !== 0){ 						$("#wcs").html(wcs) };
 				if(immature !== 0){ 				$("#immature").html(immature) };
 				if(balance !== 0){ 					$("#balance").html(balance) };
@@ -1508,10 +1520,9 @@ $(document).ready(function(){
 		}
 		else
 		{
-
 			$(".progress.effort").hide();
 			$("#cur_effort").hide();
-			$("#rplnt_api").hide();
+			$(".forRplant").hide();
 		}
 	}
 
