@@ -416,7 +416,7 @@ $(document).ready(function(){
 				if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] != "")
 				{
 					setTimeout(function() {
-						console.log("Start rplantApiStream");
+						console.log("Try to start rplantApiStream");
 						rplantApiStream(lastClickedData);
 					}, 20000);
 				}
@@ -429,7 +429,7 @@ $(document).ready(function(){
 
 	// ------ //
 	$(document).delegate("#workersControl", "change",function(){
-		var set = [{workersControl : $(this, 'option;selected').val()}];
+		var set = [{workersControl : $(this, 'option:selected').val()}];
 		saveSettings(set);
 		workersControl = $(this, 'option;selected').val();
 	});
@@ -836,7 +836,7 @@ $(document).ready(function(){
 				success: function(data) {
 				    data = JSON.parse(data);
 				    
-				    if(data['html_data'])
+				    if(data['html_data'] && data['is_APIok'] == "true")
 				    {
 						$("#allCoins").html(data['html_data']);
 					}
@@ -920,7 +920,13 @@ $(document).ready(function(){
 			var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
 			var network_hashrate 	= $("#allCoins").find('.active').closest('tr').attr('network_hashrate');
 			var network_diff 		= $("#allCoins").find('.active').closest('tr').attr('network_diff');
-			
+
+			if(!coin_name)
+			{
+				console.log("Active coin not found");
+				return false;
+			}
+
 			//console.log(coin_name + " " + address);
 
 			var url = "https://" + coin_name + ".herominers.com/api/stats_address?address=" + address;

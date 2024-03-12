@@ -26,14 +26,22 @@ if(isset($_POST['qubic_token']) and empty($_POST['qubic_token']) or !isset($_POS
 		    'timeout' => 3
 		)
 	);
+	
+
 	$context  = stream_context_create($options);
 	$response = file_get_contents($url, false, $context);
 	$result = json_decode($response, true);
-	$token = $result['token'];
+	$token = $result['token']??'';
 }
 else if(isset($_POST['qubic_token']) and !empty($_POST['qubic_token']))
 {
 	$token = $_POST['qubic_token'];
+}
+
+if(empty($token))
+{
+	echo json_encode(['error' => 'Token']);
+	exit;
 }
 
 $url = 'https://api.qubic.li/My/MinerControl';
@@ -101,19 +109,22 @@ $tb_miners = "<table class=\"table table-striped qubicStat\">
 </tr>
 </thead>
 <tbody>";
-foreach($GetMiner['miners'] as $miner)
+if(isset($GetMiner['miners']))
 {
-	//$totalSolutions += $miner['solutionsFound'];
-	//$totalIts 		+= $miner['currentIts'];
+	foreach($GetMiner['miners'] as $miner)
+	{
+		//$totalSolutions += $miner['solutionsFound'];
+		//$totalIts 		+= $miner['currentIts'];
 
-	$tb_miners .= "
-	<tr>
-		<td>$miner[alias]</td>
-		<td>".($miner['solutionsFound']>0? $miner['solutionsFound'] : '')."</td>
-		<td>".(empty($miner['isActive'])? '':'On')."</td>
-		<td>".date("H:i", strtotime($miner['lastActive'])+7200)."</td>
-		<td>$miner[currentIts]</td>
-	</tr>";
+		$tb_miners .= "
+		<tr>
+			<td>$miner[alias]</td>
+			<td>".($miner['solutionsFound']>0? $miner['solutionsFound'] : '')."</td>
+			<td>".(empty($miner['isActive'])? '':'On')."</td>
+			<td>".date("H:i", strtotime($miner['lastActive'])+7200)."</td>
+			<td>$miner[currentIts]</td>
+		</tr>";
+	}
 }
 $tb_miners .= "</tbody></table>";
 

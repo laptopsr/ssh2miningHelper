@@ -154,6 +154,7 @@ $bd = '
 <tbody>';
 
 $i = 0;
+$is_APIok = "false";
 foreach($coins as $coin)
 {
 	$last_price 		= $xeggexTickers[$coin['coin']]['last_price']??0;
@@ -179,6 +180,11 @@ foreach($coins as $coin)
 		<td class="reward">'.round($reward, 3).'</td>
 		<td class="efficiency">'.$efficiency.'</td>
 	</tr>';
+	
+	if(isset($xeggexTickers[$coin['coin']]['last_price']) and $xeggexTickers[$coin['coin']]['last_price'] > 0)
+	{
+		$is_APIok = "true";
+	}
 }
 $bd .= '</tbody></table>';
 
@@ -186,7 +192,8 @@ $bd .= '</tbody></table>';
 echo json_encode([
 	'html_data' => $bd,
 	'USD_total_xeggex' => round((float)($xeggexBalances['USDT']['available']??0) + (float)($xeggexBalances['USDT']['held']??0), 2),
-	'USD_coins_xeggex' => round($totalCoinBalance, 2)
+	'USD_coins_xeggex' => round($totalCoinBalance, 2),
+	'is_APIok' => $is_APIok
 ]);
 
 
