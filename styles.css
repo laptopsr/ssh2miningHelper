@@ -95,7 +95,7 @@ table.herominers th, table.miner_table th{
 	height: 30px;
 	margin-bottom: 2px;
 }
-#cur_effort h3, #cur_epoch h3{
+.progress-bar h3, .progress-bar h3{
 	margin-top: 9px;
 	color: orange;
 	font-weight: bold;

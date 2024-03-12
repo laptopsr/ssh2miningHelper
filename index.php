@@ -99,18 +99,21 @@ use phpseclib3\Net\SSH2;
 	</script>
 
 	<div class="container-fluid" style="margin-top: 20px;">
-	<center>
-		<div id="blockFoundDiv"></div>
-		<div id="debugResponse"></div>
+		<center>
+			<div id="blockFoundDiv"></div>
+			<div id="debugResponse"></div>
 
-		<div class="progress effort">
-			<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
-		</div>
-		<div class="progress epoch">
-			<div id="cur_epoch" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-		</div>
-	</center>
-	<br>
+			<div class="progress rplant_effort">
+				<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
+			</div>
+			<div class="progress herominers_effort">
+				<div id="h_cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
+			</div>
+			<div class="progress epoch">
+				<div id="cur_epoch" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+			</div>
+		</center>
+		<small id="softVersion">STAN Version: 5</small>
 		<div class="row">
 			<div class="col-md-3">
 				<div class="forRplant">
@@ -296,7 +299,8 @@ use phpseclib3\Net\SSH2;
 <script>
 $(document).ready(function(){
 
-	$(".progress.effort").hide();
+	$(".progress.rplant_effort").hide();
+	$(".progress.herominers_effort").hide();
 	$(".progress.epoch").hide();
 
 	var HEROMINERS 			= false;
@@ -369,7 +373,7 @@ $(document).ready(function(){
 					$("#cur_epoch").css({"width" :  data['epoch_progress'] + "%"});
 					//$("#cur_epoch").attr("aria-valuemax" , 100);
 					$("#cur_epoch").attr("aria-valuenow" , data['epoch_progress']);
-					$("#cur_epoch").html("<h3>Epoch " + data['epochNumber'] + ": " + data['epoch_progress'] + " %</h3>");
+					$("#cur_epoch").html("<h3>Qubic epoch " + data['epochNumber'] + ": " + data['epoch_progress'] + " %</h3>");
 
 				}
 			},
@@ -905,13 +909,12 @@ $(document).ready(function(){
 		herominersApi();
 	}, 10000);
 
-	function herominersApi() {
-
-		var parseLastData = JSON.parse(lastClickedData);
-		if(parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('herominers'))
+	function herominersApi()
+	{
+		if(HEROMINERS)
 		{
-			HEROMINERS = true;
-			$(".forRplant").hide();
+			$(".forHerominers").show();
+
 			var coin_name 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
 			var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
 			var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
@@ -961,7 +964,7 @@ $(document).ready(function(){
 						)
 						*/
 
-			    	var htmlData = "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers</h2></div>";
+			    	var htmlData = "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers: statistic</h2></div>";
 			    	htmlData += "<table class=\"table table-striped herominers\">";
 			    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data.stats.hashrate) / 1000).toFixed() + " KH/s</th></tr>";
 			    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data.stats.hashrate_1h) / 1000).toFixed() + " KH/s</th></tr>";
@@ -997,8 +1000,8 @@ $(document).ready(function(){
 					htmlData += "</table>";
 
 					// --- Check workers --- //
-					htmlData += "<div class=\"well bg-secondary text-orange text-center\"><h2>Workers</h2></div>";
-			    	htmlData += "<table class=\"table table-striped herominers\">";
+					htmlData += "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers: workers</h2></div>";
+			    	htmlData += "<table class=\"table table-striped herominers_wrk\">";
 					htmlData += "<tr><th>Wrk.</th><td>Hashrate</td><td>Last</td><td>Rejct</td></tr>";
 
 					// Получаем текущее время в секундах (UNIX-формат)
@@ -1021,11 +1024,10 @@ $(document).ready(function(){
 					var effort_herominers 	= ((data.stats.poolRoundHashes / network_hashrate) / 2).toFixed(); // Еще есть network_diff, но как все вместе использовать?
 					var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
 
-					$(".progress.effort").show();
-					$("#cur_effort").show();
-					$("#cur_effort").css({"width" :  effort_herominers + "%"});
-					$("#cur_effort").html("<h3>" + effort_for + "effort " + effort_herominers + " %</h3>");
-					$("#cur_effort").attr("aria-valuenow" , effort_herominers);
+					$(".progress.herominers_effort").show();
+					$("#h_cur_effort").css({"width" :  effort_herominers + "%"});
+					$("#h_cur_effort").html("<h3>Herominers " + effort_for + "effort " + effort_herominers + " %</h3>");
+					$("#h_cur_effort").attr("aria-valuenow" , effort_herominers);
 
 
 				}
@@ -1034,6 +1036,7 @@ $(document).ready(function(){
 		else
 		{
 			$("#herominers_data").html("");
+			$(".forHerominers").hide();
 		}
 	}
 
@@ -1055,9 +1058,11 @@ $(document).ready(function(){
 		        data = JSON.parse(data);
 
 				var trbl_worker 	= [];
+				var qubic_worker 	= [];
 				var my_solutions 	= 0;
 				QUBIC 				= false;
 				RPLANT 				= false;
+				HEROMINERS 			= false;
 
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
@@ -1108,11 +1113,16 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
 						QUBIC = true;
+						qubic_worker.push(value['id']);
 						my_solutions += parseInt(value['solutions']);
 					}
-					if(value['session'] && (value['session'] == 'cpuminer' || value['session'] == 'xmrig'))
+					if (value['pool'].indexOf("rplant") !== -1)
 					{
 						RPLANT = true;
+					}
+					if (value['pool'].indexOf("herominers") !== -1)
+					{
+						HEROMINERS = true;
 					}
 				});
 
@@ -1153,17 +1163,39 @@ $(document).ready(function(){
 				if(QUBIC)
 				{
 					$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
+					
+					if(qubic_worker.length > 0){
+						qubic_worker.forEach(function(worker) {
+							$("#lomake_workers option[value='" + worker + "']").removeAttr("selected");
+						});
+					}
+					else
+					{
+						$("#lomake_workers option").prop("selected", true);
+					}
 					getQubicStat();
 				}
 				
 				// --- When RPLANT is proccessed --- //
-				if(RPLANT && !HEROMINERS)
+				if(RPLANT)
 				{
 					$(".forRplant").show();
 				}
 				else
 				{
+					RPLANT = false;
 					$(".forRplant").hide();
+				}
+
+				// --- When HEROMINERS is proccessed --- //
+				if(HEROMINERS)
+				{
+					$(".forHerominers").show();
+				}
+				else
+				{
+					HEROMINERS = false;
+					$(".forHerominers").hide();
 				}
 
 				$('.time').each(function(index, element) {
@@ -1296,8 +1328,8 @@ $(document).ready(function(){
 
 	function rplantApiStream(data)
 	{
-		var parseLastData = JSON.parse(lastClickedData);
-		if(RPLANT && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+		//var parseLastData = JSON.parse(lastClickedData);
+		if(RPLANT) // && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant')
 		{
 			var parseLastData = JSON.parse(data);
 			if(!parseLastData[0]['coin_name'])
@@ -1305,7 +1337,7 @@ $(document).ready(function(){
 				return false;
 			}
 
-			$(".progress.effort").show();
+			$(".progress.rplant_effort").show();
 			$("#cur_effort").show();
 			$(".forRplant").show();
 
@@ -1347,7 +1379,7 @@ $(document).ready(function(){
 			source = new EventSource(url);
 			source.addEventListener('message', function(e) {
 
-				//console.log("Rplant data is online");
+				//console.log("Rplant source is online");
 
 				if(!RPLANT && source)
 				{
@@ -1527,7 +1559,7 @@ $(document).ready(function(){
 		}
 		else
 		{
-			$(".progress.effort").hide();
+			$(".progress.rplant_effort").hide();
 			$("#cur_effort").hide();
 			$(".forRplant").hide();
 		}
