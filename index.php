@@ -636,6 +636,10 @@ $(document).ready(function(){
 	}, false);
 	*/
 
+	$(document).delegate("#cur_balance", "click",function(){
+		$( this ).find('b').text('***');
+		$("td.balance").text('***');
+	});
 	$(document).delegate("#blockFoundDiv", "click",function(){
 		$("#blockFoundDiv").hide('slow').html('');
 	});

@@ -5,6 +5,9 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 */
 
+// Dont forget:  sudo visudo
+// username ALL=(ALL) NOPASSWD: ALL
+
 include "config.php";
 use phpseclib3\Net\SSH2;
 

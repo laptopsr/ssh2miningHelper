@@ -100,6 +100,9 @@ table.herominers th, table.miner_table th{
 	color: orange;
 	font-weight: bold;
 }
+#cur_balance{
+	cursor: pointer;
+}
 .pull-right{
 	float: right;
 }
