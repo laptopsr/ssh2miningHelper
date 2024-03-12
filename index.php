@@ -413,16 +413,6 @@ $(document).ready(function(){
 			if(data && data.hasOwnProperty("lastClickedData"))
 			{
 				lastClickedData = data["lastClickedData"];
-				/*
-				var parseLastData = JSON.parse(lastClickedData);
-				if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] != "")
-				{
-					setTimeout(function() {
-						console.log("Try to start rplantApiStream");
-						rplantApiStream();
-					}, 20000);
-				}
-				*/
 			}
 		},
 		error: function(xhr, status, error) {
@@ -807,8 +797,6 @@ $(document).ready(function(){
 
 		EffortClear();
 		$(".rplant_field").html("");
-
-		//rplantApiStream();
 	});
 
 	function alertFunc()
@@ -904,7 +892,7 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(allCoins, 20000);
+	setInterval(allCoins, 60000); // 1 min
 
 	// ------ //
 
@@ -1188,12 +1176,15 @@ $(document).ready(function(){
 				// --- When RPLANT is proccessed --- //
 				if(RPLANT)
 				{
-					var parseLastData = JSON.parse(lastClickedData);
-
-					if(!RplantSource && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+					if(lastClickedData)
 					{
-						console.log("Try to start Rplant");
-						rplantApiStream();
+						var parseLastData = JSON.parse(lastClickedData);
+
+						if(!RplantSource && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+						{
+							console.log("Try to start Rplant");
+							rplantApiStream();
+						}
 					}
 				}
 				else
@@ -1264,8 +1255,7 @@ $(document).ready(function(){
 
 	function getBlocks() {
 
-		//var parseLastData = JSON.parse(lastClickedData);
-		if(RPLANT && !QUBIC && !HEROMINERS) //  && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant')
+		if(RPLANT)
 		{
 			var url = 'https://pool.rplant.xyz/api/blocks';
 			$.getJSON(url, function(data) {
@@ -1296,33 +1286,36 @@ $(document).ready(function(){
 				method: 'POST',
 				data: { getBlocks : true },
 				success: function(data) {
-				    data = JSON.parse(data);
 				    //console.log(data);
+				    data = JSON.parse(data);
 
-					$("#getBlocks").html(data).show();
+					if(data['return'] && data['return'] !== '')
+					{
+						$("#getBlocks").html(data['return']).show();
 
-					// --- SORTING --- //
-					// Получаем все элементы tr_blocks и сортируем их по значению атрибута 'for'
-					var $blocks = $('.tr_blocks').sort(function(a, b) {
-						return $(a).attr('for') > $(b).attr('for') ? 1 : -1;
-					});
+						// --- SORTING --- //
+						// Получаем все элементы tr_blocks и сортируем их по значению атрибута 'for'
+						var $blocks = $('.tr_blocks').sort(function(a, b) {
+							return $(a).attr('for') > $(b).attr('for') ? 1 : -1;
+						});
 
-					// Переворачиваем массив элементов
-					$blocks = $blocks.get().reverse();
+						// Переворачиваем массив элементов
+						$blocks = $blocks.get().reverse();
 
-					// Вставляем отсортированные элементы обратно в DOM
-					$('table.blocks').append($blocks);
+						// Вставляем отсортированные элементы обратно в DOM
+						$('table.blocks').append($blocks);
 
-					// --- USD prices --- //
-					var summ 	= 0;
-					var total 	= 0;
-					$('.rewarded').each(function(){
-						summ = parseFloat($("#tr_coins_" + $( this ).attr('coin')).attr('last_price')) * parseFloat($( this ).text());
-						total += summ;
-						$( this ).closest('tr').find('.usdsumm').html( summ.toFixed(2) );
-					});
+						// --- USD prices --- //
+						var summ 	= 0;
+						var total 	= 0;
+						$('.rewarded').each(function(){
+							summ = parseFloat($("#tr_coins_" + $( this ).attr('coin')).attr('last_price')) * parseFloat($( this ).text());
+							total += summ;
+							$( this ).closest('tr').find('.usdsumm').html( summ.toFixed(2) );
+						});
 
-					$("table.blocks").find('.date').append(" | Total: " + total.toFixed(2) + " $");
+						$("table.blocks").find('.date').append(" | Total: " + total.toFixed(2) + " $");
+					}
 				},
 				error: function(xhr, status, error) {
 				    console.error('Ошибка при выполнении запроса:', error);

@@ -39,7 +39,8 @@ if(isset($_POST['getBlocks']))
 			}
 		}
 
-		$tulos = "<table class=\"table table-striped blocks\">";
+		$tulos 	= "<table class=\"table table-striped blocks\">";
+		$t 		= false;
 		foreach($read as $k => $v)
 		{
 			$tulos .= "<tr><td colspan=\"6\"><h4 class=\"well bg-secondary text-orange text-center date\">$k</h4></td></tr>";
@@ -74,12 +75,13 @@ if(isset($_POST['getBlocks']))
 						<td align=\"right\">".$worker_data[8]."%</td>
 						<td align=\"right\">".$coin."</td>
 					</tr>";
+					$t = true;
 				}
 			}
 		}
 		$tulos .= "</table>";
 
-		echo json_encode($tulos);
+		echo json_encode(['return' => ($t) ? $tulos : '']);
 	}
 	else
 	{
