@@ -106,7 +106,7 @@ use phpseclib3\Net\SSH2;
 			<div class="progress rplant_effort">
 				<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
 			</div>
-			<div class="progress herominers_effort">
+			<div class="progress herominers_effort forHerominers">
 				<div id="h_cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
 			</div>
 			<div class="progress epoch">
@@ -303,6 +303,7 @@ $(document).ready(function(){
 	$(".progress.herominers_effort").hide();
 	$(".progress.epoch").hide();
 
+	var RplantSource;
 	var HEROMINERS 			= false;
 	var RPLANT				= false;
 	var QUBIC 				= false;
@@ -408,18 +409,20 @@ $(document).ready(function(){
 			{
 				lastClickedCoin = data["lastClickedCoin"];
 			}
+			
 			if(data && data.hasOwnProperty("lastClickedData"))
 			{
 				lastClickedData = data["lastClickedData"];
-				
+				/*
 				var parseLastData = JSON.parse(lastClickedData);
 				if(parseLastData[0]['coin_name'] && parseLastData[0]['coin_name'] != "")
 				{
 					setTimeout(function() {
 						console.log("Try to start rplantApiStream");
-						rplantApiStream(lastClickedData);
+						rplantApiStream();
 					}, 20000);
 				}
+				*/
 			}
 		},
 		error: function(xhr, status, error) {
@@ -805,7 +808,7 @@ $(document).ready(function(){
 		EffortClear();
 		$(".rplant_field").html("");
 
-		rplantApiStream(lastClickedData);
+		//rplantApiStream();
 	});
 
 	function alertFunc()
@@ -1185,12 +1188,24 @@ $(document).ready(function(){
 				// --- When RPLANT is proccessed --- //
 				if(RPLANT)
 				{
-					$(".forRplant").show();
+					var parseLastData = JSON.parse(lastClickedData);
+
+					if(!RplantSource && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+					{
+						console.log("Try to start Rplant");
+						rplantApiStream();
+					}
 				}
 				else
 				{
 					RPLANT = false;
 					$(".forRplant").hide();
+
+					if(RplantSource)
+					{
+						console.log("Rplant go to sleep");
+						RplantSource.close();
+					}
 				}
 
 				// --- When HEROMINERS is proccessed --- //
@@ -1330,14 +1345,11 @@ $(document).ready(function(){
 		$("#cur_effort").attr("aria-valuenow" , "0");
 	}
 
-	var source;
-
-	function rplantApiStream(data)
+	function rplantApiStream()
 	{
-		//var parseLastData = JSON.parse(lastClickedData);
-		if(RPLANT) // && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant')
+		if(RPLANT)
 		{
-			var parseLastData = JSON.parse(data);
+			var parseLastData = JSON.parse(lastClickedData);
 			if(!parseLastData[0]['coin_name'])
 			{
 				return false;
@@ -1374,26 +1386,18 @@ $(document).ready(function(){
 			var offset				= 1;
 
 			// Закрытие предыдущего соединения, если оно существует
-			if (source) {
-				source.close();
+			if (RplantSource) {
+				RplantSource.close();
 			}
 
 			var url = 'https://pool.rplant.xyz/api/blocks';
 
 			// <--	
 			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
-			source = new EventSource(url);
-			source.addEventListener('message', function(e) {
+			RplantSource = new EventSource(url);
+			RplantSource.addEventListener('message', function(e) {
 
-				//console.log("Rplant source is online");
-
-				if(!RPLANT && source)
-				{
-					console.log("Rplant go to closed");
-					source.close();
-					$(".forRplant").hide();
-					return false;
-				}
+				//console.log("Rplant RplantSource is online");
 
 				source_count += 1;
 
