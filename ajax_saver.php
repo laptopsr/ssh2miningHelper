@@ -158,9 +158,15 @@ if(isset($_POST['saveSettings']))
 // ------ //
 if(isset($_POST['newMessage']))
 {
-	$currentContent = file_get_contents("messages.txt");
-	$newMessage = $_POST['newMessage'] . "\n";
-	$newContent = $newMessage . $currentContent;
+	$newContent = '';
+
+	if(file_exists("messages.txt"))
+	{
+		$currentContent = file_get_contents("messages.txt");
+		$newMessage = $_POST['newMessage'] . "\n";
+		$newContent = $newMessage . $currentContent;
+	}
+
 	file_put_contents("messages.txt", $newContent);
 }
 // ------ //

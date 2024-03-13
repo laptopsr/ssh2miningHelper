@@ -174,7 +174,7 @@ if(!isset($_POST['qubic_token']))
 }
 
 $epochNumber = $networkStat['scoreStatistics'][0]['epoch'];
-$epoch97Begin = strtotime('2024-02-21 12:00:00');
+$epoch97Begin = strtotime('2024-02-21 14:00:00');
 $curEpochBegin = strtotime('+ ' . (7 * ($epochNumber - 97)) . ' days', $epoch97Begin);
 $curEpochEnd = strtotime('+7 days', $curEpochBegin);
 $curEpochProgress = (time() - $curEpochBegin) / (7 * 24 * 3600);
@@ -195,7 +195,7 @@ $curSolPrice = 1479289940 * $poolReward * $curEpochProgress * $qubicPrice / ($ne
 $bd = "
 <br>
 <b>$activePoolName</b><br><br>
-Epoch start / end: <b>" . date('d.m.Y H:i', $curEpochBegin+7200) . " / " . date('d.m.Y H:i', $curEpochEnd+7200) . "</b><br>
+Epoch start / end: <b>" . date('d.m.Y H:i', $curEpochBegin) . " / " . date('d.m.Y H:i', $curEpochEnd) . "</b><br>
 Estimated network hashrate: <b>" . number_format($netHashrate, 0, '', ' ') . " it/s</b><br>
 Average score: <b>" . number_format($netAvgScores, 1) . "</b>.<br>
 Network SOL per hour: <b>" . number_format($netSolsPerHour, 1) . "</b><br>

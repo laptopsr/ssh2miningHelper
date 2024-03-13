@@ -103,13 +103,13 @@ use phpseclib3\Net\SSH2;
 			<div id="blockFoundDiv"></div>
 			<div id="debugResponse"></div>
 
-			<div class="progress rplant_effort">
+			<div class="progress forRplant">
 				<div id="cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
 			</div>
-			<div class="progress herominers_effort forHerominers">
+			<div class="progress forHerominers">
 				<div id="h_cur_effort" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="300"></div>
 			</div>
-			<div class="progress epoch">
+			<div class="progress forQubic">
 				<div id="cur_epoch" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
 			</div>
 		</center>
@@ -299,9 +299,9 @@ use phpseclib3\Net\SSH2;
 <script>
 $(document).ready(function(){
 
-	$(".progress.rplant_effort").hide();
-	$(".progress.herominers_effort").hide();
-	$(".progress.epoch").hide();
+	$(".forRplant").hide();
+	$(".forHerominers").hide();
+	$(".forQubic").hide();
 
 	var RplantSource;
 	var HEROMINERS 			= false;
@@ -369,8 +369,7 @@ $(document).ready(function(){
 
 					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC It/s: <b>" + data['totalIts'] + "</b> | SOL: <b>" + data['totalSolutions'] + "</b></h2>");
 
-					$(".progress.epoch").show();
-					$("#cur_epoch").show();
+					$(".forQubic").show();
 					$("#cur_epoch").css({"width" :  data['epoch_progress'] + "%"});
 					//$("#cur_epoch").attr("aria-valuemax" , 100);
 					$("#cur_epoch").attr("aria-valuenow" , data['epoch_progress']);
@@ -1021,7 +1020,6 @@ $(document).ready(function(){
 					var effort_herominers 	= ((data.stats.poolRoundHashes / network_hashrate) / 2).toFixed(); // Еще есть network_diff, но как все вместе использовать?
 					var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
 
-					$(".progress.herominers_effort").show();
 					$("#h_cur_effort").css({"width" :  effort_herominers + "%"});
 					$("#h_cur_effort").html("<h3>Herominers " + effort_for + "effort " + effort_herominers + " %</h3>");
 					$("#h_cur_effort").attr("aria-valuenow" , effort_herominers);
@@ -1348,8 +1346,6 @@ $(document).ready(function(){
 				return false;
 			}
 
-			$(".progress.rplant_effort").show();
-			$("#cur_effort").show();
 			$(".forRplant").show();
 
 			console.log("rplantApiStream is Started");
@@ -1562,8 +1558,6 @@ $(document).ready(function(){
 		}
 		else
 		{
-			$(".progress.rplant_effort").hide();
-			$("#cur_effort").hide();
 			$(".forRplant").hide();
 		}
 	}
