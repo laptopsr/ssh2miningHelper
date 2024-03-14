@@ -106,6 +106,7 @@ $tb_miners = "<table class=\"table table-striped qubicStat\">
 	<th>Active</th>
 	<th>Last</th>
 	<th>Its</th>
+	<th>Version</th>
 </tr>
 </thead>
 <tbody>";
@@ -123,6 +124,7 @@ if(isset($GetMiner['miners']))
 			<td>".(empty($miner['isActive'])? '':'On')."</td>
 			<td>".date("H:i", strtotime($miner['lastActive'])+7200)."</td>
 			<td>$miner[currentIts]</td>
+			<td>".$miner['version']['versionString']."</td>
 		</tr>";
 	}
 }

@@ -167,7 +167,7 @@ foreach($arr as $v)
 			{
 				$arWorker['session']	= "QUBIC";
 				$arWorker['time'] 		= $expl[0] ? date("H:i:s", strtotime($expl[0])) : '';
-				$arWorker['hashrate'] 	= $expl[1] ?? 0; //round(((float)$expl[1] ?? 0));
+				$arWorker['hashrate'] 	= (isset($expl[1]) and (int)$expl[1] > 0) ? (int)$expl[1] : 0; //round(((float)$expl[1] ?? 0));
 				$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? ($expl[2] ?? '').($expl[3] ?? '') : '';
 				$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[0] : 0;
 
