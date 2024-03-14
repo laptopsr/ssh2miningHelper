@@ -7,6 +7,7 @@ $qubic_pass	= "guest13@Qubic.li";
 $web_login 	= "admin";
 $web_pass	= "admin";
 
+$time_zone 	= "Europe/Helsinki";
 $softName 	= "CPU Mining Helper";
 $version 	= "V4";
 $alertPC	= ["192.168.1.205", "192.168.1.253"]; // PC на котором в корне лежит файл beep.wav

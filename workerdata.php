@@ -158,18 +158,24 @@ foreach($arr as $v)
 
 		// --- QUBIC --- //
 		try {
-			$command 	= "echo $( timeout 0.5 tail -f $path_qubic_log | grep -m 1 \"INFO\" | awk '/INFO/ {print $1\" \"$2\"|\"$12\"|\"$4\",\"$6\"|\"$7}' )";
+			$command 	= "echo $( timeout 0.5 tail -f $path_qubic_log | grep -m 1 \"avg\" )";
 			$output 	= $ssh->exec($command);
 			$expl 		= explode("|", $output);
-			$SOL		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? explode("/", $expl[3] ?? '') : 0;
+			$first		= explode("INFO", $expl[0]??[]);
+			$SOL		= (str_contains(($expl[1] ?? ''), 'SOL:')) ? explode("/", $expl[1] ?? '') : 0;
+			$time 		= trim($first[0]??0);
 
-			if(strtotime($expl[0]) !== false and (time()-strtotime($expl[0])) < 60)
+			$timezone 	= new DateTimeZone($time_zone);
+			$date 		= new DateTime($time, new DateTimeZone('UTC'));
+			$date->setTimezone($timezone);
+
+			if( (time()-strtotime($date->format('Y-m-d H:i:s'))) < 60)
 			{
 				$arWorker['session']	= "QUBIC";
-				$arWorker['time'] 		= $expl[0] ? date("H:i:s", strtotime($expl[0])) : '';
-				$arWorker['hashrate'] 	= (isset($expl[1]) and (int)$expl[1] > 0) ? (int)$expl[1] : 0; //round(((float)$expl[1] ?? 0));
-				$arWorker['pool'] 		= (str_contains(($expl[2] ?? ''), 'SOL:')) ? ($expl[2] ?? '').($expl[3] ?? '') : '';
-				$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[0] : 0;
+				$arWorker['time'] 		= $date->format('H:i:s');
+				$arWorker['hashrate'] 	= (str_contains(($expl[3] ?? 'it/s'), '')) ? intval(trim($expl[3])) : 0;
+				$arWorker['pool'] 		= (str_contains(($first[1] ?? ''), 'E:')) ? ($first[1] ?? '').($expl[1] ?? '') : '';
+				$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[1] : 0;
 
 				goto finishWorker;
 			}

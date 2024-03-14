@@ -1049,7 +1049,7 @@ $(document).ready(function(){
 		    method: 'POST',
 		    data: { getData : true },
 		    success: function(data) {
-		        //console.log("Sended:");
+		        //console.log("Workerdata: " + data);
 		        data = JSON.parse(data);
 
 				var trbl_worker 	= [];
