@@ -17,6 +17,8 @@ $return = [];
 
 foreach($arr as $v)
 {
+	$time = 0;
+
 	$arWorker = [
 		'id' 			=> $v['worker'], 
 		'temperature' 	=> '---', 
@@ -181,7 +183,7 @@ foreach($arr as $v)
 			}
 
 		} catch (\Exception $e) {
-			goto finishWorker;
+			//goto finishWorker;
 		}
 		//-->
 

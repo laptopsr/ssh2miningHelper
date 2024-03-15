@@ -135,9 +135,9 @@ use phpseclib3\Net\SSH2;
 				</div>
 				<div class="well forRplant" id="getBlocks"></div>
 				<div id="herominers_data">Please wait..</div>
-				<div id="qubic_data"></div>
-				<div id="tb_miners"></div>
-				<div id="qubic_stat"></div>
+				<div id="qubic_data" class="forQubic"></div>
+				<div id="tb_miners" class="forQubic"></div>
+				<div id="qubic_stat" class="forQubic"></div>
 				<hr>
 				<div id="moneyToday"></div>
 			</div>
@@ -671,7 +671,7 @@ $(document).ready(function(){
 		$('.worker_chk').each(function(){
 			if( $( this ).prop("checked") )
 			{
-				console.log($(this))
+				//console.log($(this))
 				$("#lomake select[name='miner']").val('');
 				$("#lomake input[name='host']").val('');
 				$("#lomake input[name='algo']").val('');
@@ -723,7 +723,7 @@ $(document).ready(function(){
 		    method: 'POST',
 		    data: formData,
 		    success: function(data) {
-		        console.log("Form send: " + data);
+		        //console.log("Form send: " + data);
 		    	data = JSON.parse(data);
 		        $("#lomake_workers option").prop("selected", true);
         
@@ -801,7 +801,7 @@ $(document).ready(function(){
 			method: 'GET',
 			data: { doAlert : true },
 			success: function(data) {
-				console.log(data);
+				//console.log(data);
 			},
 			error: function(xhr, status, error) {
 				console.error('Ошибка при выполнении запроса:', error);
@@ -1152,66 +1152,75 @@ $(document).ready(function(){
 				});
 				$("#hashrateSum").html(sum);
 
-				// --- When QUBIC is proccessed --- //
-				if(QUBIC)
-				{
-					$(".forQubic").show();
-					$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
-					
-					if(qubic_worker.length > 0){
-						qubic_worker.forEach(function(worker) {
-							$("#lomake_workers option[value='" + worker + "']").removeAttr("selected");
-						});
+				setTimeout(function() { 
+
+					// --- When QUBIC is proccessed --- //
+					if(QUBIC)
+					{
+						$(".forQubic").show();
+						$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
+						
+						if(qubic_worker.length > 0){
+							qubic_worker.forEach(function(worker) {
+								$("#lomake_workers option[value='" + worker + "']").removeAttr("selected");
+								//console.log("Remove from selected: " + worker);
+							});
+						}
+						else
+						{
+							$("#lomake_workers option").prop("selected", true);
+						}
+						getQubicStat();
 					}
 					else
 					{
-						$("#lomake_workers option").prop("selected", true);
+						$(".forQubic").hide();
 					}
-					getQubicStat();
-				}
-				else
-				{
-					$(".forQubic").hide();
-				}
-				
-				// --- When RPLANT is proccessed --- //
-				if(RPLANT)
-				{
-					$(".forRplant").show();
-					if(lastClickedData)
+					
+					// --- When RPLANT is proccessed --- //
+					if(RPLANT)
 					{
-						var parseLastData = JSON.parse(lastClickedData);
-
-						if(!RplantSource && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+						$(".forRplant").show();
+						if(lastClickedData)
 						{
-							console.log("Try to start Rplant");
-							rplantApiStream();
+							var parseLastData = JSON.parse(lastClickedData);
+
+							if(!RplantSource && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
+							{
+								console.log("Try to start Rplant");
+								rplantApiStream();
+							}
+						}
+						else
+						{
+							console.log("No coin selected");
 						}
 					}
-				}
-				else
-				{
-					RPLANT = false;
-					$(".forRplant").hide();
-
-					if(RplantSource)
+					else
 					{
-						console.log("Rplant go to sleep");
-						RplantSource.close();
-					}
-				}
+						RPLANT = false;
+						$(".forRplant").hide();
 
-				// --- When HEROMINERS is proccessed --- //
-				if(HEROMINERS)
-				{
-					$(".forHerominers").show();
-				}
-				else
-				{
-					HEROMINERS = false;
-					$(".forHerominers").hide();
-				}
-				// -->
+						if(RplantSource)
+						{
+							console.log("Rplant go to sleep");
+							RplantSource.close();
+						}
+					}
+
+					// --- When HEROMINERS is proccessed --- //
+					if(HEROMINERS)
+					{
+						$(".forHerominers").show();
+					}
+					else
+					{
+						HEROMINERS = false;
+						$(".forHerominers").hide();
+					}
+					// -->
+				
+				}, 500);
 	
 				$('.time').each(function(index, element) {
 					// Получаем текущее время
@@ -1567,7 +1576,7 @@ $(document).ready(function(){
 			method: 'POST',
 			data: { removeAllMessages: true },
 			success: function(data) {
-			    console.log(data);
+			    //console.log(data);
 			    getLastMessages(20);
 			},
 			error: function(xhr, status, error) {
@@ -1583,7 +1592,7 @@ $(document).ready(function(){
 			method: 'POST',
 			data: { removeMessage: true, id : thisFor },
 			success: function(data) {
-			    console.log(data);
+			    //console.log(data);
 			    getLastMessages(20);
 			},
 			error: function(xhr, status, error) {
