@@ -299,10 +299,6 @@ use phpseclib3\Net\SSH2;
 <script>
 $(document).ready(function(){
 
-	$(".forRplant").hide();
-	$(".forHerominers").hide();
-	$(".forQubic").hide();
-
 	var RplantSource;
 	var HEROMINERS 			= false;
 	var RPLANT				= false;
@@ -663,7 +659,7 @@ $(document).ready(function(){
 		WorkerCommand('timeout 1 sudo systemctl stop qli --no-block && sudo pkill -f qli');
 	});
 	$(document).delegate(".startQUBIC", "click",function(){
-		WorkerCommand('timeout 1 sudo systemctl start qli');
+		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf <?=$path_xmriglog?>; sudo systemctl start qli');
 	});
 
 	function WorkerCommand(cmd)
@@ -1111,10 +1107,12 @@ $(document).ready(function(){
 						qubic_worker.push(value['id']);
 						my_solutions += parseInt(value['solutions']);
 					}
+
 					if (value['pool'].indexOf("rplant") !== -1)
 					{
 						RPLANT = true;
 					}
+
 					if (value['pool'].indexOf("herominers") !== -1)
 					{
 						HEROMINERS = true;
@@ -1157,6 +1155,7 @@ $(document).ready(function(){
 				// --- When QUBIC is proccessed --- //
 				if(QUBIC)
 				{
+					$(".forQubic").show();
 					$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
 					
 					if(qubic_worker.length > 0){
@@ -1170,10 +1169,15 @@ $(document).ready(function(){
 					}
 					getQubicStat();
 				}
+				else
+				{
+					$(".forQubic").hide();
+				}
 				
 				// --- When RPLANT is proccessed --- //
 				if(RPLANT)
 				{
+					$(".forRplant").show();
 					if(lastClickedData)
 					{
 						var parseLastData = JSON.parse(lastClickedData);
@@ -1207,7 +1211,8 @@ $(document).ready(function(){
 					HEROMINERS = false;
 					$(".forHerominers").hide();
 				}
-
+				// -->
+	
 				$('.time').each(function(index, element) {
 					// Получаем текущее время
 					var currentTime = new Date();
@@ -1338,228 +1343,219 @@ $(document).ready(function(){
 
 	function rplantApiStream()
 	{
-		if(RPLANT)
+		var parseLastData = JSON.parse(lastClickedData);
+		if(!parseLastData[0]['coin_name'])
 		{
-			var parseLastData = JSON.parse(lastClickedData);
-			if(!parseLastData[0]['coin_name'])
+			return false;
+		}
+
+		console.log("rplantApiStream is Started");
+
+		var source_count		= 0;
+		var blockFound 			= 0;
+		var offline_count		= 0;
+		var active_coin_name 	= parseLastData[0]['coin_name'];
+		var active_address 		= parseLastData[0]['user'];
+		var current_ticker		= parseLastData[0]['ticker'];
+		var block_found_stream	= 0;
+		var effort_origin		= 0;
+		var effort_last			= 0;
+
+		var network_name 		= '';
+		var network_hashrate 	= 0;
+		var network_diff 		= 0;					
+		var soloShares			= 0;
+		var hrs					= 0;
+		var wcs					= 0;
+		var immature			= 0;
+		var balance				= 0;
+		var paid				= 0;
+		var miner				= [];
+		var net					= [];
+		var miner_address		= '';
+		var offset				= 1;
+
+		// Закрытие предыдущего соединения, если оно существует
+		if (RplantSource) {
+			RplantSource.close();
+		}
+
+		var url = 'https://pool.rplant.xyz/api/blocks';
+
+		// <--	
+		var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
+		RplantSource = new EventSource(url);
+		RplantSource.addEventListener('message', function(e) {
+
+			//console.log("Rplant RplantSource is online");
+
+			source_count += 1;
+
+			var parsed = JSON.parse(e.data);
+			//console.log(parsed['blocks']);
+
+			// --- BLOCKS --- //
+			if(parsed['blocks'])
 			{
-				return false;
+
 			}
 
-			$(".forRplant").show();
-
-			console.log("rplantApiStream is Started");
-
-			var source_count		= 0;
-			var blockFound 			= 0;
-			var offline_count		= 0;
-			var active_coin_name 	= parseLastData[0]['coin_name'];
-			var active_address 		= parseLastData[0]['user'];
-			var current_ticker		= parseLastData[0]['ticker'];
-			var block_found_stream	= 0;
-			var effort_origin		= 0;
-			var effort_last			= 0;
-
-			var network_name 		= '';
-			var network_hashrate 	= 0;
-			var network_diff 		= 0;					
-			var soloShares			= 0;
-			var hrs					= 0;
-			var wcs					= 0;
-			var immature			= 0;
-			var balance				= 0;
-			var paid				= 0;
-			var miner				= [];
-			var net					= [];
-			var miner_address		= '';
-			var offset				= 1;
-
-			// Закрытие предыдущего соединения, если оно существует
-			if (RplantSource) {
-				RplantSource.close();
+			if(parsed['net'])
+			{
+				net					= parsed['net'];
+				network_name		= net.v;
+				network_hashrate	= net.hr;
+				network_diff		= net.d;
+				
+				//console.log(network_name);
 			}
 
-			var url = 'https://pool.rplant.xyz/api/blocks';
-
-			// <--	
-			var url = 'https://pool.rplant.xyz/api2/poolminer2x/' + active_coin_name + '/' + active_address + '/111111';
-			RplantSource = new EventSource(url);
-			RplantSource.addEventListener('message', function(e) {
-
-				//console.log("Rplant RplantSource is online");
-
-				source_count += 1;
-
-				var parsed = JSON.parse(e.data);
-				//console.log(parsed['blocks']);
-
-				// --- BLOCKS --- //
-				if(parsed['blocks'])
+			if(parsed['miner'])
+			{
+				// <-- Offset
+				if(current_ticker == "MNN")
 				{
-
+					offset = 100000000000;
+				} else if(current_ticker == "TABO")
+				{
+					offset = 1000000000000;
 				}
-
-				if(parsed['net'])
+				else
 				{
-					net					= parsed['net'];
-					network_name		= net.v;
-					network_hashrate	= net.hr;
-					network_diff		= net.d;
-					
-					//console.log(network_name);
+					offset = 1;
 				}
+				// -->
 
-				if(parsed['miner'])
+				miner				= parsed['miner'];
+				miner_address		= miner["miner"];			
+				soloShares			= miner["soloShares"];
+				hrs					= miner["hrs"];
+				wcs					= miner["wcs"];
+				immature			= (miner["immature"] / offset).toFixed(2);
+				balance				= (miner["balance"] / offset).toFixed(2);
+				paid				= (miner["paid"] / offset).toFixed(2);
+				block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
+
+				// --- Check Offline workers --- //
+				// <--
+				if(miner["workers"].length > 0)
 				{
-					// <-- Offset
-					if(current_ticker == "MNN")
-					{
-						offset = 100000000000;
-					} else if(current_ticker == "TABO")
-					{
-						offset = 1000000000000;
-					}
-					else
-					{
-						offset = 1;
-					}
-					// -->
+					var workers_online = [];
+					$.each(miner["workers"], function(index, value) {
+						var sp = value.split(":");
+						workers_online.push(sp[0]);
+					});
 
-					miner				= parsed['miner'];
-					miner_address		= miner["miner"];			
-					soloShares			= miner["soloShares"];
-					hrs					= miner["hrs"];
-					wcs					= miner["wcs"];
-					immature			= (miner["immature"] / offset).toFixed(2);
-					balance				= (miner["balance"] / offset).toFixed(2);
-					paid				= (miner["paid"] / offset).toFixed(2);
-					block_found_stream	= miner["found"]? miner["found"]["solo"]??0 : 0;
-
-					// --- Check Offline workers --- //
-					// <--
-					if(miner["workers"].length > 0)
-					{
-						var workers_online = [];
-						$.each(miner["workers"], function(index, value) {
-							var sp = value.split(":");
-							workers_online.push(sp[0]);
-						});
-
-						var workers_offline = [];
-						$.each(allMyWorkers, function(index, value) {
-							if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() != "offline"  && $("#worker_" + index).find('.session').text() != "QUBIC")
-							{
-								workers_offline.push(index);
-							}
-						});
-					}
-
-					if (workers_offline && workers_offline.length > 0)
-					{
-						offline_count += 1;
-						var max_count = 3;
-
-						//newMessage("OFFLINE: " + workers_offline.join(", "));
-						$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/" + max_count);
-						$("#wcs_offline").closest('tr').find('td:first').addClass("bg-danger");
-								
-						if(workersControl == "auto" && offline_count >= max_count)
+					var workers_offline = [];
+					$.each(allMyWorkers, function(index, value) {
+						if(workers_online.indexOf(index) === -1 && $("#worker_" + index).find('.session').text() != "offline"  && $("#worker_" + index).find('.session').text() != "QUBIC")
 						{
-							$("#lomake_workers option:selected").removeAttr("selected");
-							$("#lomake_workers").val(workers_offline);
-					
-							$("#allCoins").find('.active').click();
-							offline_count = 0;
+							workers_offline.push(index);
 						}
-					}
-					else
-					{
-						$("#wcs_offline").html('');
-						$("#wcs_offline").closest('tr').find('td:first').removeClass("bg-danger");
-					}
-					// -->
+					});
 				}
 
-				if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
+				if (workers_offline && workers_offline.length > 0)
 				{
-					//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
-					if(network_diff > 100000)
-					{
-						offset = (soloShares / network_hashrate);
-					}
-					else
-					{
-						offset = ((soloShares / network_hashrate) * 100000) / 2;
-					}
+					offline_count += 1;
+					var max_count = 3;
 
-					var summ =  offset;
+					//newMessage("OFFLINE: " + workers_offline.join(", "));
+					$("#wcs_offline").html(workers_offline.join(", ") + "<br>offline_count: " + offline_count +"/" + max_count);
+					$("#wcs_offline").closest('tr').find('td:first').addClass("bg-danger");
+							
+					if(workersControl == "auto" && offline_count >= max_count)
+					{
+						$("#lomake_workers option:selected").removeAttr("selected");
+						$("#lomake_workers").val(workers_offline);
+				
+						$("#allCoins").find('.active').click();
+						offline_count = 0;
+					}
+				}
+				else
+				{
+					$("#wcs_offline").html('');
+					$("#wcs_offline").closest('tr').find('td:first').removeClass("bg-danger");
+				}
+				// -->
+			}
+
+			if(soloShares > 0 && network_hashrate > 0 && network_diff > 0)
+			{
+				//var summ	= (soloShares / network_hashrate) * (network_diff > 100000 ? 1 : (10000/network_diff));
+				if(network_diff > 100000)
+				{
+					offset = (soloShares / network_hashrate);
+				}
+				else
+				{
+					offset = ((soloShares / network_hashrate) * 100000) / 2;
+				}
+
+				var summ =  offset;
+				
+				//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
+
+				effort_origin 		= summ.toFixed(); // .toFixed()
+				var effort 			= effort_origin / 3;
+
+				if(effort_origin > effort_last)
+				{
+					effort_last	= effort_origin;
+				}
+
+				$("#cur_effort").css({"width" :  effort + "%"});
+				$("#cur_effort").html("<h3>Rplant effort: " + effort_origin + " %</h3>");
+				$("#cur_effort").attr("aria-valuenow" , effort);
+			}
+
+			if(network_name !== ''){ 			$("#v").html(network_name + " / " + active_coin_name) };
+			if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
+			if(network_diff !== 0){ 			$("#d").html(network_diff) };
+			if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
+			if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>RPLANT: <b class=\"rplant_field\">" + hrs + " H/s</b> (" + source_count + ")</h2>"); };
+			if(wcs !== 0){ 						$("#wcs").html(wcs) };
+			if(immature !== 0){ 				$("#immature").html(immature) };
+			if(balance !== 0){ 					$("#balance").html(balance) };
+			if(paid !== 0){ 					$("#paid").html(paid) };
+			if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
+			
+			// --- BLOCK FOUND --- //
+
+			if(block_found_stream > 0 && blockFound == 0)
+			{
+				blockFound = block_found_stream;
+			}
+
+			if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
+			{
+
+				var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).attr('last_price'));
+
+				$("#blockFoundDiv").show('slow');
+				$("#blockFoundDiv").html("<h1 class=\"alert bg-success\">* * * BLOCK FOUND  " + getTimeNow() + " * * * <button class=\"btn btn-primary\" id=\"autoHideBlock\">Autohide</button></h1>");
+				alertFunc();
+
+				newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
+
+				setTimeout(function() { 
+					effort_origin 	= 0;
+					effort_last		= 0;
+					EffortClear();
 					
-					//console.log("wcs: " + wcs + ", soloShares: " + soloShares + ", network_hashrate: " + network_hashrate + ", network_diff: " + network_diff);
-
-					effort_origin 		= summ.toFixed(); // .toFixed()
-					var effort 			= effort_origin / 3;
-
-					if(effort_origin > effort_last)
-					{
-						effort_last	= effort_origin;
+					if(autoHideBlock){
+						$("#blockFoundDiv").hide();
 					}
+				}, 2000);
 
-					$("#cur_effort").css({"width" :  effort + "%"});
-					$("#cur_effort").html("<h3>Rplant effort: " + effort_origin + " %</h3>");
-					$("#cur_effort").attr("aria-valuenow" , effort);
-				}
+				blockFound = block_found_stream;
+			}
+			
+			//console.log( parseFloat($("#tr_coins_" + current_ticker).find('.price').text()) );
 
-				if(network_name !== ''){ 			$("#v").html(network_name + " / " + active_coin_name) };
-				if(network_hashrate !== 0){ 		$("#hr").html(network_hashrate) };
-				if(network_diff !== 0){ 			$("#d").html(network_diff) };
-				if(soloShares !== 0){ 				$("#soloShares").html(soloShares) };
-				if(hrs !== 0){ 						$("#hrs").html(hrs); $(".hrs").html("<h2>RPLANT: <b class=\"rplant_field\">" + hrs + " H/s</b> (" + source_count + ")</h2>"); };
-				if(wcs !== 0){ 						$("#wcs").html(wcs) };
-				if(immature !== 0){ 				$("#immature").html(immature) };
-				if(balance !== 0){ 					$("#balance").html(balance) };
-				if(paid !== 0){ 					$("#paid").html(paid) };
-				if(block_found_stream !== 0){ 		$("#block_found").html(block_found_stream) };
-				
-				// --- BLOCK FOUND --- //
-
-				if(block_found_stream > 0 && blockFound == 0)
-				{
-					blockFound = block_found_stream;
-				}
-
-				if(blockFound > 0 && block_found_stream > 0 && block_found_stream > blockFound)
-				{
-
-					var usdtVolume = immature * parseFloat($("#tr_coins_" + current_ticker).attr('last_price'));
-
-					$("#blockFoundDiv").show('slow');
-					$("#blockFoundDiv").html("<h1 class=\"alert bg-success\">* * * BLOCK FOUND  " + getTimeNow() + " * * * <button class=\"btn btn-primary\" id=\"autoHideBlock\">Autohide</button></h1>");
-					alertFunc();
-
-					newMessage("<blockfound>BLOCK FOUND: " + active_coin_name + ", effort: <effort>" + effort_last + "</effort> %</blockfound>");
-
-					setTimeout(function() { 
-						effort_origin 	= 0;
-						effort_last		= 0;
-						EffortClear();
-						
-						if(autoHideBlock){
-							$("#blockFoundDiv").hide();
-						}
-					}, 2000);
-
-					blockFound = block_found_stream;
-				}
-				
-				//console.log( parseFloat($("#tr_coins_" + current_ticker).find('.price').text()) );
-
-			}, false);
-			// -->
-		}
-		else
-		{
-			$(".forRplant").hide();
-		}
+		}, false);
+		// -->
 	}
 
 	$(document).delegate("table", "click",function(){

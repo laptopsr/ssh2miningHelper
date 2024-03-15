@@ -85,7 +85,7 @@ td.active{
 	background: #ededed;
 	border-radius: 0;
 }
-#datatable_length, #datatable_filter, .dataTables_filter, .dataTables_info, .forRplant{
+#datatable_length, #datatable_filter, .dataTables_filter, .dataTables_info{
 	display:none;
 }
 table.herominers th, table.miner_table th{
