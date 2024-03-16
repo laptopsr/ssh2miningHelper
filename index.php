@@ -241,10 +241,9 @@ use phpseclib3\Net\SSH2;
 					<h5>
 						With selected: 
 							<button class="btn btn-info btn-sm rebootAll">Reboot</button> 
-							<button class="btn btn-info btn-sm clrScreen">Reload miner</button>
 							<button class="btn btn-info btn-sm updateSystem">Update system</button>
 							<button class="btn btn-info btn-sm shutDown">Shutdown now</button>
-							<button class="btn btn-info btn-sm stopQUBIC">Stop QUBIC</button>
+							<button class="btn btn-info btn-sm stopAll">Stop All</button>
 							<button class="btn btn-info btn-sm startQUBIC">Start QUBIC</button>
 					</h5>
 					<select id="workersControl" class="form-control">
@@ -646,17 +645,14 @@ $(document).ready(function(){
 	$(document).delegate(".rebootAll", "click",function(){
 		WorkerCommand('timeout 1 sudo reboot');
 	});
-	$(document).delegate(".clrScreen", "click",function(){
-		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf /home/laptopsr/xmrig.log;');
+	$(document).delegate(".stopAll", "click",function(){
+		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo killall xmrig; sudo rm -rf /home/laptopsr/xmrig.log; sudo systemctl stop qli --no-block && sudo pkill -f qli');
 	});
 	$(document).delegate(".updateSystem", "click",function(){
 		WorkerCommand('timeout 1 sudo apt update & sudo apt upgrade -y & sudo apt autoremove -y');
 	});
 	$(document).delegate(".shutDown", "click",function(){
 		WorkerCommand('timeout 1 sudo shutdown now');
-	});
-	$(document).delegate(".stopQUBIC", "click",function(){
-		WorkerCommand('timeout 1 sudo systemctl stop qli --no-block && sudo pkill -f qli');
 	});
 	$(document).delegate(".startQUBIC", "click",function(){
 		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf <?=$path_xmriglog?>; sudo systemctl start qli');
@@ -1051,9 +1047,9 @@ $(document).ready(function(){
 				var trbl_worker 	= [];
 				var qubic_worker 	= [];
 				var my_solutions 	= 0;
-				QUBIC 				= false;
-				RPLANT 				= false;
-				HEROMINERS 			= false;
+				//QUBIC 				= false;
+				//RPLANT 				= false;
+				//HEROMINERS 			= false;
 
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
@@ -1152,6 +1148,8 @@ $(document).ready(function(){
 				});
 				$("#hashrateSum").html(sum);
 
+				// ------ //
+
 				setTimeout(function() { 
 
 					// --- When QUBIC is proccessed --- //
@@ -1181,20 +1179,7 @@ $(document).ready(function(){
 					if(RPLANT)
 					{
 						$(".forRplant").show();
-						if(lastClickedData)
-						{
-							var parseLastData = JSON.parse(lastClickedData);
-
-							if(!RplantSource && parseLastData[0]['coin_name'] && parseLastData[0]['host'].includes('rplant'))
-							{
-								console.log("Try to start Rplant");
-								rplantApiStream();
-							}
-						}
-						else
-						{
-							console.log("No coin selected");
-						}
+						rplantApiStream();
 					}
 					else
 					{
@@ -1220,7 +1205,7 @@ $(document).ready(function(){
 					}
 					// -->
 				
-				}, 500);
+				}, 1000);
 	
 				$('.time').each(function(index, element) {
 					// Получаем текущее время
@@ -1352,9 +1337,16 @@ $(document).ready(function(){
 
 	function rplantApiStream()
 	{
-		var parseLastData = JSON.parse(lastClickedData);
+		var parseLastData = [];
+
+		if(lastClickedData)
+		{
+			parseLastData = JSON.parse(lastClickedData);
+		}
+
 		if(!parseLastData[0]['coin_name'])
 		{
+			console.log("Select coin");
 			return false;
 		}
 
