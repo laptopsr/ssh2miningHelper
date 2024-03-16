@@ -364,7 +364,6 @@ $(document).ready(function(){
 
 					$("#qubic_data").addClass("well bg-secondary text-orange text-center").html("<h2>QUBIC It/s: <b>" + data['totalIts'] + "</b> | SOL: <b>" + data['totalSolutions'] + "</b></h2>");
 
-					$(".forQubic").show();
 					$("#cur_epoch").css({"width" :  data['epoch_progress'] + "%"});
 					//$("#cur_epoch").attr("aria-valuemax" , 100);
 					$("#cur_epoch").attr("aria-valuenow" , data['epoch_progress']);
@@ -1036,6 +1035,10 @@ $(document).ready(function(){
 	
 	function sendAjaxRequest() {
 
+		QUBIC 				= false;
+		RPLANT 				= false;
+		HEROMINERS 			= false;
+
 		$.ajax({
 		    url: 'workerdata.php',
 		    method: 'POST',
@@ -1047,9 +1050,6 @@ $(document).ready(function(){
 				var trbl_worker 	= [];
 				var qubic_worker 	= [];
 				var my_solutions 	= 0;
-				//QUBIC 				= false;
-				//RPLANT 				= false;
-				//HEROMINERS 			= false;
 
 				$.each(data, function(index, value) {
 					//console.log(index + ": " + value);
@@ -1179,7 +1179,10 @@ $(document).ready(function(){
 					if(RPLANT)
 					{
 						$(".forRplant").show();
-						rplantApiStream();
+						if(!RplantSource)
+						{
+							rplantApiStream();
+						}
 					}
 					else
 					{
