@@ -379,6 +379,8 @@ $(document).ready(function(){
     // -->
 
 	// --- SETTINGS --- //
+	$("#lomake_workers option").prop("selected", true);
+
 	var workersControl	= 'manual';
 	var lastClickedCoin = 'coin_VISH'; // coins.php button
 	var lastClickedData = JSON.stringify([{coin_name: "", user: ""}]);
@@ -636,16 +638,36 @@ $(document).ready(function(){
 	$(document).delegate(".global_select", "click",function(){
 		var isChecked = $(this).prop('checked');
 		$('.worker_chk').prop('checked', isChecked);
+
+		if (isChecked) {
+			$("#lomake_workers option").prop('selected', true);
+		} else {
+			$("#lomake_workers option:selected").prop('selected', false);
+		}
 	});
-	$(document).delegate(".global_select_coin", "click",function(){
-		var isChecked = $(this).prop('checked');
-		$('.coin_chk').prop('checked', isChecked);
+	$(document).delegate(".worker_chk", "click", function(){
+		var newValue = $(this).closest('tr').attr('worker');
+		var currentValues = $("#lomake_workers").val();
+
+		if ($(this).is(":checked")) {
+			// Добавить новое значение
+			currentValues.push(newValue);
+		} else {
+			// Удалить значение, если уже присутствует
+			var index = currentValues.indexOf(newValue);
+			if (index !== -1) {
+				currentValues.splice(index, 1);
+			}
+		}
+
+		// Установить обновленный список значений
+		$("#lomake_workers").val(currentValues);
 	});
 	$(document).delegate(".rebootAll", "click",function(){
 		WorkerCommand('timeout 1 sudo reboot');
 	});
 	$(document).delegate(".stopAll", "click",function(){
-		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo killall xmrig; sudo rm -rf /home/laptopsr/xmrig.log; sudo systemctl stop qli --no-block && sudo pkill -f qli');
+		WorkerCommand('timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo killall xmrig; sudo rm -rf <?=$path_xmriglog?>; sudo systemctl stop qli --no-block && sudo pkill -f qli');
 	});
 	$(document).delegate(".updateSystem", "click",function(){
 		WorkerCommand('timeout 1 sudo apt update & sudo apt upgrade -y & sudo apt autoremove -y');
@@ -659,9 +681,6 @@ $(document).ready(function(){
 
 	function WorkerCommand(cmd)
 	{
-
-		$("#lomake_workers option:selected").removeAttr("selected");
-
 		var wrk = [];
 		$('.worker_chk').each(function(){
 			if( $( this ).prop("checked") )
@@ -718,10 +737,11 @@ $(document).ready(function(){
 		    method: 'POST',
 		    data: formData,
 		    success: function(data) {
-		        //console.log("Form send: " + data);
-		    	data = JSON.parse(data);
-		        $("#lomake_workers option").prop("selected", true);
-        
+		    	data 			= JSON.parse(data);
+        		canCreateNew 	= true;
+        		//console.log("Form prepare: " + data['prepare']);
+		        //console.log("Form output: " + data['output']);
+
 		        if(data['debug'])
 		        {
 		        	$("#debugResponse").html(data['debug']);
@@ -1032,7 +1052,9 @@ $(document).ready(function(){
 
 	// Функция для отправки AJAX-запроса
 	sendAjaxRequest();
-	
+
+	let canCreateNew = true;
+
 	function sendAjaxRequest() {
 
 		QUBIC 				= false;
@@ -1048,7 +1070,6 @@ $(document).ready(function(){
 		        data = JSON.parse(data);
 
 				var trbl_worker 	= [];
-				var qubic_worker 	= [];
 				var my_solutions 	= 0;
 
 				$.each(data, function(index, value) {
@@ -1091,7 +1112,7 @@ $(document).ready(function(){
 						$("#worker_" + value['id']).find('.session').removeClass('bg-danger');
 					}
 
-					if(value['session'] && value['session'] == 'OFF')
+					if(value['session'] && value['session'] == 'STOP')
 					{
 						trbl_worker.push(value['id']);
 						$("#worker_" + value['id']).addClass('bg-danger');
@@ -1099,19 +1120,7 @@ $(document).ready(function(){
 
 					if(value['session'] && value['session'] == 'QUBIC')
 					{
-						QUBIC = true;
-						qubic_worker.push(value['id']);
 						my_solutions += parseInt(value['solutions']);
-					}
-
-					if (value['pool'].indexOf("rplant") !== -1)
-					{
-						RPLANT = true;
-					}
-
-					if (value['pool'].indexOf("herominers") !== -1)
-					{
-						HEROMINERS = true;
 					}
 				});
 
@@ -1135,6 +1144,39 @@ $(document).ready(function(){
 
 					}, 2000);
 				}
+				// -->
+
+				// -- Sess --- //
+				$('td.session').each(function(index, value) {
+					//console.log(value.textContent);
+
+					var thisSess = value.textContent;
+
+					if(thisSess == 'QUBIC')
+					{
+						//
+					}
+				});
+
+				// -- TRUE FALSE --- //
+				$('td.pool').each(function(index, value) {
+					//console.log(value.textContent);
+
+					var thisPool = value.textContent;
+
+					if (thisPool.indexOf("rplant") !== -1)
+					{
+						RPLANT = true;
+					}
+					if (thisPool.indexOf("SOL:") !== -1)
+					{
+						QUBIC = true;
+					}
+					if (thisPool.indexOf("herominers") !== -1)
+					{
+						HEROMINERS = true;
+					}
+				});
 
 				// --- My hashrate --- //
 
@@ -1148,68 +1190,53 @@ $(document).ready(function(){
 				});
 				$("#hashrateSum").html(sum);
 
-				// ------ //
+				// --- When QUBIC is proccessed --- //
+				if(QUBIC)
+				{
+					$(".forQubic").show();
+					$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
 
-				setTimeout(function() { 
-
-					// --- When QUBIC is proccessed --- //
-					if(QUBIC)
-					{
-						$(".forQubic").show();
-						$("#mySolutions").html(" | SOL: <b>" + my_solutions + "</b>");
-						
-						if(qubic_worker.length > 0){
-							qubic_worker.forEach(function(worker) {
-								$("#lomake_workers option[value='" + worker + "']").removeAttr("selected");
-								//console.log("Remove from selected: " + worker);
-							});
-						}
-						else
-						{
-							$("#lomake_workers option").prop("selected", true);
-						}
-						getQubicStat();
-					}
-					else
-					{
-						$(".forQubic").hide();
-					}
-					
-					// --- When RPLANT is proccessed --- //
-					if(RPLANT)
-					{
-						$(".forRplant").show();
-						if(!RplantSource)
-						{
-							rplantApiStream();
-						}
-					}
-					else
-					{
-						RPLANT = false;
-						$(".forRplant").hide();
-
-						if(RplantSource)
-						{
-							console.log("Rplant go to sleep");
-							RplantSource.close();
-						}
-					}
-
-					// --- When HEROMINERS is proccessed --- //
-					if(HEROMINERS)
-					{
-						$(".forHerominers").show();
-					}
-					else
-					{
-						HEROMINERS = false;
-						$(".forHerominers").hide();
-					}
-					// -->
+					getQubicStat();
+				}
+				else
+				{
+					$(".forQubic").hide();
+				}
 				
-				}, 1000);
-	
+				// --- When RPLANT is proccessed --- //
+				if(RPLANT)
+				{
+					$(".forRplant").show();
+					if(canCreateNew)
+					{
+						console.log("rplantApiStream is Started");
+						rplantApiStream();
+						canCreateNew = false;
+					}
+				}
+				else
+				{
+					$(".forRplant").hide();
+
+					if(RplantSource && !canCreateNew)
+					{
+						console.log("Rplant go to sleep");
+						RplantSource.close();
+						canCreateNew = true;
+					}
+				}
+
+				// --- When HEROMINERS is proccessed --- //
+				if(HEROMINERS)
+				{
+					$(".forHerominers").show();
+				}
+				else
+				{
+					$(".forHerominers").hide();
+				}
+				// -->
+				
 				$('.time').each(function(index, element) {
 					// Получаем текущее время
 					var currentTime = new Date();
@@ -1353,8 +1380,6 @@ $(document).ready(function(){
 			return false;
 		}
 
-		console.log("rplantApiStream is Started");
-
 		var source_count		= 0;
 		var blockFound 			= 0;
 		var offline_count		= 0;
@@ -1391,7 +1416,7 @@ $(document).ready(function(){
 		RplantSource = new EventSource(url);
 		RplantSource.addEventListener('message', function(e) {
 
-			//console.log("Rplant RplantSource is online");
+			console.log("Rplant RplantSource is online");
 
 			source_count += 1;
 

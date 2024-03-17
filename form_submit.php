@@ -22,6 +22,7 @@ if(isset($_POST['command']))
 		}
 
 		// --- CHECK QUBIC --- //
+		/*
 		$v['qubick_online'] = "false";
 		try {
 
@@ -44,48 +45,36 @@ if(isset($_POST['command']))
 		} catch (\Exception $e) {
 			continue;
 		}
+		*/
 		// -->
 
 		$prepare = '';
-		if($v['qubick_online'] == "false" and $_POST['miner'] != '')
+		if($_POST['miner'] != '') // $v['qubick_online'] == "false" and 
 		{
-			$prepare = 'timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; timeout 1 sudo rm -rf '.$path_xmriglog.'; ';
+			$prepare = 'timeout 1 screen -ls | awk \'{print $1}\' | xargs -I{} screen -X -S {} quit; sudo screen -ls | awk \'/\.xmrig\t/ {print $1}\' | xargs -I{} sudo screen -X -S {} quit; timeout 1 sudo killall xmrig; sudo rm -rf '.$path_xmriglog.'; ';
 
 			if($_POST['miner'] == 'xmrig')
 			{
-				$start = 'timeout 1 sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file='.$path_xmriglog.' --randomx-1gb-pages ';
-				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
+				$start = 'sudo screen -dmS xmrig '.$v['path_xmrig'].' --log-file='.$path_xmriglog.' --randomx-1gb-pages ';
+				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').'; sudo systemctl stop qli --no-block && sudo pkill -f qli;';
 			}
 
 			if($_POST['miner'] == 'cpuminer')
 			{
-				$start = 'timeout 1 screen -dmS cpuminer '.$v['path_cpuminer'].' --syslog';
-				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').';';
+				$start = 'screen -dmS cpuminer '.$v['path_cpuminer'].' --syslog';
+				$prepare .= $start.' -a '.$_POST['algo'].' -o '.$_POST['host'].' -u '.$_POST['user'].'.'.$v['worker'].' -p '.$_POST['pass'].' '.($_POST['theads']=='manual'?' -t '.$v['theads']:'').'; sudo systemctl stop qli --no-block && sudo pkill -f qli;';
 			}
-			/*
-			if($_POST['miner'] == 'srbminer')
-			{
-				$start = 'timeout 1 screen -dmS srbminer '.$path_srbminer.' --log-file=/home/laptopsr/srbminer.log';
-				$prepare .= $start.' --algorithm '.$_POST['algo'].' --pool '.$_POST['host'].' --wallet '.$_POST['user'].'.'.$v['worker'].' --password '.$_POST['pass'].' --keepalive true;';
-			}
-			*/
 		}
 		// ------ //
-
-		//echo $prepare;
-		//exit;
 
 		$output = '';
 		try {
 
 			// Создаем новый объект SSH2 и подключаемся к серверу
-			/*
 			$ssh = new SSH2($v['host']);
 			if (!$ssh->login($v['user'], $v['pass'])) {
 				continue;
 			}
-			Уже есть выше
-			*/
 
 			$output = $ssh->exec($prepare . $_POST['command']);
 
@@ -112,7 +101,7 @@ if(isset($_POST['command']))
 	}
 	else
 	{
-		echo json_encode(['return' => "OK", 'post_workers' => $_POST['workers']]);
+		echo json_encode(['return' => "OK", 'post_workers' => $_POST['workers'], 'prepare' => $prepare, 'output' => $output]);
 	}
 }
 ?>

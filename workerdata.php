@@ -171,11 +171,11 @@ foreach($arr as $v)
 			$date 		= new DateTime($time, new DateTimeZone('UTC'));
 			$date->setTimezone($timezone);
 
-			if( (time()-strtotime($date->format('Y-m-d H:i:s'))) < 60)
+			if( (time()-strtotime($date->format('Y-m-d H:i:s'))) < 30 and intval(trim($expl[4])) > 0)
 			{
 				$arWorker['session']	= "QUBIC";
 				$arWorker['time'] 		= $date->format('H:i:s');
-				$arWorker['hashrate'] 	= (str_contains(($expl[3] ?? 'it/s'), '')) ? intval(trim($expl[3])) : 0;
+				$arWorker['hashrate'] 	= intval(trim($expl[4]));
 				$arWorker['pool'] 		= (str_contains(($first[1] ?? ''), 'E:')) ? ($first[1] ?? '').($expl[1] ?? '') : '';
 				$arWorker['solutions']	= isset($SOL[1]) ? (int)$SOL[1] : 0;
 
@@ -282,7 +282,7 @@ foreach($arr as $v)
 	}
 
 	// <-- IF no xmrig and no cpuminer then PC is online but this must to be reload. See index.php trbl_worker
-	$arWorker['session'] = "OFF";
+	$arWorker['session'] = "STOP";
 	
 	// FINISH WORKER
 	finishWorker: $return[$v['host']] = $arWorker;
