@@ -140,15 +140,18 @@ if(isset($_POST['saveSettings']))
     $currentContent = json_decode(file_get_contents("settings.txt"), true);
 	$newContent		= [];
 
-	foreach($currentContent as $k => $v)
+	if(is_array($currentContent))
 	{
-		$newContent[$k] = $v;
-	}
-	if(is_array($_POST['set']))
-	{
-		foreach($_POST['set'] as $k => $v)
+		foreach($currentContent as $k => $v)
 		{
 			$newContent[$k] = $v;
+		}
+		if(is_array($_POST['set']))
+		{
+			foreach($_POST['set'] as $k => $v)
+			{
+				$newContent[$k] = $v;
+			}
 		}
 	}
 

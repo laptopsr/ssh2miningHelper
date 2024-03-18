@@ -52,9 +52,22 @@ $options = array(
         'timeout' => 3
     )
 );
-$context  		= stream_context_create($options);
-$response 		= file_get_contents($url, false, $context);
-$GetMiner 		= json_decode($response, true);
+$context = stream_context_create($options);
+
+try {
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        throw new Exception("Ошибка при выполнении запроса: " . error_get_last()['message']);
+    }
+
+	$response 		= file_get_contents($url, false, $context);
+	$GetMiner 		= json_decode($response, true);
+
+} catch (Exception $e) {
+    // Обработка исключения
+    //echo "Произошла ошибка: " . $e->getMessage();
+}
 
 /*
     [0] => Array
@@ -139,10 +152,22 @@ $options = array(
 		'timeout' => 3
 	)
 );
-$context  		= stream_context_create($options);
-$response 		= file_get_contents($url, false, $context);
-$pool			= json_decode($response, true);
-$activePoolName = $pool['activePool']['pool']['name']??'';
+$context = stream_context_create($options);
+
+try {
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        throw new Exception("Ошибка при выполнении запроса: " . error_get_last()['message']);
+    }
+
+	$pool			= json_decode($response, true);
+	$activePoolName = $pool['activePool']['pool']['name']??'';
+
+} catch (Exception $e) {
+    // Обработка исключения
+    //echo "Произошла ошибка: " . $e->getMessage();
+}
 
 // ------ //
 if(!isset($_POST['qubic_token']))
@@ -163,9 +188,21 @@ $options = array(
         'timeout' => 3
     )
 );
-$context  		= stream_context_create($options);
-$response 		= file_get_contents($url, false, $context);
-$networkStat 	= json_decode($response, true);
+$context = stream_context_create($options);
+
+try {
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        throw new Exception("Ошибка при выполнении запроса: " . error_get_last()['message']);
+    }
+
+    $networkStat 	= json_decode($response, true);
+} catch (Exception $e) {
+    // Обработка исключения
+    //echo "Произошла ошибка: " . $e->getMessage();
+}
+
 
 if(!isset($_POST['qubic_token']))
 {
@@ -175,53 +212,59 @@ if(!isset($_POST['qubic_token']))
 	echo '</pre>';
 }
 
-$epochNumber = $networkStat['scoreStatistics'][0]['epoch'];
-$epoch97Begin = strtotime('2024-02-21 14:00:00');
-$curEpochBegin = strtotime('+ ' . (7 * ($epochNumber - 97)) . ' days', $epoch97Begin);
-$curEpochEnd = strtotime('+7 days', $curEpochBegin);
-$curEpochProgress = (time() - $curEpochBegin) / (7 * 24 * 3600);
+$bd = "";
 
-$netHashrate = $networkStat['estimatedIts'];
-$netAvgScores = $networkStat['averageScore'];
-$netSolsPerHour = $networkStat['solutionsPerHour'];
-
-$crypto_currency = 'qubic-network';
-$destination_currency = 'usd';
-$cg_client = new CoinGeckoClient();
-$prices = $cg_client->simple()->getPrice($crypto_currency, $destination_currency);
-$qubicPrice = $prices[$crypto_currency][$destination_currency];
-$poolReward = 0.85;
-$incomerPerOneITS = $poolReward * $qubicPrice * 1000000000000 / $netHashrate / 7 / 1.06;
-$curSolPrice = 1479289940 * $poolReward * $curEpochProgress * $qubicPrice / ($netAvgScores * 1.06);
-
-$bd = "
-<br>
-<b>$activePoolName</b><br><br>
-Epoch start / end: <b>" . date('d.m.Y H:i', $curEpochBegin) . " / " . date('d.m.Y H:i', $curEpochEnd) . "</b><br>
-Estimated network hashrate: <b>" . number_format($netHashrate, 0, '', ' ') . " it/s</b><br>
-Average score: <b>" . number_format($netAvgScores, 1) . "</b>.<br>
-Network SOL per hour: <b>" . number_format($netSolsPerHour, 1) . "</b><br>
-Qubic price: <b>" . number_format($qubicPrice, 8) . "$</b><br>
-Estimated income per 1 it/s per day: <b>" . number_format($incomerPerOneITS, 4) . "$</b><br>
-Your estimated income per day: <b>" . number_format($totalIts * $incomerPerOneITS, 2) . "$</b><br>
-Estimated income per 1 sol: <b>" . number_format($curSolPrice, 2) . "$</b><br>
-Your estimated sols per day: <b>" . number_format(24 * $totalIts * $netSolsPerHour / $netHashrate, 1) . "</b><br>
-Your estimated per epoch SOL: <b>" . number_format(168 * $totalIts * $netSolsPerHour / $netHashrate, 1) . "</b>, 
-		USD: <b>" . number_format($curSolPrice * (168 * $totalIts * $netSolsPerHour / $netHashrate), 1) . "$</b><br>
-<br>
-";
-if($totalSolutions > 0)
+if($totalSolutions > 0 and isset($networkStat['scoreStatistics'][0]['epoch']))
 {
-	$bd .= "In this epoch, you received: <b>" . number_format($curSolPrice * $totalSolutions, 2) . "$</b>";
+	$epochNumber = $networkStat['scoreStatistics'][0]['epoch'];
+	$epoch97Begin = strtotime('2024-02-21 14:00:00');
+	$curEpochBegin = strtotime('+ ' . (7 * ($epochNumber - 97)) . ' days', $epoch97Begin);
+	$curEpochEnd = strtotime('+7 days', $curEpochBegin);
+	$curEpochProgress = (time() - $curEpochBegin) / (7 * 24 * 3600);
+
+	$netHashrate = $networkStat['estimatedIts'];
+	$netAvgScores = $networkStat['averageScore'];
+	$netSolsPerHour = $networkStat['solutionsPerHour'];
+
+	$crypto_currency = 'qubic-network';
+	$destination_currency = 'usd';
+	$cg_client = new CoinGeckoClient();
+	$prices = $cg_client->simple()->getPrice($crypto_currency, $destination_currency);
+	$qubicPrice = $prices[$crypto_currency][$destination_currency];
+	$poolReward = 0.85;
+	$incomerPerOneITS = $poolReward * $qubicPrice * 1000000000000 / $netHashrate / 7 / 1.06;
+	$curSolPrice = 1479289940 * $poolReward * $curEpochProgress * $qubicPrice / ($netAvgScores * 1.06);
+
+	$bd .= "
+	<br>
+	<b>$activePoolName</b><br><br>
+	Epoch start / end: <b>" . date('d.m.Y H:i', $curEpochBegin) . " / " . date('d.m.Y H:i', $curEpochEnd) . "</b><br>
+	Estimated network hashrate: <b>" . number_format($netHashrate, 0, '', ' ') . " it/s</b><br>
+	Average score: <b>" . number_format($netAvgScores, 1) . "</b>.<br>
+	Network SOL per hour: <b>" . number_format($netSolsPerHour, 1) . "</b><br>
+	Qubic price: <b>" . number_format($qubicPrice, 8) . "$</b><br>
+	Estimated income per 1 it/s per day: <b>" . number_format($incomerPerOneITS, 4) . "$</b><br>
+	Your estimated income per day: <b>" . number_format($totalIts * $incomerPerOneITS, 2) . "$</b><br>
+	Estimated income per 1 sol: <b>" . number_format($curSolPrice, 2) . "$</b><br>
+	Your estimated sols per day: <b>" . number_format(24 * $totalIts * $netSolsPerHour / $netHashrate, 1) . "</b><br>
+	Your estimated per epoch SOL: <b>" . number_format(168 * $totalIts * $netSolsPerHour / $netHashrate, 1) . "</b>, 
+			USD: <b>" . number_format($curSolPrice * (168 * $totalIts * $netSolsPerHour / $netHashrate), 1) . "$</b><br>
+	<br>
+	In this epoch, you received: <b>" . number_format($curSolPrice * $totalSolutions, 2) . "$</b>";
+
+	echo json_encode([
+		'body' => $bd, 
+		'full' => $networkStat, 
+		'token' => $token, 
+		'epoch_progress' => round(100 * $curEpochProgress, 1), 
+		'tb_miners' => $tb_miners, 
+		'totalSolutions' => $totalSolutions, 
+		'totalIts' => $totalIts,
+		'epochNumber' => $epochNumber,
+	]);
+	exit;
 }
-echo json_encode([
-	'body' => $bd, 
-	'full' => $networkStat, 
-	'token' => $token, 
-	'epoch_progress' => round(100 * $curEpochProgress, 1), 
-	'tb_miners' => $tb_miners, 
-	'totalSolutions' => $totalSolutions, 
-	'totalIts' => $totalIts,
-	'epochNumber' => $epochNumber,
-]);
+
+echo json_encode(['return' => 'no data']);
+exit;
 ?>

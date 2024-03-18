@@ -299,6 +299,7 @@ use phpseclib3\Net\SSH2;
 $(document).ready(function(){
 
 	var RplantSource;
+	let canCreateNew 		= true;
 	var HEROMINERS 			= false;
 	var RPLANT				= false;
 	var QUBIC 				= false;
@@ -309,7 +310,14 @@ $(document).ready(function(){
 
 	var watched_coins 		= [];
 	var workers4string 		= [];
-	
+
+	function falseAll()
+	{
+		QUBIC 				= false;
+		RPLANT 				= false;
+		HEROMINERS 			= false;
+	}
+
 	$.each(JSON.parse('<?=json_encode($coins)?>'), function(index, value) {
 		var firstFour 			= value.user.substring(0, 4);
 		var lastFour 			= value.user.substring(value.user.length - 4);
@@ -335,7 +343,6 @@ $(document).ready(function(){
 			method: 'POST',
 			data: { qubic_token : qubic_token },
 			success: function(data) {
-				//console.log(data);
 				data = JSON.parse(data);
 
 				if(data['body'])
@@ -369,6 +376,10 @@ $(document).ready(function(){
 					$("#cur_epoch").attr("aria-valuenow" , data['epoch_progress']);
 					$("#cur_epoch").html("<h3>Qubic epoch " + data['epochNumber'] + ": " + data['epoch_progress'] + " %</h3>");
 
+				}
+				else
+				{
+					console.log("qubic_statistic - no data"); // data
 				}
 			},
 			error: function(xhr, status, error) {
@@ -738,7 +749,6 @@ $(document).ready(function(){
 		    data: formData,
 		    success: function(data) {
 		    	data 			= JSON.parse(data);
-        		canCreateNew 	= true;
         		//console.log("Form prepare: " + data['prepare']);
 		        //console.log("Form output: " + data['output']);
 
@@ -759,7 +769,11 @@ $(document).ready(function(){
 	// ------ //
 	$( "td.ajaxdata" ).html('<span class="text-danger">waiting..</span>');
 
+	// --- COIN click --- //
 	$(document).delegate(".coin", "click",function(){
+
+		falseAll();
+		canCreateNew = true;
 
 		$( "tr" ).removeClass('active');
 		$( ".coin" ).removeClass('btn-secondary text-white active').addClass('btn-info');
@@ -906,160 +920,141 @@ $(document).ready(function(){
 
 	// ------ //
 
-	setTimeout(function() { 
-		herominersApi();
-	}, 10000);
 
 	function herominersApi()
 	{
-		if(HEROMINERS)
+		var coin_name 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
+		var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
+		var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
+		var network_hashrate 	= $("#allCoins").find('.active').closest('tr').attr('network_hashrate');
+		var network_diff 		= $("#allCoins").find('.active').closest('tr').attr('network_diff');
+
+		if(!coin_name)
 		{
-			$(".forHerominers").show();
+			console.log("Active coin not found");
+			return false;
+		}
 
-			var coin_name 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('coin_name');
-			var coin_asset 			= $("#allCoins").find('.active').closest('tr').find('td.coin').text();
-			var address 			= $("#allCoins").find('.active').closest('tr').find('td.coin').attr('user');
-			var network_hashrate 	= $("#allCoins").find('.active').closest('tr').attr('network_hashrate');
-			var network_diff 		= $("#allCoins").find('.active').closest('tr').attr('network_diff');
+		//console.log(coin_name + " " + address);
 
-			if(!coin_name)
+		var url = "https://" + coin_name + ".herominers.com/api/stats_address?address=" + address;
+		$.getJSON(url, function(data) {
+			if(data.stats)
 			{
-				console.log("Active coin not found");
-				return false;
+				/*
+				[stats] => Array
+					(
+						[donation_level] => 0
+						[shares_good] => 20215
+						[hashes] => 7421149685
+						[lastShare] => 1708242227
+						[balance] => 94520736656
+						[shares_stale] => 13
+						[paid] => 218900000000
+						[shares_invalid] => 41
+						[hashrate] => 216606
+						[roundScore] => 35165271
+						[roundHashes] => 35165271
+						[poolRoundScore] => 109843219665
+						[poolRoundHashes] => 109968359318
+						[networkHeight] => 188834
+						[hashrate_1h] => 199863
+						[hashrate_6h] => 80918.933333333
+						[hashrate_24h] => 40130.97752809
+						[solo_shares_good] => 0
+						[solo_shares_invalid] => 0
+						[solo_shares_stale] => 0
+						[soloRoundHashes] => 0
+						[payments_24h] => 0
+						[payments_7d] => 218900000000
+					)
+
+				[payments] => Array
+					(
+						[0] => 1445fda0d83f2ec8fca5181906f3196b9b5d7b695b79a832c23a62c860581d75:107700000000:239328000
+						[1] => 1707667483
+						[2] => d0ab62e1c4c2e9a6183db9e156018845eb2260e90ccf172be4e25f7a2bb5d095:111200000000:217408000
+						[3] => 1707653795
+					)
+					*/
+
+		    	var htmlData = "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers: statistic</h2></div>";
+		    	htmlData += "<table class=\"table table-striped herominers\">";
+		    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data.stats.hashrate) / 1000).toFixed() + " KH/s</th></tr>";
+		    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data.stats.hashrate_1h) / 1000).toFixed() + " KH/s</th></tr>";
+		    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data.stats.hashrate_6h) / 1000).toFixed() + " KH/s</th></tr>";
+		    	htmlData += "<tr><td>Hashrate 24h</td><th>" + (parseFloat(data.stats.hashrate_24h) / 1000).toFixed() + " KH/s</th></tr>";
+
+				var unconfirmed = 0;
+				$.each(data['unconfirmed'], function(index, value) {
+					//console.log(value['reward']);
+					unconfirmed += parseFloat(value['reward']);
+				});
+				htmlData += "<tr><td>Unconfirmed</td><th>" + (unconfirmed / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+				htmlData += "<tr><td>Round Contribution</td><th>" + ((data.stats.roundScore / data.stats.poolRoundScore) * 100).toFixed(3) + " %</th></tr>";
+				htmlData += "<tr><td height=\"40\"></td><th></th></tr>";
+
+				// ------ //
+
+				//var unlocked = 0;
+				//$.each(data['unlocked'], function(index, value) {
+				//	var sp = value.split(":");
+				//	if(!sp[1])
+				//	{
+				//		console.log(sp[0]);
+				//		unlocked += parseFloat(sp[0]);
+				//	}
+				//});
+				//htmlData += "<tr><td>Pending</td><th>" + (unlocked / 1000000000000).toFixed(5) + " " + coin_asset + "</th></tr>";
+
+
+				htmlData += "<tr><td>Pending</td><th>" + (data.stats.balance / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+				htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data.stats.payments_24h / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+				htmlData += "<tr><td>Last Week Paid</td><th>" + (data.stats.paid / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
+				htmlData += "</table>";
+
+				// --- Check workers --- //
+				htmlData += "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers: workers</h2></div>";
+		    	htmlData += "<table class=\"table table-striped herominers_wrk\">";
+				htmlData += "<tr><th>Wrk.</th><td>Hashrate</td><td>Last</td><td>Rejct</td></tr>";
+
+				// Получаем текущее время в секундах (UNIX-формат)
+				var currentTime 		= Math.floor(Date.now() / 1000);
+
+				$.each(data.workers, function(index, value) {
+					//console.log(value);
+
+					// Вычисляем разницу в секундах
+					var differenceInSeconds = currentTime - value.lastShare;
+
+					htmlData += "<tr><th clign=\"left\">" + value.name + "</th><td>" + value.hashrate + "</td><td>" + differenceInSeconds + " sec.</td><td>" + value.shares_invalid + "</td></tr>";
+				});
+
+				htmlData += "</table>";
+				
+				$("#herominers_data").html(htmlData);
+
+				// --- EFFORT progress for Herominers --- //
+				var effort_herominers 	= ((data.stats.poolRoundHashes / network_hashrate) / 2).toFixed(); // Еще есть network_diff, но как все вместе использовать?
+				var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
+
+				$("#h_cur_effort").css({"width" :  effort_herominers + "%"});
+				$("#h_cur_effort").html("<h3>Herominers " + effort_for + "effort " + effort_herominers + " %</h3>");
+				$("#h_cur_effort").attr("aria-valuenow" , effort_herominers);
+
+
 			}
-
-			//console.log(coin_name + " " + address);
-
-			var url = "https://" + coin_name + ".herominers.com/api/stats_address?address=" + address;
-			$.getJSON(url, function(data) {
-				if(data.stats)
-				{
-					/*
-					[stats] => Array
-						(
-							[donation_level] => 0
-							[shares_good] => 20215
-							[hashes] => 7421149685
-							[lastShare] => 1708242227
-							[balance] => 94520736656
-							[shares_stale] => 13
-							[paid] => 218900000000
-							[shares_invalid] => 41
-							[hashrate] => 216606
-							[roundScore] => 35165271
-							[roundHashes] => 35165271
-							[poolRoundScore] => 109843219665
-							[poolRoundHashes] => 109968359318
-							[networkHeight] => 188834
-							[hashrate_1h] => 199863
-							[hashrate_6h] => 80918.933333333
-							[hashrate_24h] => 40130.97752809
-							[solo_shares_good] => 0
-							[solo_shares_invalid] => 0
-							[solo_shares_stale] => 0
-							[soloRoundHashes] => 0
-							[payments_24h] => 0
-							[payments_7d] => 218900000000
-						)
-
-					[payments] => Array
-						(
-							[0] => 1445fda0d83f2ec8fca5181906f3196b9b5d7b695b79a832c23a62c860581d75:107700000000:239328000
-							[1] => 1707667483
-							[2] => d0ab62e1c4c2e9a6183db9e156018845eb2260e90ccf172be4e25f7a2bb5d095:111200000000:217408000
-							[3] => 1707653795
-						)
-						*/
-
-			    	var htmlData = "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers: statistic</h2></div>";
-			    	htmlData += "<table class=\"table table-striped herominers\">";
-			    	htmlData += "<tr><td>Hashrate</td><th>" + (parseFloat(data.stats.hashrate) / 1000).toFixed() + " KH/s</th></tr>";
-			    	htmlData += "<tr><td>Hashrate 1h</td><th>" + (parseFloat(data.stats.hashrate_1h) / 1000).toFixed() + " KH/s</th></tr>";
-			    	htmlData += "<tr><td>Hashrate 6h</td><th>" + (parseFloat(data.stats.hashrate_6h) / 1000).toFixed() + " KH/s</th></tr>";
-			    	htmlData += "<tr><td>Hashrate 24h</td><th>" + (parseFloat(data.stats.hashrate_24h) / 1000).toFixed() + " KH/s</th></tr>";
-
-					var unconfirmed = 0;
-					$.each(data['unconfirmed'], function(index, value) {
-						//console.log(value['reward']);
-						unconfirmed += parseFloat(value['reward']);
-					});
-					htmlData += "<tr><td>Unconfirmed</td><th>" + (unconfirmed / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-					htmlData += "<tr><td>Round Contribution</td><th>" + ((data.stats.roundScore / data.stats.poolRoundScore) * 100).toFixed(3) + " %</th></tr>";
-					htmlData += "<tr><td height=\"40\"></td><th></th></tr>";
-
-					// ------ //
-
-					//var unlocked = 0;
-					//$.each(data['unlocked'], function(index, value) {
-					//	var sp = value.split(":");
-					//	if(!sp[1])
-					//	{
-					//		console.log(sp[0]);
-					//		unlocked += parseFloat(sp[0]);
-					//	}
-					//});
-					//htmlData += "<tr><td>Pending</td><th>" + (unlocked / 1000000000000).toFixed(5) + " " + coin_asset + "</th></tr>";
-
-
-					htmlData += "<tr><td>Pending</td><th>" + (data.stats.balance / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-					htmlData += "<tr><td>Last 24 Hours Paid</td><th>" + (data.stats.payments_24h / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-					htmlData += "<tr><td>Last Week Paid</td><th>" + (data.stats.paid / 1000000000000).toFixed(6) + " " + coin_asset + "</th></tr>";
-					htmlData += "</table>";
-
-					// --- Check workers --- //
-					htmlData += "<div class=\"well bg-secondary text-orange text-center\"><h2>Herominers: workers</h2></div>";
-			    	htmlData += "<table class=\"table table-striped herominers_wrk\">";
-					htmlData += "<tr><th>Wrk.</th><td>Hashrate</td><td>Last</td><td>Rejct</td></tr>";
-
-					// Получаем текущее время в секундах (UNIX-формат)
-					var currentTime 		= Math.floor(Date.now() / 1000);
-
-					$.each(data.workers, function(index, value) {
-						//console.log(value);
-
-						// Вычисляем разницу в секундах
-						var differenceInSeconds = currentTime - value.lastShare;
-
-						htmlData += "<tr><th clign=\"left\">" + value.name + "</th><td>" + value.hashrate + "</td><td>" + differenceInSeconds + " sec.</td><td>" + value.shares_invalid + "</td></tr>";
-					});
-
-					htmlData += "</table>";
-					
-					$("#herominers_data").html(htmlData);
-
-					// --- EFFORT progress for Herominers --- //
-					var effort_herominers 	= ((data.stats.poolRoundHashes / network_hashrate) / 2).toFixed(); // Еще есть network_diff, но как все вместе использовать?
-					var effort_for			= data.stats.soloRoundHashes==0? "Pool " : "Solo ";
-
-					$("#h_cur_effort").css({"width" :  effort_herominers + "%"});
-					$("#h_cur_effort").html("<h3>Herominers " + effort_for + "effort " + effort_herominers + " %</h3>");
-					$("#h_cur_effort").attr("aria-valuenow" , effort_herominers);
-
-
-				}
-			});
-		}
-		else
-		{
-			$("#herominers_data").html("");
-			$(".forHerominers").hide();
-		}
+		});
 	}
-
-	setInterval(herominersApi, 20000);
 
 	// ------ //
 
 	// Функция для отправки AJAX-запроса
 	sendAjaxRequest();
 
-	let canCreateNew = true;
-
 	function sendAjaxRequest() {
 
-		QUBIC 				= false;
-		RPLANT 				= false;
-		HEROMINERS 			= false;
+		falseAll();
 
 		$.ajax({
 		    url: 'workerdata.php',
@@ -1115,7 +1110,6 @@ $(document).ready(function(){
 					if(value['session'] && value['session'] == 'STOP')
 					{
 						trbl_worker.push(value['id']);
-						$("#worker_" + value['id']).addClass('bg-danger');
 					}
 
 					if(value['session'] && value['session'] == 'QUBIC')
@@ -1124,9 +1118,9 @@ $(document).ready(function(){
 					}
 				});
 
+				// --- AUTO --- //
 				if(workersControl == "auto" && trbl_worker.length > 0)
 				{
-					$("#lomake_workers option:selected").removeAttr("selected");
 					$("#lomake_workers").val(trbl_worker);
 
 					setTimeout(function() {
@@ -1136,8 +1130,8 @@ $(document).ready(function(){
 							$("#allCoins").find('.active').click();
 						}
 						else
-						{
-							// No coin selected
+						{ 
+							console.log("No coin selected");
 						}
 						
 						newMessage("Miner reload: " + trbl_worker);
@@ -1207,9 +1201,11 @@ $(document).ready(function(){
 				if(RPLANT)
 				{
 					$(".forRplant").show();
+					getBlocks();
+
 					if(canCreateNew)
 					{
-						console.log("rplantApiStream is Started");
+						newMessage("rplantApiStream is Started");
 						rplantApiStream();
 						canCreateNew = false;
 					}
@@ -1220,7 +1216,7 @@ $(document).ready(function(){
 
 					if(RplantSource && !canCreateNew)
 					{
-						console.log("Rplant go to sleep");
+						newMessage("Rplant go to sleep");
 						RplantSource.close();
 						canCreateNew = true;
 					}
@@ -1230,13 +1226,19 @@ $(document).ready(function(){
 				if(HEROMINERS)
 				{
 					$(".forHerominers").show();
+					herominersApi();
 				}
 				else
 				{
 					$(".forHerominers").hide();
 				}
 				// -->
-				
+
+				$.each(trbl_worker, function(key, wk){
+					//console.log(wk);
+					$("#worker_" + wk).find('.session').addClass('bg-danger');
+				});
+
 				$('.time').each(function(index, element) {
 					// Получаем текущее время
 					var currentTime = new Date();
@@ -1276,12 +1278,10 @@ $(document).ready(function(){
 	// Запуск функции sendAjaxRequest() каждые 10 секунд
 	setInterval(sendAjaxRequest, 30000);
 
-	setTimeout(function() { 
-		getBlocks();
-	}, 10000);
 
 	function getBlocks() {
 
+		//console.log("getBlocks started. Rplant: " + RPLANT);
 		if(RPLANT)
 		{
 			var url = 'https://pool.rplant.xyz/api/blocks';
@@ -1356,8 +1356,6 @@ $(document).ready(function(){
 		}
 	}
 
-	setInterval(getBlocks, 60000);
-
 	function EffortClear()
 	{
 		$("#cur_effort").css({"width" :  "0%"});
@@ -1416,7 +1414,7 @@ $(document).ready(function(){
 		RplantSource = new EventSource(url);
 		RplantSource.addEventListener('message', function(e) {
 
-			console.log("Rplant RplantSource is online");
+			//console.log("Rplant RplantSource is online");
 
 			source_count += 1;
 

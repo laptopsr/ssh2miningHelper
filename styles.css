@@ -107,7 +107,6 @@ table.herominers th, table.miner_table th{
 	float: right;
 }
 #getBlocks{
-	display: none;
 	max-height: 35%; 
 	overflow-y: scroll;
 	overflow-x: hidden;

@@ -171,7 +171,7 @@ foreach($arr as $v)
 			$date 		= new DateTime($time, new DateTimeZone('UTC'));
 			$date->setTimezone($timezone);
 
-			if( (time()-strtotime($date->format('Y-m-d H:i:s'))) < 30 and intval(trim($expl[4])) > 0)
+			if(isset($expl[4]) and (time()-strtotime($date->format('Y-m-d H:i:s'))) < 30 and intval(trim($expl[4])) > 0)
 			{
 				$arWorker['session']	= "QUBIC";
 				$arWorker['time'] 		= $date->format('H:i:s');
