@@ -6,6 +6,11 @@ session_start();
 
 include "config.php";
 use phpseclib3\Net\SSH2;
+
+if(isset($_SESSION['SOL']))
+{
+	unset($_SESSION['SOL']);
+}
 ?>
 <html>
 <head>
@@ -134,7 +139,7 @@ use phpseclib3\Net\SSH2;
 					</table>
 				</div>
 				<div class="well forRplant" id="getBlocks"></div>
-				<div id="herominers_data">Please wait..</div>
+				<div id="herominers_data" class="forHerominers"></div>
 				<div id="qubic_data" class="forQubic"></div>
 				<div id="tb_miners" class="forQubic"></div>
 				<div id="qubic_stat" class="forQubic"></div>
@@ -379,7 +384,8 @@ $(document).ready(function(){
 				}
 				else
 				{
-					console.log("qubic_statistic - no data"); // data
+					//qubic_token = '';
+					console.log("qubic_statistic - error: " + JSON.stringify(data)); // data
 				}
 			},
 			error: function(xhr, status, error) {
@@ -1493,7 +1499,6 @@ $(document).ready(function(){
 							
 					if(workersControl == "auto" && offline_count >= max_count)
 					{
-						$("#lomake_workers option:selected").removeAttr("selected");
 						$("#lomake_workers").val(workers_offline);
 				
 						$("#allCoins").find('.active').click();
