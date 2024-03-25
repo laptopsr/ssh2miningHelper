@@ -1,6 +1,4 @@
 config.php
 dbLog.log
-messages.txt
-settings.txt
-blocks.txt
+*.txt
 vendor/
