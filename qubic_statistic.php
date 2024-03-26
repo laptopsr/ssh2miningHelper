@@ -85,7 +85,8 @@ if(empty($token))
 	exit;
 }
 
-$url = 'https://api.qubic.li/My/MinerControl';
+//$url = 'https://api.qubic.li/My/MinerControl';
+$url = 'https://api.qubic.li/My/Pool/c3b45fea-e748-428f-96fe-222d722682b8/Performance';
 $options = array(
     'http' => array(
         'header'  => "Authorization: Bearer $token\r\n",
@@ -110,38 +111,40 @@ try {
 }
 
 /*
-    [0] => Array
+    [foundSolutions] => 249
+    [miners] => Array
         (
-            [id] => 66f50894-63ce-4c3e-bf5c-87952d95942f
-            [minerBinaryId] => 
-            [alias] => 217
-            [version] => Array
+            [0] => Array
                 (
-                    [major] => 0
-                    [minor] => 0
-                    [patch] => 0
-                    [versionString] => 0.0.0
-                )
+                    [id] => 65b10396-1be4-4dd0-8504-0102d11383a6
+                    [minerBinaryHash] => Xkp/w7lm1p2u197ohzut6A==
+                    [minerBinaryId] => 
+                    [alias] => AlexKovalskiy.test2
+                    [versionString] => 1.8.10.0
+                    [version] => Array
+                        (
+                            [major] => 1
+                            [minor] => 8
+                            [patch] => 10
+                            [versionString] => 1.8.10
+                        )
 
-            [outdatedVersion] => 1
-            [lastActive] => 2024-03-09T08:15:57.5
-            [currentIts] => 72
-            [currentIdentity] => XJKGAOXAOGQQGEPOSOLGYJDOJFUAUUXLVDPRQTQMDAEORWPZXUWGQDTAEASH
-            [solutionsFound] => 0
-            [threads] => 
-            [totalFeeTime] => 0
-            [feeReports] => Array
-                (
+                    [outdatedVersion] => 
+                    [lastActive] => 2024-03-26T11:44:33.453
+                    [currentIts] => 0
+                    [currentIdentity] => QSETADETNDYROESMJRZVJYPFOWTBEHKOVYFSNANTQCGDTBJMHIIONWRDOEOI
+                    [solutionsFound] => 0
+                    [threads] => 
+                    [totalFeeTime] => 0
+                    [feeReports] => 
+                    [isActive] => 1
                 )
-
-            [isActive] => 1
-        )
 */
 
 if(!isset($_POST['qubic_token']))
 {
 /*
-	$url = 'https://api.qubic.li/My/GetMiner';
+	$url = 'https://api.qubic.li/My/Pool/c3b45fea-e748-428f-96fe-222d722682b8/Performance'; // Что бы узнать ID - https://api.qubic.li/My/Pool
 	$options = array(
 		'http' => array(
 		    'header'  => "Authorization: Bearer $token\r\n",
@@ -159,26 +162,25 @@ if(!isset($_POST['qubic_token']))
 		}
 
 		$response 		= file_get_contents($url, false, $context);
-		$GetMiner 		= json_decode($response, true);
+		$arrResp 		= json_decode($response, true);
 
 	} catch (Exception $e) {
 
 	}
-*/
-/*
+
+
 	echo '<h1>My/MinerControl</h1>';
 	echo '<pre>';
-	print_r($GetMiner);
+	print_r($arrResp);
 	echo '</pre>';
+	exit;
 */
 }
 
 $activePoolName = "";
-$totalSolutions = $GetMiner['totalSolutions']??0;
-$totalIts		= $GetMiner['currentIts']??0;
-$activeMiners	= $GetMiner['activeMiners']??0;
-$inactiveMiners	= $GetMiner['inactiveMiners']??0;
-$h_per_user		= "";
+$totalSolutions = $GetMiner['foundSolutions']??0;
+$totalIts		= 0;
+$h_per_user		= "AVG хэшрейты:";
 $nullhash 		= [];
 
 $tb_miners = "<table class=\"table table-striped qubicStat\">
@@ -211,11 +213,17 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 	$hash_per_user = [];
 	foreach($GetMiner['miners'] as $miner)
 	{
-		//$totalSolutions += $miner['solutionsFound'];
-		//$totalIts 		+= $miner['currentIts'];
+		$totalIts 	+= $miner['currentIts'];
+		$ex_miner 	= explode(".", $miner['alias']);
 
-		$ex_miner = explode(".", $miner['alias']);
-		$hash_per_user[$ex_miner[0]] = (isset($hash_per_user[$ex_miner[0]])) ? $miner['currentIts']+$hash_per_user[$ex_miner[0]] : $miner['currentIts'];
+		// < -- ignor
+		if(
+			$ex_miner[0] != 'AlexKovalskiy'
+			and $ex_miner[0] != 'andreiA'
+		)
+		{
+			$hash_per_user[$ex_miner[0]] = (isset($hash_per_user[$ex_miner[0]])) ? $miner['currentIts']+$hash_per_user[$ex_miner[0]] : $miner['currentIts'];
+		}
 
 		$tb_miners .= "
 		<tr>
@@ -339,7 +347,6 @@ try {
     //echo "Произошла ошибка: " . $e->getMessage();
 }
 
-
 if(!isset($_POST['qubic_token']))
 {
 /*
@@ -364,12 +371,6 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 	$netAvgScores 		= $networkStat['averageScore']??0;
 	$netSolsPerHour 	= $networkStat['solutionsPerHour']??0;
 
-	// <-- Offset
-	if($totalSolutions > 0)
-	{
-		$totalSolutions += 16;
-	}
-
 	if($netHashrate > 0)
 	{
 		$crypto_currency = 'qubic-network';
@@ -380,7 +381,6 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 		$poolReward = 0.85;
 		$incomerPerOneITS = $poolReward * $qubicPrice * 1000000000000 / $netHashrate / 7 / 1.06;
 		$curSolPrice = 1479289940 * $poolReward * $curEpochProgress * $qubicPrice / ($netAvgScores * 1.06);
-		$curSolPriceNotUSD = 1479289940 * $poolReward * $curEpochProgress / ($netAvgScores * 1.06);
 
 		$bd = "
 		<br>
@@ -409,10 +409,11 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 		'totalSolutions' => $totalSolutions, 
 		'totalIts' => $totalIts,
 		'epochNumber' => $epochNumber,
+		'netHashrate' => $netHashrate,
 		'AVG' => $AVG,
 		'AVG_sum' => array_sum($AVG),
 		'curSolPrice' => $curSolPrice,
-		'curSolPriceNotUSD' => number_format($curSolPriceNotUSD, 2)
+		'qubicPrice' => number_format($qubicPrice, 8)
 	];
 
 	if(isset($_POST['qubic_token']))
@@ -464,7 +465,7 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 		{
 			$botToken 			= '7020158981:AAEG040eTHZaQS_5Y-JlRjEVX0ZLNTdfRBI';
 			$chatId 			= '-1002020729115';
-			$message 			= "\n------\n\n!!!     НАЙДЕНО   (".($totalSolutions-$_SESSION['SOL']).")   SOL     !!!\n\nВсего найдено: $totalSolutions SOL\nВсего за эпоху около: $perEpochSol SOL\nПримерно: $perEpochUSD $\n\nЭпоха: $epochNumber\nСкорость сети: $netHashrate It/s\nНаш хешрейт: $totalIts It/s\nВремя сервера: ". date("d.m.Y H:i")."\n\n------\n\nAVG хэшрейты:\n".$h_per_user;
+			$message 			= "\n------\n\n!!!     НАЙДЕНО   (".($totalSolutions-$_SESSION['SOL']).")   SOL     !!!\n\nВсего найдено: $totalSolutions SOL\nВсего за эпоху около: $perEpochSol SOL\nПримерно: $perEpochUSD $\n\nЭпоха: $epochNumber\nСкорость сети: $netHashrate It/s\nНаш хешрейт: $totalIts It/s\nВремя сервера: ". date("d.m.Y H:i")."\n\n------\n\n".$h_per_user;
 			$url 				= "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=".urlencode($message);
 			$response 			= file_get_contents($url);
 			$_SESSION['SOL'] 	= $totalSolutions;
