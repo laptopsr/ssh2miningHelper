@@ -1280,7 +1280,7 @@ $(document).ready(function(){
 	}
 
 	// Запуск функции sendAjaxRequest() каждые 10 секунд
-	setInterval(sendAjaxRequest, 30000);
+	setInterval(sendAjaxRequest, 60000);
 
 
 	function getBlocks() {

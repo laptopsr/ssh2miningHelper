@@ -14,46 +14,39 @@ use Codenixsv\CoinGeckoApi\CoinGeckoClient;
 
 $sendToSTAN = $sendToSTAN??false;
 
-// --- AVG --- //
-$f_avg 				= "avg_workers.txt";
-$clear_avg_workers 	= false;
+$AVG = [];
 
-if($clear_avg_workers)
+if($conn)
 {
-	file_put_contents($f_avg, '');
-}
-
-$get_avg 	= file_get_contents($f_avg);
-$arr		= explode("\n", $get_avg);
-$out		= [];
-$AVG 		= [];
-$percentSum = 0;
-
-foreach($arr as $line)
-{
-	$arr_line = json_decode(trim($line), true);
-	
-	if(is_array($arr_line))
+	$query = "
+	SELECT 
+		alias,
+		AVG(hashrate) as total_hashrate
+	FROM hashrates
+	WHERE epoch='102'
+	AND isActive=1 AND hashrate!=0
+	GROUP BY alias
+	ORDER BY alias
+	";
+	$sql = mysqli_query($conn, $query) or die(mysqli_error($db));
+	$Miners = [];
+	while($row = mysqli_fetch_array($sql))
 	{
-		foreach($arr_line as $name => $hash)
-		{
-			$out[$name][] = $hash;
-		}
+		$expl = explode(".", $row['alias']);
+		$Miners[$expl[0]][$expl[1]] = $row['total_hashrate'];
 	}
-}
-foreach($out as $n => $arrs)
-{
-	$AVG[$n] = round(array_sum($out[$n]) / count($out[$n]));
-}
 
-if(!isset($_POST['qubic_token']))
-{
-/*
-	echo '<pre>';
-	print_r($AVG);
-	echo '</pre>';
-	exit;
-*/
+	foreach($Miners as $alias => $arr)
+	{
+		$AVG[$alias] = round(array_sum($Miners[$alias]), 2);
+	}
+
+	if(!isset($_POST['qubic_token']))
+	{
+		echo '<pre>';
+		print_r($AVG);
+		echo '</pre>';
+	}
 }
 
 
@@ -134,6 +127,7 @@ try {
 
 	if(!isset($_POST['qubic_token']))
 	{
+	/*
 		echo '<h1>Pool</h1>';
 		echo '<pre>';
 		print_r($pool['miningPools'][0]['id']);
@@ -143,6 +137,7 @@ try {
 		echo '<pre>';
 		print_r($GetMiner);
 		echo '</pre>';
+	*/
 	}
 
 } catch (Exception $e) {
@@ -216,6 +211,30 @@ if(!isset($_POST['qubic_token']))
 */
 }
 
+// -- NETWORK STAT --- //
+$url = 'https://api.qubic.li/Score/Get';
+$options = array(
+    'http' => array(
+        'header'  => "Authorization: Bearer $token\r\n",
+        'method'  => 'GET',
+        'timeout' => 3
+    )
+);
+$context = stream_context_create($options);
+
+try {
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        throw new Exception("Ошибка при выполнении запроса: " . error_get_last()['message']);
+    }
+
+    $networkStat 	= json_decode($response, true);
+} catch (Exception $e) {
+    // Обработка исключения
+    //echo "Произошла ошибка: " . $e->getMessage();
+}
+
 $activePoolName = "";
 $totalSolutions = $GetMiner['foundSolutions']??0;
 $totalIts		= 0;
@@ -277,6 +296,12 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 			}
 		//}
 
+
+		if($conn)
+		{
+			mysqli_query($conn, "INSERT INTO hashrates SET alias='$miner[alias]', hashrate='$miner[currentIts]', isActive='$miner[isActive]', epoch='".($networkStat['scoreStatistics'][0]['epoch']??0)."'") or die(mysqli_error());
+		}
+
 		$tb_miners .= "
 		<tr>
 			<td>$miner[alias]</td>
@@ -308,25 +333,6 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 		{
 			$h_per_user = "Проблемные воркеры:\n".implode("\n", $nullhash);
 		}
-		else
-		{
-			if($sendToSTAN and !$clear_avg_workers)
-			{
-				// --- SAVE to JSON AVG per MINER--- //
-				$get 	= file_get_contents($f_avg);
-				/*
-				$lines 	= explode("\n", $get);
-
-				// Удаляем повторяющиеся строки
-				$unique_lines = array_unique($lines);
-
-				// Объединяем уникальные строки обратно в одну переменную
-				$cleaned_content = implode("\n", $unique_lines);
-				*/
-				
-				file_put_contents($f_avg, json_encode($hash_per_user)."\n".$get);
-			}
-		}
 
 		if(!isset($_POST['qubic_token']))
 		{
@@ -335,39 +341,6 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 	}
 }
 $tb_miners .= "</tbody></table>";
-
-$url = 'https://api.qubic.li/Score/Get';
-$options = array(
-    'http' => array(
-        'header'  => "Authorization: Bearer $token\r\n",
-        'method'  => 'GET',
-        'timeout' => 3
-    )
-);
-$context = stream_context_create($options);
-
-try {
-    $response = file_get_contents($url, false, $context);
-
-    if ($response === false) {
-        throw new Exception("Ошибка при выполнении запроса: " . error_get_last()['message']);
-    }
-
-    $networkStat 	= json_decode($response, true);
-} catch (Exception $e) {
-    // Обработка исключения
-    //echo "Произошла ошибка: " . $e->getMessage();
-}
-
-if(!isset($_POST['qubic_token']))
-{
-/*
-	echo '<h1>Score/Get</h1>';
-	echo '<pre>';
-	print_r($networkStat);
-	echo '</pre>';
-*/
-}
 
 $bd = "OFFLINE";
 
@@ -468,11 +441,21 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 			$message 	= "Я перезагрузился.\nНачинаю слежение за новыми решениями.\n\nВсего сейчас: $totalSolutions SOL";
 			$url 		= "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=".urlencode($message);
 			$response 	= file_get_contents($url);
+
+			if($conn)
+			{
+				mysqli_query($conn, "INSERT INTO SOL SET epoch='$epochNumber', sol_num='$totalSolutions'") or die(mysqli_error());
+			}
 		}
 		if(isset($_POST['qubic_token']) and isset($_SESSION['SOL']) and $totalSolutions > $_SESSION['SOL'])
 		{
 			$sendIt 					= true;
 			$_SESSION['last_SOL_time'] 	= time();
+
+			if($conn)
+			{
+				mysqli_query($conn, "INSERT INTO SOL SET epoch='$epochNumber', sol_num='$totalSolutions'") or die(mysqli_error());
+			}
 		}
 		if($sendIt)
 		{
