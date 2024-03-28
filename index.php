@@ -7,10 +7,8 @@ session_start();
 include "config.php";
 use phpseclib3\Net\SSH2;
 
-if(isset($_SESSION['SOL']))
-{
-	unset($_SESSION['SOL']);
-}
+if(isset($_SESSION['SOL'])){unset($_SESSION['SOL']);}
+if(isset($_SESSION['last_SOL_time'])){unset($_SESSION['last_SOL_time']);}
 ?>
 <html>
 <head>
