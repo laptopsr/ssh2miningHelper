@@ -1,5 +1,7 @@
 <?php
 session_start();
+ini_set('memory_limit', '256M');
+
 /*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -13,41 +15,6 @@ include "config.php";
 use Codenixsv\CoinGeckoApi\CoinGeckoClient;
 
 $sendToSTAN = $sendToSTAN??false;
-
-$AVG = [];
-
-if($conn)
-{
-	$query = "
-	SELECT 
-		alias,
-		AVG(hashrate) as total_hashrate
-	FROM hashrates
-	WHERE epoch='102'
-	AND isActive=1 AND hashrate!=0
-	GROUP BY alias
-	ORDER BY alias
-	";
-	$sql = mysqli_query($conn, $query) or die(mysqli_error($db));
-	$Miners = [];
-	while($row = mysqli_fetch_array($sql))
-	{
-		$expl = explode(".", $row['alias']);
-		$Miners[$expl[0]][$expl[1]] = $row['total_hashrate'];
-	}
-
-	foreach($Miners as $alias => $arr)
-	{
-		$AVG[$alias] = round(array_sum($Miners[$alias]), 2);
-	}
-
-	if(!isset($_POST['qubic_token']))
-	{
-		echo '<pre>';
-		print_r($AVG);
-		echo '</pre>';
-	}
-}
 
 
 // My/Get, My/MinerControl, My/GetMiner, My/Pool, My/Pool/Payouts, My/Profile, Revenue/Get
@@ -235,6 +202,74 @@ try {
     //echo "Произошла ошибка: " . $e->getMessage();
 }
 
+// ------ //
+$AVG 			= [];
+$correctedAVG 	= [];
+
+if($sendToSTAN and $conn and isset($networkStat['scoreStatistics'][0]['epoch'])) // and !isset($_POST['qubic_token'])
+{
+	$enum = $networkStat['scoreStatistics'][0]['epoch'];
+
+	// ------ //
+	$query = "
+		SELECT 
+		    DISTINCT DATE_FORMAT(time, '%Y-%m-%d %H:%i') AS unique_minutes,
+		    alias, hashrate
+		FROM hashrates
+		WHERE epoch='$enum' AND isActive=1
+		ORDER BY unique_minutes DESC
+	";
+	$newArr = [];
+	$sql 	= mysqli_query($conn, $query) or die(mysqli_error($conn));
+	while($row = mysqli_fetch_assoc($sql)) {
+		$newArr[$row['unique_minutes']][$row['alias']] = $row['hashrate'];
+	}
+
+	$count 	= count($newArr);
+	$totals = [];
+
+	foreach ($newArr as $timestamp => $values)
+	{
+		foreach($values as $user => $value)
+		{
+			if(!isset($totals[$user]))
+			{
+			    $totals[$user] = 0;
+			}
+			$totals[$user] 	+= $value > 0 ? $value : $last[$user]??0;			
+			if($value > 0){$last[$user] = $value;}
+		}
+	}
+	$prep = [];
+	foreach ($totals as $user => $total)
+	{
+		$expl = explode(".", $user);
+
+		if(!isset($prep[$expl[0]]))
+		{
+			$prep[$expl[0]] = 0;
+		}
+		$prep[$expl[0]] += $total / $count;
+	}
+
+	foreach ($prep as $u => $h)
+	{
+		$correctedAVG[$u] = round($h, 2);
+	}
+
+	if(!isset($_POST['qubic_token']))
+	{
+		echo '<h3>table</h3>';
+		echo '<pre>';
+		print_r($correctedAVG);
+		echo '</pre>';
+
+		exit;
+	}
+}
+
+// ------ //
+
 $activePoolName = "";
 $totalSolutions = $GetMiner['foundSolutions']??0;
 $totalIts		= 0;
@@ -281,25 +316,28 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 			$ex_miner 	= explode("___", $miner['alias']);
 		}
 		// < -- ignor
-		/*
+		
 		if(
-			$ex_miner[0] != 'AlexKovalskiy'
-			and $ex_miner[0] != 'andreiA'
+			$ex_miner[0] != 'AAtest'
+			and $ex_miner[0] != 'Alextest'
 		)
 		{
-		*/
+		
 			$hash_per_user[$ex_miner[0]] = (isset($hash_per_user[$ex_miner[0]])) ? $miner['currentIts']+$hash_per_user[$ex_miner[0]] : $miner['currentIts'];
 
 			if($miner['currentIts'] == 0 or empty($miner['isActive']))
 			{
 				$nullhash[] = $miner['alias'];
 			}
-		//}
 
+			if($sendToSTAN and $conn and isset($miner['alias']) and isset($networkStat['scoreStatistics'][0]['epoch']))
+			{
+				$enum 		= $networkStat['scoreStatistics'][0]['epoch'];
+				$isActive 	= $miner['isActive']? 1:0;
+				$query 		= "INSERT INTO hashrates SET alias='$miner[alias]', hashrate='$miner[currentIts]', isActive='$isActive', epoch='$enum'";
+				mysqli_query($conn, $query) or die(mysqli_error($conn));
+			}
 
-		if($conn)
-		{
-			mysqli_query($conn, "INSERT INTO hashrates SET alias='$miner[alias]', hashrate='$miner[currentIts]', isActive='$miner[isActive]', epoch='".($networkStat['scoreStatistics'][0]['epoch']??0)."'") or die(mysqli_error());
 		}
 
 		$tb_miners .= "
@@ -317,7 +355,7 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 	if(count($hash_per_user) > 0)
 	{
 		$rep = [];
-		foreach($AVG as $u => $h)
+		foreach($correctedAVG as $u => $h)
 		{
 			$rep[$h] = $u;
 		}
@@ -325,7 +363,7 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 
 		foreach($rep as $h => $u)
 		{
-			$perc 			= round($h / array_sum($AVG) * 100, 2);
+			$perc 			= round($h / array_sum($correctedAVG) * 100, 2);
 			$h_per_user 	.= "$u   $h    $perc%\n";
 		}
 
@@ -394,8 +432,8 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 		'totalIts' => $totalIts,
 		'epochNumber' => $epochNumber,
 		'netHashrate' => $netHashrate,
-		'AVG' => $AVG,
-		'AVG_sum' => array_sum($AVG),
+		'AVG' => $correctedAVG,
+		'AVG_sum' => array_sum($correctedAVG),
 		'curSolPrice' => $curSolPrice,
 		'qubicPrice' => number_format($qubicPrice, 8),
 		'last_SOL_time' => $_SESSION['last_SOL_time']??0
@@ -441,11 +479,6 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 			$message 	= "Я перезагрузился.\nНачинаю слежение за новыми решениями.\n\nВсего сейчас: $totalSolutions SOL";
 			$url 		= "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=".urlencode($message);
 			$response 	= file_get_contents($url);
-
-			if($conn)
-			{
-				mysqli_query($conn, "INSERT INTO SOL SET epoch='$epochNumber', sol_num='$totalSolutions'") or die(mysqli_error());
-			}
 		}
 		if(isset($_POST['qubic_token']) and isset($_SESSION['SOL']) and $totalSolutions > $_SESSION['SOL'])
 		{
@@ -454,7 +487,7 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 
 			if($conn)
 			{
-				mysqli_query($conn, "INSERT INTO SOL SET epoch='$epochNumber', sol_num='$totalSolutions'") or die(mysqli_error());
+				mysqli_query($conn, "INSERT INTO SOL SET epoch='$epochNumber', sol_num='$totalSolutions'") or die(mysqli_error($conn));
 			}
 		}
 		if($sendIt)

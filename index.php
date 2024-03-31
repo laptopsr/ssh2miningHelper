@@ -858,6 +858,31 @@ $(document).ready(function(){
 				    if(data['html_data'] && data['is_APIok'] == "true")
 				    {
 						$("#allCoins").html(data['html_data']);
+
+						new DataTable('table.coins', {
+							//"order": [ [4,'desc'], [3,'asc'] ],
+							"order": [ [7,'desc'] ],
+							paging: false,
+							/*
+							columnDefs: [
+								{ targets: [0, 1, 2], orderable: false }, // Запретить сортировку для первой и четвертой колонок
+								{
+									targets: [3], // Price колонка
+									orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
+									render: function (data, type, row, meta) {
+										return parseFloat(data);
+									}
+								},
+								{
+									targets: [4], // Diff колонка
+									orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
+									render: function (data, type, row, meta) {
+										return parseFloat(data);
+									}
+								}
+							]
+							*/
+						});
 					}
 
 					if(watched_coins.length > 0)
@@ -880,31 +905,6 @@ $(document).ready(function(){
 					}
 
 					// --- BEST --- //
-
-					new DataTable('table.coins', {
-						//"order": [ [4,'desc'], [3,'asc'] ],
-						"order": [ [7,'desc'] ],
-						paging: false,
-						/*
-						columnDefs: [
-							{ targets: [0, 1, 2], orderable: false }, // Запретить сортировку для первой и четвертой колонок
-							{
-								targets: [3], // Price колонка
-								orderSequence: ['desc', 'asc'], // Порядок сортировки для второй колонки
-								render: function (data, type, row, meta) {
-									return parseFloat(data);
-								}
-							},
-							{
-								targets: [4], // Diff колонка
-								orderSequence: ['asc', 'desc'], // Порядок сортировки для третьей колонки
-								render: function (data, type, row, meta) {
-									return parseFloat(data);
-								}
-							}
-						]
-						*/
-					});
 
 					$("#cur_balance").html("<h2>USDT: <b>"
 						+ (parseFloat(data['USD_total_xeggex'])??0).toFixed(2) + " $</b> | Coins: <b>"
