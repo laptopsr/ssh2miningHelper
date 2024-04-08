@@ -1,6 +1,6 @@
 <?php
 session_start();
-ini_set('memory_limit', '256M');
+ini_set('memory_limit', '1024M');
 
 /*
 ini_set('display_errors', 1);
@@ -15,6 +15,8 @@ include "config.php";
 use Codenixsv\CoinGeckoApi\CoinGeckoClient;
 
 $sendToSTAN = $sendToSTAN??false;
+$insertDB	= true;
+$curTABLE 	= "hashrates_103";
 
 
 // My/Get, My/MinerControl, My/GetMiner, My/Pool, My/Pool/Payouts, My/Profile, Revenue/Get
@@ -33,10 +35,10 @@ if(isset($_POST['qubic_token']) and empty($_POST['qubic_token']) or !isset($_POS
 		)
 	);
 
-	$context  = stream_context_create($options);
-	$response = file_get_contents($url, false, $context);
-	$result = json_decode($response, true);
-	$token = $result['token']??'';
+	$context  	= stream_context_create($options);
+	$response 	= file_get_contents($url, false, $context);
+	$result 	= json_decode($response, true);
+	$token 		= $result['token']??'';
 }
 else if(isset($_POST['qubic_token']) and !empty($_POST['qubic_token']))
 {
@@ -94,7 +96,7 @@ try {
 
 	if(!isset($_POST['qubic_token']))
 	{
-	/*
+		/*
 		echo '<h1>Pool</h1>';
 		echo '<pre>';
 		print_r($pool['miningPools'][0]['id']);
@@ -104,7 +106,8 @@ try {
 		echo '<pre>';
 		print_r($GetMiner);
 		echo '</pre>';
-	*/
+		exit;
+		*/
 	}
 
 } catch (Exception $e) {
@@ -210,58 +213,99 @@ if($sendToSTAN and $conn and isset($networkStat['scoreStatistics'][0]['epoch']))
 {
 	$enum = $networkStat['scoreStatistics'][0]['epoch'];
 
+	// --- SOL founds--- //
+	$query = "
+		SELECT 
+		    MAX(solutionsFound) AS found,
+		    alias
+		FROM $curTABLE
+		WHERE epoch='$enum'
+		GROUP BY alias
+	";
+
+	$solFoundsDB = [];
+	$sql 	= mysqli_query($conn, $query) or die(mysqli_error($conn));
+	while($row = mysqli_fetch_assoc($sql))
+	{
+		if(str_contains($row['alias'], '.'))
+		{
+			$ex_miner 	= explode(".", $row['alias']);
+		}
+		if(str_contains($row['alias'], '___'))
+		{
+			$ex_miner 	= explode("___", $row['alias']);
+		}
+
+		if(!isset($solFoundsDB[$ex_miner[0]]))
+		{
+		    $solFoundsDB[$ex_miner[0]] = 0;
+		}
+		$solFoundsDB[$ex_miner[0]] += $row['found'];
+	}
+	
 	// ------ //
 	$query = "
 		SELECT 
 		    DISTINCT DATE_FORMAT(time, '%Y-%m-%d %H:%i') AS unique_minutes,
 		    alias, hashrate
-		FROM hashrates
+		FROM $curTABLE
 		WHERE epoch='$enum' AND isActive=1
 		ORDER BY unique_minutes DESC
 	";
+	//  AND DATE(time) > '".date("Y-m-d", strtotime("-1 day"))."'
+
 	$newArr = [];
 	$sql 	= mysqli_query($conn, $query) or die(mysqli_error($conn));
 	while($row = mysqli_fetch_assoc($sql)) {
-		$newArr[$row['unique_minutes']][$row['alias']] = $row['hashrate'];
+		$newArr[$row['unique_minutes']][] = ['alias' => $row['alias'], 'hashrate' => $row['hashrate']];
 	}
 
 	$count 	= count($newArr);
 	$totals = [];
 
-	foreach ($newArr as $timestamp => $values)
+	foreach ($newArr as $timestamp => $arr)
 	{
-		foreach($values as $user => $value)
+		if(!isset($lastRowTime)){$lastRowTime = $timestamp;}
+
+		foreach($arr as $userdata)
 		{
-			if(!isset($totals[$user]))
+			if(!isset($totals[$userdata['alias']]))
 			{
-			    $totals[$user] = 0;
+			    $totals[$userdata['alias']] = 0;
 			}
-			$totals[$user] 	+= $value > 0 ? $value : $last[$user]??0;			
-			if($value > 0){$last[$user] = $value;}
+			$totals[$userdata['alias']] += $userdata['hashrate'];			
+			if($userdata['hashrate'] > 0){$last[$userdata['alias']] = $userdata['hashrate'];}
 		}
 	}
+
 	$prep = [];
 	foreach ($totals as $user => $total)
 	{
-		$expl = explode(".", $user);
-
-		if(!isset($prep[$expl[0]]))
+		if(str_contains($user, '.'))
 		{
-			$prep[$expl[0]] = 0;
+			$ex_miner 	= explode(".", $user);
 		}
-		$prep[$expl[0]] += $total / $count;
-	}
+		if(str_contains($user, '___'))
+		{
+			$ex_miner 	= explode("___", $user);
+		}
 
+		if(!isset($prep[$ex_miner[0]]))
+		{
+			$prep[$ex_miner[0]] = 0;
+		}
+		$prep[$ex_miner[0]] += $total / $count;
+	}
 	foreach ($prep as $u => $h)
 	{
-		$correctedAVG[$u] = round($h, 2);
+		$correctedAVG[$u] = round($h, 3);
 	}
 
 	if(!isset($_POST['qubic_token']))
 	{
 		echo '<h3>table</h3>';
 		echo '<pre>';
-		print_r($correctedAVG);
+		print_r($correctedAVG); // $solFounds, $correctedAVG
 		echo '</pre>';
 
 		exit;
@@ -334,8 +378,11 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 			{
 				$enum 		= $networkStat['scoreStatistics'][0]['epoch'];
 				$isActive 	= $miner['isActive']? 1:0;
-				$query 		= "INSERT INTO hashrates SET alias='$miner[alias]', hashrate='$miner[currentIts]', isActive='$isActive', epoch='$enum'";
-				mysqli_query($conn, $query) or die(mysqli_error($conn));
+				$query 		= "INSERT INTO $curTABLE SET alias='$miner[alias]', hashrate='$miner[currentIts]', isActive='$isActive', epoch='$enum', solutionsFound='$miner[solutionsFound]'";
+				if($insertDB)
+				{
+					mysqli_query($conn, $query) or die(mysqli_error($conn));
+				}
 			}
 
 		}
@@ -363,7 +410,7 @@ if(isset($GetMiner['miners']) and count($GetMiner['miners']) > 0)
 
 		foreach($rep as $h => $u)
 		{
-			$perc 			= round($h / array_sum($correctedAVG) * 100, 2);
+			$perc 			= round($h / array_sum($correctedAVG) * 100, 3);
 			$h_per_user 	.= "$u   $h    $perc%\n";
 		}
 
@@ -421,6 +468,9 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 		In this epoch, you received: <b>" . number_format($curSolPrice * $totalSolutions, 2) . "$</b>";
 	}
 
+	$scrollMessage = '<div class="alert alert-danger text-center" role="alert"><h3>Тестовая информация!!!</h3></div>';
+	$scrollMessage = '';
+
 	$arr = [
 		'time' => time(),
 		'body' => $bd, 
@@ -432,11 +482,16 @@ if(isset($networkStat['scoreStatistics'][0]['epoch']) and isset($networkStat['es
 		'totalIts' => $totalIts,
 		'epochNumber' => $epochNumber,
 		'netHashrate' => $netHashrate,
+		'netAvgScores' => $netAvgScores,
+		'netSolsPerHour' => $netSolsPerHour,
 		'AVG' => $correctedAVG,
 		'AVG_sum' => array_sum($correctedAVG),
+		'solFoundsDB' => $solFoundsDB,
 		'curSolPrice' => $curSolPrice,
 		'qubicPrice' => number_format($qubicPrice, 8),
-		'last_SOL_time' => $_SESSION['last_SOL_time']??0
+		'last_SOL_time' => $_SESSION['last_SOL_time']??0,
+		'lastRowTime' => isset($lastRowTime) ? strtotime($lastRowTime) : 0,
+		'infoScroll' => $scrollMessage
 	];
 
 	if(isset($_POST['qubic_token']))
